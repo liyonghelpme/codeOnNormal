@@ -24,6 +24,7 @@ import hashlib
 import copy
 import httplib
 import json
+from war import WarController
 __all__ = ['RootController']
 
 
@@ -42,7 +43,10 @@ class RootController(BaseController):
 
     """
     secc = SecureController()
-    
+    newwar = WarController()
+    @expose('json')
+    def default(self, func, **args)
+        return redirect(url('newwar/'+func, args))
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表

@@ -23,3 +23,7 @@ import copy
 import httplib
 import json
 __all__ = ['WarController']
+class WarController(BaseController):
+    @expose('json')
+    def find(self, hero)
+        return dict(data=hero)
