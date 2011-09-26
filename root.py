@@ -2885,10 +2885,9 @@ class RootController(BaseController):
             try:
                 ally=DBSession.query(Ally).filter_by(uid=user.userid)
                 for a in ally :
-                    #papaya=DBSession.query(operationalData).filter_by(userid=a.fid).one()
                     papaya=checkopdata(a.fid)#cache
                     lisa.append(papaya.otherid)
-                    lisa.append(papaya.nobility+3*papaya.subno)
+                    lisa.append(papaya.nobility*3+papaya.subno)
                     
             except InvalidRequestError:
                 lisa=[]
