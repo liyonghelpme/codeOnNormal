@@ -3595,7 +3595,7 @@ class RootController(BaseController):
         min = calev(u, vic)
         u.subno = min[0]
         nob = u.nobility * 3 + u.subno
-        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1]) 
+        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn =u.corn, cae=u.cae, inf=u.infantrypower, cav=u.cavalrypower) 
     def getresource(kill,u,type):#type=0进攻胜利，1进攻失败，2防御胜利，3防御失败
         bonusstring=''
         k=random.randint(1,100)
