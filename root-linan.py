@@ -3447,12 +3447,6 @@ class RootController(BaseController):
                 u.cae=u.cae-2
                 u.protecttype=type
                 u.protecttime=ti
-                #try:
-                #    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                #    for atx in at:
-                #        atx.timeneed=atx.timeneed-(ti-atx.left_time)+7200
-                #except InvalidRequestError:
-                #    x=0
             else:
                 return dict(id=0)
         elif type==1:
@@ -3460,12 +3454,6 @@ class RootController(BaseController):
                 u.cae=u.cae-5
                 u.protecttype=type
                 u.protecttime=ti
-                try:
-                    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                    for atx in at:
-                        atx.timeneed=atx.timeneed-(ti-atx.left_time)+28800
-                except InvalidRequestError:
-                    x=0                
             else:
                 return dict(id=0)
         else:
@@ -3473,12 +3461,6 @@ class RootController(BaseController):
                 u.cae=u.cae-10
                 u.protecttype=type
                 u.protecttime=ti
-                try:
-                    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                    for atx in at:
-                        atx.timeneed=atx.timeneed-(ti-atx.left_time)+86400
-                except InvalidRequestError:
-                    x=0                
             else:
                 return dict(id=0)
         return dict(id=1)  
@@ -3630,7 +3612,7 @@ class RootController(BaseController):
         min = calev(u, vic)
         u.subno = min[0]
         nob = u.nobility*3 + u.subno
-        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1]) 
+        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
     def callost(poweru,powere,poweruu,poweree,type):#poweru，powere为加成后兵力，poweruu，poweree为原始战斗力
         lost=[0,0]
         constu=0
