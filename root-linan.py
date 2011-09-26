@@ -3133,6 +3133,7 @@ class RootController(BaseController):
             v=DBSession.query(Victories).filter_by(uid=userid).one()
             #need how many to upgrade 
             min = calev(u, v)
+            print "cur minus" + str(min[1])
             if min[1] > 0:
                 print "need more ene to defeat"
                 return dict(id = 0)
@@ -3171,6 +3172,7 @@ class RootController(BaseController):
             u.subno=0
             replacecache(userid,u)#cache
             min = calev(u, v)
+            print "need minus" + str(min[1])
             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
         except InvalidRequestError:
             return dict(id=0)
