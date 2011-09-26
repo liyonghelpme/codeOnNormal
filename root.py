@@ -908,23 +908,6 @@ class RootController(BaseController):
             return u
         except:
             return None       
-    def checkopdata2(uid):
-        ul=mc.get(str(uid))
-        #if ul!=None and ul[1]>=CACHEOP:
-        #    cachewriteback(uid)#将cache中内容写回数据库
-        #    deleteopdata(uid)#删除cache中对应对象
-        #    u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
-        #    uli=[u,0]
-        #    mc.add(str(uid),uli)
-        #    return uli[0]            
-        if ul==None:
-            u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
-            uli=[u,0]
-            mc.add(str(uid),uli)
-            return uli[0]
-        ul[1]=ul[1]+1
-        mc.replace(str(uid),ul)
-        return ul[0]
     def replacecache(uid,u):#将新值写入cache，与checkopdata成对使用
         return 1
         #ul=mc.get(str(uid))
@@ -3448,12 +3431,6 @@ class RootController(BaseController):
                 u.cae=u.cae-2
                 u.protecttype=type
                 u.protecttime=ti
-                #try:
-                #    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                #    for atx in at:
-                #        atx.timeneed=atx.timeneed-(ti-atx.left_time)+7200
-                #except InvalidRequestError:
-                #    x=0
             else:
                 return dict(id=0)
         elif type==1:
@@ -3461,14 +3438,6 @@ class RootController(BaseController):
                 u.cae=u.cae-5
                 u.protecttype=type
                 u.protecttime=ti
-				"""
-                try:
-                    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                    for atx in at:
-                        atx.timeneed=atx.timeneed-(ti-atx.left_time)+28800
-                """
-				except InvalidRequestError:
-                    x=0                
             else:
                 return dict(id=0)
         else:
@@ -3476,14 +3445,6 @@ class RootController(BaseController):
                 u.cae=u.cae-10
                 u.protecttype=type
                 u.protecttime=ti
-                """
-				try:
-                    at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
-                    for atx in at:
-                        atx.timeneed=atx.timeneed-(ti-atx.left_time)+86400
-                """
-				except InvalidRequestError:
-                    x=0                
             else:
                 return dict(id=0)
         return dict(id=1)  

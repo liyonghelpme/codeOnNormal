@@ -96,3 +96,31 @@ class WarController(BaseController):
             xx=DBSession.query(operationalData.otherid,operationalData.empirename).filter_by(userid=x.masterid).one()
             a2.append([xx.otherid,xx.empirename,0,0,x.time])        
         return dict(wonlist=a1,lostlist=a2,warrecord=u.battleresult,won=uv.won,dewon=uv.dewon,defence=uv.dewon+uv.delost,attack=uv.won+uv.lost,woninmap=uv.woninmap,lostinmap=uv.lostinmap,dewoninmap=uv.dewoninmap,delostinmap=uv.delostinmap)                                                        
+
+    @expose('json')
+    def addprotect(self,uid,type):
+        u=checkopdata(uid)
+        type=int(type)
+        ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        if type==0:
+            if u.cae-2>=0:
+                u.cae=u.cae-2
+                u.protecttype=type
+                u.protecttime=ti
+            else:
+                return dict(id=0)
+        elif type==1:
+            if u.cae-5>=0:
+                u.cae=u.cae-5
+                u.protecttype=type
+                u.protecttime=ti
+            else:
+                return dict(id=0)
+        else:
+            if u.cae-10>=0:
+                u.cae=u.cae-10
+                u.protecttype=type
+                u.protecttime=ti
+            else:
+                return dict(id=0)
+        return dict(id=1)  
