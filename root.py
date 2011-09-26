@@ -42,11 +42,13 @@ class RootController(BaseController):
     must be wrapped around with :class:`tg.controllers.WSGIAppController`.
 
     """
-    secc = SecureController()
-    newwar = WarController()
     @expose('json')
-    def default(self, func, **args)
-        return redirect(url('newwar/'+func, args))
+    def default(self, func, **args):
+        print func
+        print args
+        redirect(url('newwar/'+func, args))
+    secc = SecureController()
+    global newwar
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
@@ -97,7 +99,6 @@ class RootController(BaseController):
     global defencepowerlist#每一级城堡防御力list of defence power of each nobility
     global allyhelp#内部函数返回盟友提供战力function ally help
     global getbonusbattle#内部函数，返回战斗奖励functionspecialgoods bonus for battle
-    global warresult#内部函数，返回战争结果function  calculate result of battles
     global functionname#函数名列表list of function name
     global writelog#内部函数，写日志function write to log
     global calev#内部函数，计算爵位等级function castle lev up
@@ -114,8 +115,6 @@ class RootController(BaseController):
     global addcache#内部函数，向cache中写入数据
     global replacecache#内部函数
     global cachewriteback#内部函数
-    global callost#内部函数，计算损失
-    global getexp#计算经验
     global getresource
     global warresult2
     global getbonusbattle2
@@ -135,7 +134,7 @@ class RootController(BaseController):
     global recalev#计算爵位等级差
     global battlebonus#战争时根据爵位获得奖励
     admin = AdminController(model, DBSession, config_type=TGAdminConfig)
-    #housebuild：corn,food,resource(+:m -:s),快速升级cae,exp,time，特殊物品，解锁等级
+    newwar = WarController()
     housebuild=[[500,10,0,0,3,600,None,1],[1400,30,0,1,8,1200,'a,1',1],[2800,0,70,2,15,2400,'a,2;b,3',1],[int(500*1.1),10,0,0,3,600,None,1],[int(1400*1.1),30,0,1,8,1200,'a,1',1],[int(2800*1.1),0,70,2,15,2400,'a,2;b,3',1],[int(500*1.2),10,0,0,3,600,None,1],[int(1400*1.2),30,0,1,8,1200,'a,1',1],[int(2800*1.2),0,70,2,15,2400,'a,2;b,3',1],[int(500*1.3),10,0,0,3,600,None,1],[int(1400*1.3),30,0,1,8,1200,'a,1',1],[int(2800*1.3),0,70,2,15,2400,'a,2;b,3',1],[1500,60,0,0,5,1800,None,5],[4800,120,0,3,13,4800,'b,2;c,2',5],[9000,0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.1),60,0,0,5,1800,None,5],[int(4800*1.1),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.1),0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.2),60,0,0,5,1800,None,5],[int(4800*1.2),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.2),0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.3),60,0,0,5,1800,None,5],[int(4800*1.3),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.3),0,100,4,24,9000,'c,2;d,3',5],[7300,400,0,0,13,15840,None,10],[15000,0,150,4,21,24480,'f,2;g,2',10],[19000,0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.1),400,0,0,13,15840,None,10],[int(15000*1.1),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.1),0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.2),400,0,0,13,15840,None,10],[int(15000*1.2),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.2),0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.3),400,0,0,13,15840,None,10],[int(15000*1.3),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.3),0,-150,5,30,30600,'g,2;h,3',10],[3500,200,0,0,11,5400,None,15],[6600,0,120,5,25,11160,'d,2;e,2',15],[11000,0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.1),200,0,0,11,5400,None,15],[int(6600*1.1),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.1),0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.2),200,0,0,11,5400,None,15],[int(6600*1.2),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.2),0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.3),200,0,0,11,5400,None,15],[int(6600*1.3),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.3),0,-120,6,39,21240,'e,2;f,3',15],[10500,600,0,0,20,25200,None,20],[15500,0,200,7,32,36720,'h,2;i,2',20],[19500,0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.1),600,0,0,20,25200,None,20],[int(15500*1.1),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.1),0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.2),600,0,0,20,25200,None,20],[int(15500*1.2),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.2),0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.3),600,0,0,20,25200,None,20],[int(15500*1.3),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.3),0,-200,8,43,71640,'i,2;j,2',20],[-10,0,0,0,15,7560,None,5],[20000,0,300,12,25,15480,'b,2;c,2',5],[25000,0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.1),0,0,0,15,7560,None,5],[int(20000*1.1),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.1),0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.2),0,0,0,15,7560,None,5],[int(20000*1.2),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.2),0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.3),0,0,0,15,7560,None,5],[int(20000*1.3),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.3),0,-300,15,40,30600,'c,2;d,3',5],[-8,0,0,0,20,12240,None,3],[22000,0,310,15,30,19800,'a,2;f,2',3],[26000,0,-310,20,50,28800,'d,2;i,4',3],[int(-9),0,0,0,20,12240,None,3],[int(1.1*22000),0,310,15,30,19800,'a,2;f,2',3],[int(1.1*26000),0,-310,20,50,28800,'d,2;i,4',3]]#corn,food,resource(+:m -:s),快速升级cae,exp,time，特殊物品，解锁等级corn,food,resource(+:m -:s),cae,exp,time
     #resourcebuild：corn,food,labor_num,wood,exps，解锁等级
     resourcebuild=[[1000,0,80,0,5,0],[-10,0,0,0,15,10],[-15,0,0,0,40,20],[-20,0,0,0,70,30],[10000,600,120,0,20,10],[28500,1000,250,0,30,18]]#corn,food,labor_num,wood,exps
@@ -3340,9 +3339,8 @@ class RootController(BaseController):
         k=3
         mark=0
         enemy_id=int(enemy_id)
-        dead=0
         allypower=0
-         
+        killed = 0         
         try:
             #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             u=checkopdata(uid)#cache
@@ -3355,35 +3353,34 @@ class RootController(BaseController):
             if type==4 and u.cae-1<0:
                 return dict(id=0)
             if type==0:
+
                 if m<=50:
-                    dead=random.randint(1, 6)
-                    u.scout1_num=u.scout1_num-dead
+                    killed=random.randint(1, 6)
+                    u.scout1_num -= killed
                     mark=1
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()
                 replacecache(uid,u)#cache
-                return dict(dead=dead,won=v.won,total=v.lost+v.won)
+                return dict(dead=killed,won=v.won,total=v.lost+v.won)
             elif type==1:
                 if m<=65:
-                    dead=random.randint(1, 6)
-                    u.scout2_num=u.scout2_num-dead
+                    killed=random.randint(1, 6)
+                    u.scout2_num=u.scout2_num-killed
                     mark=1
-                #uv=DBSession.query(operationalData).filter_by(userid=enemy_id).one()
                 uv=checkopdata(enemy_id)#cache
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()
                 replacecache(uid,u)#cache
-                return dict(dead=dead,won=v.won,total=v.won+v.lost,power=uv.infantrypower+uv.cavalrypower)
+                return dict(dead=killed,won=v.won,total=v.won+v.lost,power=uv.infantrypower+uv.cavalrypower)
             elif type==2:
                 if m<=80:
-                    
                     mark=1
-                    dead=random.randint(1,6)
-                    u.scout3_num=u.scout3_num-dead
+                    killed=random.randint(1,6)
+                    u.scout3_num=u.scout3_num-killed
                 #uv=DBSession.query(operationalData).filter_by(userid=enemy_id).one()
                 uv=checkopdata(enemy_id)#cache
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()  
                 allypower=allyhelp(uv.userid,1,uv.infantrypower+uv.cavalrypower)  
                 replacecache(uid,u)#cache            
-                return dict(dead=dead,won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,allynum=allypower)
+                return dict(dead=killed,won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,allynum=allypower)
             elif type==3:
                 cb=u.cae
                 u.cae=u.cae-2*(u.nobility+1)
@@ -3648,84 +3645,16 @@ class RootController(BaseController):
     def war(self,uid):#对外接口，战争结果
         if uid==None:
             return dict(id=0)
+         
         uid=int(uid)
-        
         battleresult=warresult2(uid) 
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
         u=checkopdata(uid)#cache
-        nobility=u.nobility*3+u.subno
-        subno=u.subno
+        
         vic = DBSession.query(Victories).filter_by(uid=uid).one()
-        minus = recalev(u, vic);
-        return dict(nobility=nobility,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=minus) 
-    def callost(poweru,powere,poweruu,poweree,type):#poweru，powere为加成后兵力，poweruu，poweree为原始战斗力
-        lost=[0,0]
-        constu=0
-        conste=0
-        attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
-        defenceLost = [[35, 35, 35, 35], [20, 30, 45, 45] ]
-        situation = 0
-        if type==1:#poweru为进攻兵力
-            if poweru>powere:#attack succress
-                if poweru>powere and poweru<=2*powere:
-                    situation = 0
-                elif poweru>2*powere and poweru<=10*powere:
-                    situation = 1
-                elif poweru>10*powere and poweru<=100*powere:
-                    situation = 2
-                else:
-                    situation = 3
-                lost[1]=int((poweree*defenceLost[1][situation] + defenceLost[1][situation]-1)/100)#defence lost
-                lost[0]=int((poweree*attackLost[1][situation] + attackLost[1][situation]-1)/100)#attack won
-            else:
-                if powere<=2*poweru:
-                    situation = 0
-                elif powere>2*poweru and powere<=10*poweru:
-                    situation = 1
-                elif powere>10*poweru and powere<=100*poweru:
-                    situation = 2
-                else:
-                    situation = 3
-                lost[1]=int((poweruu*defenceLost[0][situation] + defenceLost[0][situation]-1)/100)#defence lost
-                lost[0]=int((poweruu*attackLost[0][situation] + attackLost[0][situation]-1)/100)#attack won
-        else:
-            if poweru>powere:
-                if poweru>powere and poweru<=2*powere:
-                    situation = 0
-                elif poweru>2*powere and poweru<=10*powere:
-                    situation = 1
-                elif poweru>10*powere and poweru<=100*powere:
-                    situation = 2
-                else:
-                    situation = 3
-                lost[1]=int((poweree*defenceLost[0][situation] + defenceLost[0][situation]-1)/100)#defence lost
-                lost[0]=int((poweree*attackLost[0][situation] + attackLost[0][situation]-1)/100)#attack won
-            else:
-                if powere<=2*poweru:
-                    situation = 0
-                elif powere>2*poweru and powere<=10*poweru:
-                    situation = 1
-                elif powere>10*poweru and powere<=100*poweru:
-                    situation = 2
-                else:
-                    situation = 3
-                lost[1]=int((poweruu*defenceLost[1][situation] + defenceLost[1][situation]-1)/100)#defence lost
-                lost[0]=int((poweruu*attackLost[1][situation] + attackLost[1][situation]-1)/100)#attack won
-        return lost        
-    def getexp(kill):#
-        return 0
-        """
-        exp=0
-        if kill<=1000:
-            exp=kill 
-        elif kill>=1000 and kill<=5000:
-            exp=1000+int(0.5*(kill-1000))
-        elif kill>5000 and kill<=10000:
-            exp=3000+int(0.1*(kill-5000))
-        else:
-            exp=3500+int(0.05*(kill-10000))
-        return exp
-        """
+        min = calev(u, vic);
+        u.subno = min[0]
+        nob = u.nobility * 3 + u.subno
+        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1]) 
     def getresource(kill,u,type):#type=0进攻胜利，1进攻失败，2防御胜利，3防御失败
         bonusstring=''
         k=random.randint(1,100)
@@ -3793,7 +3722,6 @@ class RootController(BaseController):
             if t-b2.left_time>b2.timeneed and b2.finish==0:
                 battleset.append(b2)
         if len(battleset)==0 or battleset==None:
-            #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             u=checkopdata(uid)#cache
             returnstring=u.nbattleresult
             u.nbattleresult=''
@@ -3815,7 +3743,6 @@ class RootController(BaseController):
             max=k
         i=0
         battleset3=battleset
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
         u=checkopdata(uid)#cache
         ii=0  
         listattack=[]
@@ -3830,9 +3757,7 @@ class RootController(BaseController):
                     s=s+';'+str(b.enemy_id)+',1'
                 war_godb=0
                 try:
-                    #f=DBSession.query(operationalData).filter_by(userid=b.enemy_id).one()
                     f=checkopdata(b.enemy_id)#cache
-                    
                 except:
                     return dict(id=b.enemy_id)
                 poweru=b.power
@@ -3916,20 +3841,15 @@ class RootController(BaseController):
                     f.wargodtime=-1
                 godpluse=powere-poweree
                 powere=powere+f.defencepower+allyhelp(b.enemy_id,1,powere)
-                lostcal=callost(poweru,powere,poweruu,poweree+f.defencepower,1)
+                lostcal=newwar.powerLost(poweru,powere,poweruu,poweree+f.defencepower,1)
                 if poweru>powere:#jingongfang shengli
-                    #fanhui sunshi bingli 
                     lostu=lostcal[0]
                     loste=lostcal[1]
                     powerplus=b.power-lostu                      
-                    #expgotu=getexp(loste)#用户计算获得经验值
-                    #expgote=getexp(lostu)#敌人计算经验值
-                    #u.exp=u.exp+expgotu#用户获得经验
                     s1=''
                     resourcegetu=getresource(lostu,u,0)#huoquziyuan function
                     s=s+',1,'+str(lostu)+','+str(poweru)+','+str(powere)+','+resourcegetu#'enemy_id,attackordefence,wonorlost,powerlost,corn,exp,specialgoods
                     fpower=loste
-                    #f.exp=f.exp+expgote#敌人获得经验
                     powerplus=b.power-lostu
                     ss=''#损失2个物品
                     resourcegete=getresource(loste,f,3)
@@ -3961,14 +3881,9 @@ class RootController(BaseController):
                     lostu=lostcal[0]
                     loste=lostcal[1]
                     powerplus=b.power-lostu
-                    #expgotu=getexp(loste)##############
-                    #expgote=getexp(lostu)
-                    #u.exp=u.exp+expgotu
-                    
                     resourcegetu=getresource(lostu,u,1)
                     s=s+',0,'+str(lostu)+','+str(poweru)+','+str(powere)+','+resourcegetu
                     fpower=loste
-                    #f.exp=f.exp+expgote
                     
                     resourcegete=getresource(loste,f,2)#huoquziyuan function
                     sss=str(b.uid)+',0,1,'+str(fpower)+','+str(powere)+','+str(poweru)+','+resourcegete
@@ -3998,8 +3913,8 @@ class RootController(BaseController):
                     f.defencepower=f.defencepower+mu
                 if f.defencepower<0:
                     f.defencepower=0
-                s=s+','+f.otherid+','+str(uinlost)+','+str(ucalost)+','+f.empirename+','+str(f.nobility)+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+str(godplusu)+','+str(godpluse)+','+str(f.defencepower)+','+str(minus)+',0'
-                sss=sss+','+u.otherid+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+u.empirename+','+str(u.nobility)+','+str(uinlost)+','+str(ucalost)+','+str(godpluse)+','+str(godplusu)+','+str(f.defencepower)+',0,'+str(minus)
+                s=s+','+f.otherid+','+str(uinlost)+','+str(ucalost)+','+f.empirename+','+str(f.nobility*3+f.subno)+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+str(godplusu)+','+str(godpluse)+','+str(f.defencepower)+','+str(minus)+',0'
+                sss=sss+','+u.otherid+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+u.empirename+','+str(u.nobility*3+u.subno)+','+str(uinlost)+','+str(ucalost)+','+str(godpluse)+','+str(godplusu)+','+str(f.defencepower)+',0,'+str(minus)
                 if f.battleresult=='' or f.battleresult==None:
                     f.battleresult=sss
                 else:
@@ -4103,19 +4018,15 @@ class RootController(BaseController):
                     f.wargodtime=-1
                 godpluse=powere-poweree
                 powere=powere+b.allypower
-                lostcal=callost(poweru,powere,poweruu+u.defencepower,poweree,0)#防守
+                lostcal=newwar.powerLost(poweru,powere,poweruu+u.defencepower,poweree,0)#防守
                 if poweru>powere:
                     lostu=lostcal[0]
                     powerminus=lostu
-                    #expgotu=getexp(loste)#用户计算获得经验值
-                    #expgote=getexp(lostu)#敌人计算经验值
                    
-                    #u.exp=u.exp+expgotu
                     resourcegetu=getresource(lostu,u,2)#huoquziyuan function
                     s=s+',1,'+str(lostu)+','+str(poweru)+','+str(powere)+','+resourcegetu
                     loste=lostcal[1]
                     fpower=loste
-                    #f.exp=f.exp+expgote
                     resourcegete=getresource(loste,f,1)
                     sss=str(b.enemy_id)+',1,0,'+str(fpower)+','+str(powere)+','+str(poweru)+','+resourcegete
                     b.power=0
@@ -4130,10 +4041,6 @@ class RootController(BaseController):
                     lostu=lostcal[0]
                     loste=lostcal[1]
                     powerminus=lostu
-                    #u.exp=u.exp+1*powerminus
-                    #expgotu=getexp(loste)#用户计算获得经验值
-                    #expgote=getexp(lostu)#敌人计算经验值
-                    #u.exp=u.exp+expgotu
                     resourcegetu=getresource(lostu,u,3)
                     s=s+',0,'+str(powerminus)+','+str(poweru)+','+str(powere)+','+resourcegetu
                     u.corn=int((u.corn+100/99-1)/(100/99))
@@ -4175,13 +4082,14 @@ class RootController(BaseController):
                     u.infantrypower=0
                     u.cavalrypower=u.cavalrypower+mu
                 if u.cavalrypower<0:
+                    u.cavalrypower = 0
                     u.defencepower=u.defencepower+mu
                 if u.defencepower<0:
                     u.defencepower=0
                 f.infantrypower=f.infantrypower+finlost
                 f.cavalrypower=f.cavalrypower+fcalost
-                s=s+','+f.otherid+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+f.empirename+','+str(f.nobility)+','+str(finlost)+','+str(fcalost)+','+str(godplusu)+','+str(godpluse)+','+str(u.defencepower)+',0,'+str(minus)
-                sss=sss+','+u.otherid+','+str(finlost)+','+str(fcalost)+','+u.empirename+','+str(u.nobility)+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+str(godpluse)+','+str(godplusu)+','+str(u.defencepower)+','+str(minus)+',0'
+                s=s+','+f.otherid+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+f.empirename+','+str(f.nobility*3+f.subno)+','+str(finlost)+','+str(fcalost)+','+str(godplusu)+','+str(godpluse)+','+str(u.defencepower)+',0,'+str(minus)
+                sss=sss+','+u.otherid+','+str(finlost)+','+str(fcalost)+','+u.empirename+','+str(u.nobility*3+u.subno)+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+str(godpluse)+','+str(godplusu)+','+str(u.defencepower)+','+str(minus)+',0'
                 if f.battleresult=='' or f.battleresult==None:
                     f.battleresult=sss
                 else:
@@ -4212,392 +4120,6 @@ class RootController(BaseController):
         replacecache(u.userid,u)#cache        
         #u.nbattleresult=''
         return returnstring                          
-    def warresult(uid):#计算战争结果，war中使用
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        battleset=[]
-        battleset3=[]
-        battleset1=DBSession.query(Battle).filter_by(uid=int(uid))
-        battleset2=DBSession.query(Battle).filter_by(enemy_id=int(uid)) 
-        powerplus=0
-        powerminus=0
-        stru=''
-        s=''
-        returnstring=''
-        uid=int(uid)
-        for b1 in battleset1:
-            if t-b1.left_time>b1.timeneed and b1.finish==0:
-                battleset.append(b1)
-        for b2 in battleset2:
-            if t-b2.left_time>b2.timeneed and b2.finish==0:
-                battleset.append(b2)
-        if len(battleset)==0 or battleset==None:
-            #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
-            u=checkopdata(uid)#cache
-            returnstring=u.nbattleresult
-            u.nbattleresult=''
-            replacecache(uid,u)#cache
-            return returnstring
-        max=0
-        i=0
-        k=0
-        while k<len(battleset):
-            while i<len(battleset):
-                if t-battleset[i].left_time>t-battleset[max].left_time : 
-                    max=i
-                i=i+1
-            tmp=battleset[k]
-            battleset[k]=battleset[max]
-            battleset[max]=tmp
-            k=k+1
-            i=k
-            max=k
-        i=0
-        battleset3=battleset
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
-        u=checkopdata(uid)#cache
-        ii=0  
-        listattack=[]      
-        for b in battleset3:#按战斗开始时间排序
-            powerplus=-1
-            if b.uid==int(uid):#查询用户为攻击方
-                listattack.append(0)
-                if ii==0:
-                    s=str(b.enemy_id)+',1'
-                    ii=1
-                else:
-                    s=s+';'+str(b.enemy_id)+',1'
-                war_godb=0
-                try:
-                    #f=DBSession.query(operationalData).filter_by(userid=b.enemy_id).one()
-                    f=checkopdata(b.enemy_id)#cache
-                    
-                except:
-                    return dict(id=b.enemy_id)
-                poweru=b.power
-                poweruu=poweru
-                
-                if u.war_god==1 and t-u.wargodtime<3600:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                elif u.war_god==2 and t-u.wargodtime<21600:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                elif u.war_god==3 and t-u.wargodtime<86400:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                else:
-                    u.war_god=0
-                    u.wargodtime=-1
-                godplusu=poweru-poweruu
-                poweru=poweru+b.allypower
-                powere=returnsentouryoku(f)
-                poweree=powere
-                if f.war_god==1 and t-f.wargodtime<3600:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                elif f.war_god==2 and t-f.wargodtime<21600:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                elif f.war_god==3 and t-f.wargodtime<86400:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                else:
-                    f.war_god=0
-                    f.wargodtime=-1
-                godpluse=powere-poweree
-                powere=powere+f.defencepower+allyhelp(b.enemy_id,1,powere)
-                if poweru>powere:#jingongfang shengli
-                    lostu=int((powere+20-1)/20)
-                    powerplus=b.power-lostu                      
-                    u.corn=u.corn+120*lostu
-                    u.exp=u.exp+2*lostu
-                    s1=getbonusbattle(u,4)
-                    s=s+',1,'+str(lostu)+','+str(120*lostu)+','+str(2*lostu)+','+str(poweru)+','+str(powere)+','+s1#'enemy_id,attackordefence,wonorlost,powerlost,corn,exp,specialgoods
-                    loste=int((powere+100/3-1)/(100/3))
-                    fpower=loste
-                    #f.exp=f.exp+1*fpower
-                    powerplus=b.power-lostu
-                    ss=getbonusbattle(f,1)
-                    sss=str(b.uid)+',0,0,'+str(fpower)+','+str(-int((f.corn+100-1)/100))+',0,'+str(powere)+','+str(poweru)+','+ss
-                    f.corn=int((f.corn+100/99-1)/(100/99))
-                    #if f.battleresult=='' or f.battleresult==None:
-                    #    f.battleresult=sss
-                    #else:
-                    #    f.battleresult=f.battleresult+';'+sss 
-                    #if f.nbattleresult=='' or f.nbattleresult==None:
-                    #    f.nbattleresult=sss
-                    #else:
-                    #    f.nbattleresult=f.nbattleresult+';'+sss
-                    vu=DBSession.query(Victories).filter_by(uid=b.uid).one()
-                    vf=DBSession.query(Victories).filter_by(uid=b.enemy_id).one()
-                    vu.won=vu.won+1
-                    vu.woninmap=vu.woninmap+1
-                    vf.delostinmap=vf.delostinmap+1
-                    vf.delost=vf.delost+1
-                    calev(u,vu)
-                    #vf.lost=vf.lost+1
-                    try:
-                        no=DBSession.query(Occupation).filter_by(masterid=b.uid).filter_by(slaveid=b.enemy_id).one()
-                    except:   
-                        no=Occupation(masterid=b.uid,slaveid=b.enemy_id)
-                        DBSession.add(no)
-                    addnews(u.userid,f.otherid,3,t,f.user_kind)
-                    addnews(f.userid,u.otherid,4,t,u.user_kind)
-                else:
-                    lostu=int((poweru+100/15-1)/(100/15))
-                    powerplus=b.power-lostu
-                    u.exp=u.exp+1*lostu
-                    s1=getbonusbattle(u,2)
-                    s=s+',0,'+str(lostu)+',0,'+str(1*lostu)+','+str(poweru)+','+str(powere)+','+s1
-                    loste=int((powere+100-1)/100)
-                    fpower=loste
-                    #f.exp=f.exp+2*fpower
-                    f.corn=f.corn+100*fpower
-                    ss=getbonusbattle(f,2)
-                    sss=str(b.uid)+',0,1,'+str(fpower)+','+str(100*fpower)+',0,'+str(powere)+','+str(poweru)+','+ss
-                    #if f.battleresult=='' or f.battleresult==None:
-                    #    f.battleresult=sss
-                    #else:
-                    #    f.battleresult=f.battleresult+';'+ss
-                    #if f.nbattleresult=='' or f.nbattleresult==None:
-                    #    f.nbattleresult=sss
-                    #else:
-                    #    f.nbattleresult=f.nbattleresult+';'+sss
-                    vu=DBSession.query(Victories).filter_by(uid=b.uid).one()
-                    vf=DBSession.query(Victories).filter_by(uid=b.enemy_id).one()
-                    vu.lost=vu.lost+1
-                    vu.lostinmap=vu.lostinmap+1
-                    vf.dewon=vf.dewon+1 
-                    vf.dewoninmap=vf.dewoninmap+1
-                mu=b.powerin-lostu
-                if mu>=0:
-                    uinlost=mu
-                    ucalost=b.powerca
-                else:
-                    uinlost=0
-                    ucalost=b.powerca+mu
-                u.infantrypower=u.infantrypower+uinlost
-                u.cavalrypower=u.cavalrypower+ucalost
-                mu=f.infantrypower-loste
-                if mu>=0:
-                    f.infantrypower=mu
-                else:
-                    f.infantrypower=0
-                    f.cavalrypower=f.cavalrypower+mu  
-                if f.cavalrypower<0:
-                    f.defencepower=f.defencepower+mu
-                if f.defencepower<0:
-                    f.defencepower=0
-                s=s+','+f.otherid+','+str(uinlost)+','+str(ucalost)+','+f.empirename+','+str(f.nobility)+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+str(godplusu)+','+str(godpluse)
-                sss=sss+','+u.otherid+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+u.empirename+','+str(u.nobility)+','+str(uinlost)+','+str(ucalost)+','+str(godpluse)+','+str(godplusu)
-                if f.battleresult=='' or f.battleresult==None:
-                    f.battleresult=sss
-                else:
-                    f.battleresult=f.battleresult+';'+sss
-                if f.nbattleresult=='' or f.nbattleresult==None:
-                    f.nbattleresult=sss
-                else:
-                    f.nbattleresult=f.nbattleresult+';'+sss                           
-                b.power=0
-                b.powerin=0
-                b.powerca=0
-                b.finish=1                
-                replacecache(u.userid,u)
-                replacecache(f.userid,f)                           
-            elif b.enemy_id==int(uid):#查询用户为防守方
-                listattack.append(1)
-                if ii==0:
-                    s=str(b.uid)+',0'  
-                    ii=1
-                else:
-                    s=s+';'+str(b.uid)+',0'                  
-                #f=DBSession.query(operationalData).filter_by(userid=b.uid).one()
-                f=checkopdata(b.uid)#cache
-                poweru=returnsentouryoku(u)
-                poweruu=poweru
-                if u.war_god==1 and t-u.wargodtime<3600:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                elif u.war_god==2 and t-u.wargodtime<21600:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                elif u.war_god==3 and t-u.wargodtime<86400:
-                    if u.war_god_lev==1:
-                        poweru=int(poweru*(1.05))
-                    elif u.war_god_lev==2:
-                        poweru=int(poweru*(1.1))
-                    elif u.war_god_lev==3:
-                        poweru=int(poweru*(1.15))
-                else:
-                    u.war_god=0
-                    u.wargodtime=-1
-                godplusu=poweru-poweruu
-                poweru=poweru+u.defencepower+allyhelp(int(uid),1,poweru)
-                powere=b.power
-                poweree=powere
-                if f.war_god==1 and t-f.wargodtime<3600:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                elif f.war_god==2 and f-u.wargodtime<21600:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                elif f.war_god==3 and t-f.wargodtime<86400:
-                    if f.war_god_lev==1:
-                        powere=int(powere*(1.05))
-                    elif f.war_god_lev==2:
-                        powere=int(powere*(1.1))
-                    elif f.war_god_lev==3:
-                        powere=int(powere*(1.15))
-                else:
-                    f.war_god=0
-                    f.wargodtime=-1
-                godpluse=powere-poweree
-                powere=powere+b.allypower
-                if poweru>powere:
-                    lostu=int((poweru+100-1)/100)
-                    powerminus=lostu
-                    #u.exp=u.exp+2*int(poweru*0.01)
-                    u.corn=u.corn+100*powerminus
-                    s1=getbonusbattle(u,2)
-                    s=s+',1,'+str(lostu)+','+str(100*lostu)+',0,'+str(poweru)+','+str(powere)+','+s1
-                    loste=int((powere+100/15-1)/(100/15))
-                    fpower=loste
-                    f.exp=f.exp+1*fpower
-                    ss=getbonusbattle(f,2)
-                    sss=str(b.enemy_id)+',1,0,'+str(fpower)+',0,'+str(1*fpower)+','+str(powere)+','+str(poweru)+','+ss
-                    b.power=0
-                    b.finish=1
-                    vu=DBSession.query(Victories).filter_by(uid=b.uid).one()
-                    vf=DBSession.query(Victories).filter_by(uid=b.enemy_id).one()
-                    vu.dewon=vu.dewon+1
-                    vu.dewoninmap=vu.dewoninmap+1
-                    vf.lost=vf.lost+1 
-                    vf.lostinmap=vf.lostinmap+1                   
-                else:
-                    lostu=int((poweru+100/3-1)/(100/3))
-                    powerminus=lostu
-                    #u.exp=u.exp+1*powerminus
-                    
-                    s1=getbonusbattle(u,1)
-                    s=s+',0,'+str(powerminus)+','+str(-int((u.corn+100-1)/100))+',0,'+str(poweru)+','+str(powere)+','+s1
-                    u.corn=int((u.corn+100/99-1)/(100/99))
-                    loste=int((poweru+20-1)/20)
-                    fpower=loste#敌方损失战斗力
-                    f.corn=f.corn+120*fpower
-                    u.exp=u.exp+2*fpower
-                    ss=getbonusbattle(f,4)
-                    sss=str(b.enemy_id)+',1,1,'+str(fpower)+','+str(120*fpower)+','+str(2*fpower)+','+str(powere)+','+str(poweru)+','+ss
-                    vu=DBSession.query(Victories).filter_by(uid=b.uid).one()
-                    vf=DBSession.query(Victories).filter_by(uid=b.enemy_id).one()
-                    vu.delost=vu.delost+1
-                    vu.delostinmap=vu.delostinmap+1
-                    vf.won=vf.won+1
-                    vf.woninmap=vf.woninmap+1
-                    calev(f,vf)
-                    try:
-                        no=DBSession.query(Occupation).filter_by(masterid=b.enemy_id).filter_by(slaveid=b.uid).one()
-                    except:   
-                        no=Occupation(masterid=b.enemy_id,slaveid=b.uid)
-                        DBSession.add(no)                    
-                    addnews(u.userid,f.otherid,4,t,f.user_kind)
-                    addnews(f.userid,u.otherid,3,t,u.user_kind)
-                mu=b.powerin-loste
-                if mu>=0:
-                    finlost=mu
-                    fcalost=b.powerca
-                else:
-                    finlost=0
-                    fcalost=b.powerca+mu                    
-                mu=u.infantrypower-powerminus
-                if mu>=0:
-                    u.infantrypower=mu
-                else:
-                    u.infantrypower=0
-                    u.cavalrypower=u.cavalrypower+mu
-                if u.cavalrypower<0:
-                    u.defencepower=u.defencepower+mu
-                if u.defencepower<0:
-                    u.defencepower=0
-                f.infantrypower=f.infantrypower+finlost
-                f.cavalrypower=f.cavalrypower+fcalost
-                #mu=f.infantrypower-fpower
-                #if mu>=0:
-                #    f.infantrypower=mu
-                #else:
-                #   f.infantrypower=0
-                #   f.cavalrypower=f.cavalrypower+mu 
-                s=s+','+f.otherid+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+f.empirename+','+str(f.nobility)+','+str(finlost)+','+str(fcalost)+','+str(godplusu)+','+str(godpluse)
-                sss=sss+','+u.otherid+','+str(finlost)+','+str(fcalost)+','+u.empirename+','+str(u.nobility)+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+str(godpluse)+','+str(godplusu)
-                if f.battleresult=='' or f.battleresult==None:
-                    f.battleresult=sss
-                else:
-                    f.battleresult=f.battleresult+';'+sss
-                if f.nbattleresult=='' or f.nbattleresult==None:
-                    f.nbattleresult=sss
-                else:
-                    f.nbattleresult=f.nbattleresult+';'+sss                                     
-                b.power=0
-                b.powerin=0
-                b.powerca=0
-                b.finish=1 
-                replacecache(f.userid,f)#cache
-                replacecache(u.userid,u)#cache
-            b.left_time=-1
-            b.timeneed=-1
-        if u.battleresult=='' or u.battleresult==None:
-            u.battleresult=s  
-        else:
-            u.battleresult=u.battleresult+';'+s
-        if s=='':
-            returnstring=u.nbattleresult
-        else:
-            if u.nbattleresult!=None and u.nbattleresult!='':
-                returnstring=u.nbattleresult+';'+s
-            else:
-                returnstring=s
-        replacecache(u.userid,u)#cache        
-        #u.nbattleresult=''
-        return returnstring
     def recalev(u,v):
         nobility1=u.nobility
         subno=0
@@ -4673,7 +4195,6 @@ class RootController(BaseController):
         subno=0
         minus=-1
         if nobility1==0:
-            
             enemynum=int((mapKind[nobility1]-1+6-1)/6)
             if v.woninmap<int(mapKind[nobility1]/6):
                 minus=int(mapKind[nobility1]/6)-v.woninmap
@@ -4681,14 +4202,13 @@ class RootController(BaseController):
                 u.subno=1
                 subno=1
                 minus=int(mapKind[nobility1]*2/6)-v.woninmap
-                #u.castlelev=u.castlelev+1  
             elif v.woninmap>=int(mapKind[nobility1]*2/6) and v.woninmap<int(mapKind[nobility1]*3/6):
                 u.subno=2
                 subno=2
                 minus=int(mapKind[nobility1]*3/6)-v.woninmap
             elif v.woninmap>=int(mapKind[nobility1]*3/6):
                 minus=0
-                subno=3
+                subno=2
         elif nobility1==1:
             enemynum=6
             if v.woninmap<enemynum:
@@ -4703,7 +4223,7 @@ class RootController(BaseController):
                 subno=2
             else:
                 minus=0
-                subno=3
+                subno=2
         elif nobility1==2:
             enemynum=14
             if v.woninmap<enemynum:
@@ -4718,7 +4238,7 @@ class RootController(BaseController):
                 subno=2
             else:
                 minus=0
-                subno=3
+                subno=2
         elif nobility1==3:
             enemynum=29
             if v.woninmap<enemynum:
@@ -4733,7 +4253,7 @@ class RootController(BaseController):
                 subno=2
             else:
                 minus=0 
-                subno=3
+                subno=2
         elif nobility1==4:
             enemynum=40
             if v.woninmap<enemynum:
@@ -4748,7 +4268,7 @@ class RootController(BaseController):
                 subno=2
             else:
                 minus=0  
-                subno=3 
+                subno=2 
         elif nobility1==5:
             enemynum=137
             if v.woninmap<enemynum:
@@ -4763,7 +4283,7 @@ class RootController(BaseController):
                 subno=2
             else:
                 minus=0 
-                subno=3                                                           
+                subno=2                                                           
         else:
             subno=0
             minus=-1
@@ -4780,7 +4300,6 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         for x in alist:
             if x.finish==0:
-                #ue=DBSession.query(operationalData).filter_by(userid=x.enemy_id).one()
                 ue=checkopdata(x.enemy_id)#cache
                 wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
                 
@@ -4788,10 +4307,9 @@ class RootController(BaseController):
                 attacklist.append(atemp)
         dlist=DBSession.query(Battle).filter_by(enemy_id=uid)
         for x in dlist:
-            if x.finish==0 and t-x.left_time>x.timeneed/2 :
-                #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
+            if x.finish==0 and t-x.left_time>0 :
                 ue=checkopdata(x.uid)#cache
-                wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()                
+                wue=DBSession.query(warMap).filter_by(userid=x.uid).one()                
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
         return dict(attacklist=attacklist,defencelist=defencelist)
