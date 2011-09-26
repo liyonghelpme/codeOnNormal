@@ -3234,17 +3234,9 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         try:
             f=checkopdata(enemy_id)
-            #timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-           # pType = f.protecttype
-            #endtime = 0
-            
-            #if checkprotect(f)>0:
-            #    pTime = [7200, 28800, 86400]
-            #    endtime = pTime[pType] - (timeNow - f.protecttime) 
-              #  return dict(id=0)
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
-            cae=int((tl+3600-11)/3600)
+            cae=int((tl+3600-1)/3600)
             u=checkopdata(uid)
             
             if u.cae-2*cae>=0:
@@ -3269,7 +3261,6 @@ class RootController(BaseController):
             u=checkopdata(uid)#cache
             f=checkopdata(enemy_id)
             timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-            
             
             if checkprotect(f)>0:
                 pType = f.protecttype
@@ -3908,7 +3899,7 @@ class RootController(BaseController):
                         no.time=b.timeneed+b.left_time
                     except:   
                         no=Occupation(masterid=b.uid,slaveid=b.enemy_id)
-
+                        print "attack suc" + ":" + str(b.uid)+"->"+str(b.enemy_id)
                         DBSession.add(no)
                         c1=DBSession.query('LAST_INSERT_ID()').one()
                         x=DBSession.query(Occupation).filter_by(masterid=b.uid).filter_by(slaveid=b.enemy_id).one()
@@ -4111,7 +4102,8 @@ class RootController(BaseController):
                         no=DBSession.query(Occupation).filter_by(masterid=b.enemy_id).filter_by(slaveid=b.uid).one()
                         no.time=b.timeneed+b.left_time
                     except:   
-                        no=Occupation(masterid=b.enemy_id,slaveid=b.uid)            
+                        no=Occupation(masterid=b.uid,slaveid=b.enemy_id)            
+                        print "defence fail" + str(b.uid)+"->"+str(b.enemy_id)
                         DBSession.add(no)    
                         c1=DBSession.query('LAST_INSERT_ID()').one()
                         x=DBSession.query(Occupation).filter_by(masterid=b.enemy_id).filter_by(slaveid=b.uid).one()
