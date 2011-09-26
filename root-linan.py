@@ -3248,6 +3248,10 @@ class RootController(BaseController):
                 return dict(id=0)
         except:
             return dict(id=0)
+    #check if attack in battle 1
+    #if occupy yet 2
+    #if ene in protect state
+
     @expose('json')
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
@@ -3256,13 +3260,24 @@ class RootController(BaseController):
         infantry=int(infantry)
         cavalry=int(cavalry)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+
+        try:
+            occupy = DBSession.query(Occupation).filter_by(masterid=uid).filter_by(slaveid=enemy_id).one()
+            print "you occupy him"
+            return dict(id = 0, status = 2)
+        except:
+            print "no occupy data"
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
+            if ub.finish != 1:
+                return dict(id = 0, status = 1)
+
             u=checkopdata(uid)#cache
             f=checkopdata(enemy_id)
             timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
             
             if checkprotect(f)>0:
+                print "target in protect"
                 pType = f.protecttype
                 pTime = [7200, 28800, 86400]
                 endt = pTime[pType] + f.protecttime
@@ -3279,23 +3294,8 @@ class RootController(BaseController):
             allypower=allyhelp(uid,0,infantry+cavalry)
             ub.allypower=allypower
             u.signtime=0
-            #if u.protecttime>0:#进攻时，取消保护
             u.protecttime=-1
             u.protecttype=-1
-                
-                #try:
-                    #xb=DBSession.query(Battle).filter_by(enemy_id=u.userid).all()
-                    #for x in xb:#消除保护以后，把其保护时间减去
-                     #   if u.protecttype==0:
-                     #       x.timeneed=x.timeneed-(7200-(t-u.protecttime))
-                     #   elif u.protecttype==1:
-                     #       x.timeneed=x.timeneed-(28800-(t-u.protecttime)) 
-                    #    else:
-                     #       x.timeneed=x.timeneed-(86400-(t-u.protecttime)) 
-                #    u.protecttime=-1
-                 #   u.protecttype=-1
-                #except InvalidRequestError:
-                 #   x=0
             print 'normal battle information' + str(uid)
             replacecache(uid,u)#cache
             return dict(id=1)   
