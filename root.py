@@ -3342,7 +3342,6 @@ class RootController(BaseController):
         allypower=0
         killed = 0         
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             u=checkopdata(uid)#cache
             scout=returnscout(u)
             m=random.randint(1,100)
@@ -3545,45 +3544,33 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-                fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.meritrank<21).order_by(Rank.meritrank).all()
-                fll=[]
+                fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
                 for n in fl:
-                    fll.append(n[0])
-                rank1=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter(operationalData.userid.in_(fll)).all()
+                   one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
                 return dict(rank=rank1)
-                for n in rank1:
-                    rank2.append([n.userid,n.otherid,n.cae,n.corn,n.lev])
-                if rank2==None or len(rank2)==0:
-                    return dict(id=0)   
-                i=len(rank2)-1-off
-                l1=len(rank2)-1-off-num
-                if l1<0:
-                    l1=0
-                while i>l1:
-                    rank3.append(rank2[i])
-                    i=i-1                    
-                return dict(rank=rank3)
             else:
                 fl=DBSession.query(Papayafriend.papayaid).filter_by(uid=int(uid)).all()
                 fll=[]
+				one=[]
                 flll=[]
                 rank2=[]
                 for n in fl:
                     fll.append(n[0])
+                otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
+                fll.append(otherid)
                 rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
                 for n in rank1:
-                    flll.append(n[0])
-                rank2=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter(operationalData.userid.in_(flll)).all()
-                
+                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    rank2.append(one) 
                 if rank2==None or len(rank2)==0:
-                    return dict(rank1=rank1,id=0,flll=flll,fll=fll,fl=fl)   
-                i=len(rank2)-1-off
-                l1=len(rank2)-1-off-num
-                if l1<0:
-                    l1=0
-                while i>l1:
+                    return dict(id=0)
+                i = off - 1
+                j = off + num - 2
+                if j >= len(rank2)-1:
+                    j=len(rank2)-1
+                while i <= j:
                     rank3.append(rank2[i])
-                    i=i-1                    
+                    i += 1                   
                 return dict(rank=rank3)                  
         except InvalidRequestError:
             return dict(id=0)        
@@ -3600,44 +3587,32 @@ class RootController(BaseController):
             if type==0:
                 fl=[]
                 fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
-                fll=[]
+				one=[]
                 for n in fl:
-                    fll.append(n[0])
-                rank1=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter(operationalData.userid.in_(fll)).all()
+                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter_by(userid=int(n[0])).one()
+                    rank1.append(one)
                 return dict(rank=rank1)
-                for n in rank1:
-                    rank2.append([n.userid,n.otherid,n.cae,n.corn,n.lev])
-                if rank2==None or len(rank2)==0:
-                    return dict(id=0)   
-                i=len(rank2)-1-off
-                l1=len(rank2)-1-off-num
-                if l1<0:
-                    l1=0
-                while i>l1:
-                    rank3.append(rank2[i])
-                    i=i-1                    
-                return dict(rank=rank3)
             else:
                 fl=DBSession.query(Papayafriend.papayaid).filter_by(uid=int(uid)).all()
                 fll=[]
                 flll=[]
                 rank2=[]
                 for n in fl:
-                    fll.append(n[0])
+                otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
+                fll.append(otherid)
                 rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
                 for n in rank1:
-                    flll.append(n[0])
-                rank2=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter(operationalData.userid.in_(flll)).all()
-                
+                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    rank2.append(one)
                 if rank2==None or len(rank2)==0:
-                    return dict(rank1=rank1,id=0,flll=flll,fll=fll,fl=fl)   
-                i=len(rank2)-1-off
-                l1=len(rank2)-1-off-num
-                if l1<0:
-                    l1=0
-                while i>l1:
-                    rank3.append(rank2[i])
-                    i=i-1                    
+                    return dict(id=0)
+                i = off - 1#the index of begin
+                j = off + num - 2#the index of end
+                if j >= len(rank2)-1:
+                    j=len(rank2)-1
+                while i <= j:
+                     rank3.append(rank2[i])
+					 i += 1
                 return dict(rank=rank3)                  
         except InvalidRequestError:
             return dict(id=0)                
@@ -3651,7 +3626,7 @@ class RootController(BaseController):
         u=checkopdata(uid)#cache
         
         vic = DBSession.query(Victories).filter_by(uid=uid).one()
-        min = calev(u, vic);
+        min = calev(u, vic)
         u.subno = min[0]
         nob = u.nobility * 3 + u.subno
         return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1]) 
