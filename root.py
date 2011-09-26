@@ -4131,6 +4131,7 @@ class RootController(BaseController):
                 minus=0                                                            
 
         return minus
+    #new comer minus = -1
     def calev(u,v):#计算爵位等级，在warresult中调用
         nobility1=u.nobility
         subno=0
