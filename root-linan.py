@@ -3126,37 +3126,52 @@ class RootController(BaseController):
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
         try:
+            print "upgrade map"
             userid=int(userid)
-            #u=DBSession.query(operationalData).filter_by(userid=userid).one()
             u=checkopdata(userid)#cache
+            
+            v=DBSession.query(Victories).filter_by(uid=userid).one()
+            #need how many to upgrade 
+            min = calev(u, v)
+            #if min[1] > 0:
+            #    print "need more ene to defeat"
+            #    return dict(id = 0)
+
+            print "update occupy and warmap"
             o=DBSession.query(Occupation).filter_by(masterid=userid)
             p=DBSession.query(warMap).filter_by(userid=userid).one()
-            v=DBSession.query(Victories).filter_by(uid=userid).one()
             
             if u.nobility==NOBILITYUP:
                 return dict(id=0)
+            print "remove all occupy relationship"
             for oo in o:
                 DBSession.delete(oo)
+            
             c=upd(p.mapid,u.nobility+1)
+            
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
             u.food=u.food+nobilitybonuslist[u.nobility][1]
             u.wood=u.wood+nobilitybonuslist[u.nobility][2]
             u.stone=u.stone+nobilitybonuslist[u.nobility][3]
+            
             p.gridid=c[0]
             p.mapid=c[1]
             p.map_kind=p.map_kind+1
+            
             no=u.nobility
             u.allyupbound=u.allyupbound+allyup[no+1]-allyup[no]
-            u.nobility=u.nobility+1
+            u.nobility += 1
+            print "new nobility" + str(u.nobility)
             v.lostinmap=0
             v.woninmap=0
             v.delostinmap=0
             v.dewoninmap=0
+            
             u.battleresult=''
             u.subno=0
             replacecache(userid,u)#cache
-            sub=recalev(u,v)
-            return dict(mapid=p.mapid,gridid=p.gridid,sub=sub)
+            #min = calev(u, v)
+            return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
         except InvalidRequestError:
             return dict(id=0)
     
