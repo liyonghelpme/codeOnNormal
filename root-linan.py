@@ -3238,10 +3238,10 @@ class RootController(BaseController):
            # pType = f.protecttype
             #endtime = 0
             
-            if checkprotect(f)>0:
-             #   pTime = [7200, 28800, 86400]
-              #  endtime = pTime[pType] - (timeNow - f.protecttime) 
-                return dict(id=0)
+            #if checkprotect(f)>0:
+            #    pTime = [7200, 28800, 86400]
+            #    endtime = pTime[pType] - (timeNow - f.protecttime) 
+              #  return dict(id=0)
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
             cae=int((tl+3600-11)/3600)
@@ -4788,8 +4788,6 @@ class RootController(BaseController):
         wartask=None
         userprotect=-1
         try:
-            
-            #u=DBSession.query(operationalData).filter_by(userid=userid).one()
             u=checkopdata(userid)#cache
             if u.nobility<0:
                 mapgrid=newwarmap(u)
