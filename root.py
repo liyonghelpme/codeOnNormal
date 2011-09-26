@@ -3546,12 +3546,12 @@ class RootController(BaseController):
                 fl=[]
                 fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
                 for n in fl:
-                   one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+					one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
                 return dict(rank=rank1)
             else:
                 fl=DBSession.query(Papayafriend.papayaid).filter_by(uid=int(uid)).all()
                 fll=[]
-				one=[]
+                one=[]
                 flll=[]
                 rank2=[]
                 for n in fl:
@@ -3587,7 +3587,7 @@ class RootController(BaseController):
             if type==0:
                 fl=[]
                 fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
-				one=[]
+                one=[]
                 for n in fl:
                     one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter_by(userid=int(n[0])).one()
                     rank1.append(one)
@@ -3598,6 +3598,7 @@ class RootController(BaseController):
                 flll=[]
                 rank2=[]
                 for n in fl:
+                    fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
                 fll.append(otherid)
                 rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
@@ -3611,8 +3612,8 @@ class RootController(BaseController):
                 if j >= len(rank2)-1:
                     j=len(rank2)-1
                 while i <= j:
-                     rank3.append(rank2[i])
-					 i += 1
+                    rank3.append(rank2[i])
+                    i += 1
                 return dict(rank=rank3)                  
         except InvalidRequestError:
             return dict(id=0)                
