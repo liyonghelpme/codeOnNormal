@@ -3461,11 +3461,13 @@ class RootController(BaseController):
                 u.cae=u.cae-5
                 u.protecttype=type
                 u.protecttime=ti
+				"""
                 try:
                     at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
                     for atx in at:
                         atx.timeneed=atx.timeneed-(ti-atx.left_time)+28800
-                except InvalidRequestError:
+                """
+				except InvalidRequestError:
                     x=0                
             else:
                 return dict(id=0)
@@ -3474,11 +3476,13 @@ class RootController(BaseController):
                 u.cae=u.cae-10
                 u.protecttype=type
                 u.protecttime=ti
-                try:
+                """
+				try:
                     at=DBSession.query(Battle).filter_by(enemy_id=int(uid)).filter_by(finish=0).all()
                     for atx in at:
                         atx.timeneed=atx.timeneed-(ti-atx.left_time)+86400
-                except InvalidRequestError:
+                """
+				except InvalidRequestError:
                     x=0                
             else:
                 return dict(id=0)
