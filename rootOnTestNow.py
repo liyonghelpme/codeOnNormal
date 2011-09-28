@@ -3523,10 +3523,10 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-		fl=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
                 one=[]
                 for n in fl:
-		    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
 		    one=list(one)
 		    one.append(n[1])
 		    one.append(n[2])
@@ -3551,7 +3551,7 @@ class RootController(BaseController):
 		rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
                 for n in rank1:
       	            one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
-		    one=list(one)
+                    one=list(one)
 		    one.append(n[1])
 		    one.append(n[2])
 		    one.append(n[3])
@@ -3723,15 +3723,15 @@ class RootController(BaseController):
                 bonusstring='0!'
             #k2=random.randint(10,100)
             if u.nobility<7 and u.subno<3:
-                cornget += battlebonus[u.nobility][u.subno]+kill*100
+                cornget += battlebonus[u.nobility][u.subno]+kill*30
                 #foodget = battlebonus[u.nobility][u.subno]+kill*10
-                u.corn += battlebonus[u.nobility][u.subno]+kill*100
+                u.corn += cornget
                 #u.food += battlebonus[u.nobility][u.subno]+kill*10
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)
         elif type==1:
             bonusstring='0!'
             #k2=random.randint(10,100)
-            cornget=kill*100
+            cornget=kill*25
             #foodget = kill*10
             u.corn += cornget
             #u.food += foodget
@@ -3739,7 +3739,7 @@ class RootController(BaseController):
         elif type==2:
             bonusstring='0!'
             #k2=random.randint(7,75)
-            cornget=kill*75
+            cornget=kill*20
             #foodget=kill*7
             u.corn+=cornget
             #u.food+=foodget
@@ -3748,7 +3748,7 @@ class RootController(BaseController):
             bonusstring='0!'
             #k2=random.randint(5,50)
             cornlost =-int((u.corn+20-1)/20)
-            cornget = kill*50
+            cornget = kill*20
             #foodget = kill*5
             u.corn += cornget+cornlost
             #u.food += foodget
