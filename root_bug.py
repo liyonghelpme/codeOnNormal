@@ -4398,7 +4398,7 @@ class RootController(BaseController):
                 if f.defencepower<0:
                     f.defencepower=0
                 s=s+','+f.otherid+','+str(uinlost)+','+str(ucalost)+','+f.empirename+','+str(f.nobility*3+f.subno)+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+str(godplusu)+','+str(godpluse)
-                sss=sss+','+u.otherid+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+u.empirename+','+str(u.nobility)+','+str(uinlost)+','+str(ucalost)+','+str(godpluse)+','+str(godplusu)
+                sss=sss+','+u.otherid+','+str(f.infantrypower)+','+str(f.cavalrypower)+','+u.empirename+','+str(u.nobility*3+u.subno)+','+str(uinlost)+','+str(ucalost)+','+str(godpluse)+','+str(godplusu)
                 if f.battleresult=='' or f.battleresult==None:
                     f.battleresult=sss
                 else:
@@ -4552,7 +4552,7 @@ class RootController(BaseController):
                 #   f.infantrypower=0
                 #   f.cavalrypower=f.cavalrypower+mu 
                 s=s+','+f.otherid+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+f.empirename+','+str(f.nobility*3+f.subno)+','+str(finlost)+','+str(fcalost)+','+str(godplusu)+','+str(godpluse)
-                sss=sss+','+u.otherid+','+str(finlost)+','+str(fcalost)+','+u.empirename+','+str(u.nobility)+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+str(godpluse)+','+str(godplusu)
+                sss=sss+','+u.otherid+','+str(finlost)+','+str(fcalost)+','+u.empirename+','+str(u.nobility*3+u.subno)+','+str(u.infantrypower)+','+str(u.cavalrypower)+','+str(godpluse)+','+str(godplusu)
                 if f.battleresult=='' or f.battleresult==None:
                     f.battleresult=sss
                 else:
