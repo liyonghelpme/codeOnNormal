@@ -3878,19 +3878,28 @@ class RootController(BaseController):
             attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
             defStr += str(lost[1])+','+str(defFullPow)+','+str(attFullPow)+','+defReward+','+attack.otherid+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+attack.empirename+','+str(attack.nobility*3+attack.subno)+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+str(defGod)+','+str(attGod)+','+str(defence.defencepower)
 
-            if attack.battleresult == '' or attack.battleresult == None:
-                attack.battleresult = attStr
+            if attack.nbattleresult == '' or attack.nbattleresult == None:
+                attack.nbattleresult = attStr
             else:
-                attack.battleresult = attack.battleresult + ';' + attStr
-            if defence.battleresult == '' or defence.battleresult == None:
+                attack.nbattleresult = attack.nbattleresult + ';' + attStr
+            if defence.nbattleresult == '' or defence.nbattleresult == None:
                 defence.battleresult = defStr
             else:
-                defence.battleresult = defence.battleresult + ';' + defStr
+                defence.nbattleresult = defence.nbattleresult + ';' + defStr
             b.finish = 1
 
         #defence fail lost 3% corn
         user = checkopdata(uid)
-        return user.battleresult
+		if user.nbattleresult == '' or user.nbattleresult == None:
+			return ''
+
+		if user.battleresult == '' or user.battleresult == None:
+			user.battleresult = user.nbattleresult
+		else:
+			user.battleresult = user.battleresult + ';' + user.nbattleresult
+		temp = user.nbattleresult
+		user.nbattleresult = ''
+        return temp
     def recalev(u,v):
         nobility1=u.nobility
         subno=0

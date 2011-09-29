@@ -33,6 +33,41 @@ class WarController(BaseController):
     #my total power ene total power pure power  1 attack 0 defence
     #return array
     # my power lost ene power lost
+    
+    won 》 lost then set situation
+    def callost(myFull, eneFull, myPure, enePure, type):
+    	lost = [0, 0]
+    	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
+        defenceLost = [[35, 35, 35, 35], [20, 30, 45, 45] ]
+        attackPow = [myFull, myPure]
+        defencePow = [eneFull, enePure]
+        if type == 0:
+        	attackPow = [eneFull, enePure]
+        	defencePow = [myFull, myPure]
+        attWin = 1
+        winPow = attackPow
+        losePow = defencePow
+        if attackPow[0] < defencePow[0]:
+			attWin = 0
+			winPow = defencePow
+			losePow = attackPow
+		        	
+        situation = 0
+        stage = [2, 10, 100]
+        for i in stage:
+        	if winPow[0] < losePow[0]*i:
+        		break
+        	situation++
+        #attack power lost 
+        lost[1]=int((defencePow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
+        lost[0]=int((attackPow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
+        if type == 0
+        	temp = lost[0]
+        	lost[0] = lost[1]
+        	lost[1] = lost[0]
+        print "lost is my " + str(lost[0]) + ' ene ' + str(lost[1])
+        return lost     
+    
     def powerLost(self, poweru,powere,poweruu,poweree,type):
         lost=[0,0]
         attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
