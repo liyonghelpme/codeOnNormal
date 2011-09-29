@@ -3547,7 +3547,8 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
+                otherid=list(otherid)
+                fll.append(otherid[0])
 		rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
                 for n in rank1:
       	            one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
@@ -3604,7 +3605,8 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
+                otherid=list(otherid)
+                fll.append(otherid[0])
                 rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
                 for n in rank1:
                     one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
