@@ -7,8 +7,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong import model
@@ -111,9 +111,9 @@ class RootController(BaseController):
     global replacecache#内部函数
     global cachewriteback#内部函数
     global callost#内部函数，计算损失
-    global getexp#计算经验
     global getresource
     global warresult2
+    global calGod
     global getbonusbattle2
     global defenceplist
     global appsecret
@@ -3244,14 +3244,17 @@ class RootController(BaseController):
             return fullpower
         except InvalidRequestError:
             return 0 
+    #check if attack exist
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
         uid=int(uid)
         enemy_id=int(enemy_id)
+        if uid == enemy_id:
+            return dict(id=0)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         try:
             f=checkopdata(enemy_id)
-            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
+            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish == 0).one()
             tl=ub.timeneed-(t-ub.left_time)
             cae=int((tl+3600-1)/3600)
             u=checkopdata(uid)
@@ -3273,6 +3276,8 @@ class RootController(BaseController):
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
         enemy_id=int(enemy_id)
+        if uid ==  enemy_id:
+            return dict(id = 0, status = 4)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
@@ -3392,7 +3397,6 @@ class RootController(BaseController):
                 u.cae=u.cae-2*(u.nobility+1)
                 ca=u.cae
                 caelog(cb,ca)
-                #uv=DBSession.query(operationalData).filter_by(userid=enemy_id).one()
                 uv=checkopdata(enemy_id)#cache
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()
                 allypower=allyhelp(uv.userid,1,uv.infantrypower+uv.cavalrypower)      
@@ -3409,17 +3413,6 @@ class RootController(BaseController):
                 return dict(power=power)       
         except InvalidRequestError:
             return dict(id=0)                 
-    @expose('json')
-    def war2(self,uid):   
-        if uid==None:
-            return dict(id=0)
-        uid=int(uid)
-        battleresult=warresult2(uid) 
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
-        u=checkopdata(uid)#cache
-        nobility=u.nobility*3+u.subno
-        subno=u.subno
-        return dict(nobility=nobility,battleresult=battleresult,subno=u.subno) 
     def checkprotect(u):
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if u.protecttype==-1:
@@ -3630,6 +3623,7 @@ class RootController(BaseController):
             return dict(id=0)                
     @expose('json')
     def war(self,uid):#对外接口，战争结果
+        print 'fetch warresult ' + str(uid)
         if uid==None:
             return dict(id=0)
         uid=int(uid)
@@ -3663,30 +3657,22 @@ class RootController(BaseController):
         for i in stage:
         	if winPow[0] < losePow[0]*i:
         		break
-        	situation++
-        #attack power lost 
-        lost[1]=int((defencePow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
-        lost[0]=int((attackPow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
-        if type == 0
+        	situation += 1
+        #attack power lost
+        if attWin == 1:
+            lost[1]=int((defencePow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
+            lost[0]=int((defencePow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
+        else:
+            lost[1]=int((attackPow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
+            lost[0]=int((attackPow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
+        if type == 0:
         	temp = lost[0]
         	lost[0] = lost[1]
         	lost[1] = lost[0]
         print "lost is my " + str(lost[0]) + ' ene ' + str(lost[1])
+        print "attack win ? " + str(attWin)
+        print "attack full Power " + str(attackPow[0]) + ' att pure ' + str(attackPow[1]) + 'def full ' + str(defencePow[0]) + ' defp ' + str(defencePow[1])
         return lost     
-	def getexp(kill):#
-        return 0
-        """
-        exp=0
-        if kill<=1000:
-            exp=kill 
-        elif kill>=1000 and kill<=5000:
-            exp=1000+int(0.5*(kill-1000))
-        elif kill>5000 and kill<=10000:
-            exp=3000+int(0.1*(kill-5000))
-        else:
-            exp=3500+int(0.05*(kill-10000))
-        return exp
-        """
     def getresource(kill,u,type):#type=0进攻胜利，1进攻失败，2防御胜利，3防御失败
         bonusstring=''
         k=random.randint(1,100)
@@ -3701,40 +3687,29 @@ class RootController(BaseController):
                 cornget=cornget+500*(u.nobility+1)
                 u.corn=u.corn+500*(u.nobility+1)
                 bonusstring='0!'
-            #k2=random.randint(10,100)
             if u.nobility<7 and u.subno<3:
                 cornget += battlebonus[u.nobility][u.subno]+kill*30
-                #foodget = battlebonus[u.nobility][u.subno]+kill*10
                 u.corn += cornget
-                #u.food += battlebonus[u.nobility][u.subno]+kill*10
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)
         elif type==1:
             bonusstring='0!'
-            #k2=random.randint(10,100)
             cornget=kill*25
-            #foodget = kill*10
             u.corn += cornget
-            #u.food += foodget
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)
         elif type==2:
             bonusstring='0!'
-            #k2=random.randint(7,75)
             cornget=kill*20
-            #foodget=kill*7
             u.corn+=cornget
-            #u.food+=foodget
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)  
         else:
             bonusstring='0!'
-            #k2=random.randint(5,50)
             cornlost =-int((u.corn+20-1)/20)
             cornget = kill*20
-            #foodget = kill*5
             u.corn += cornget+cornlost
-            #u.food += foodget
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)     
         return bonusstring 
-	def calGod(uid, power):
+    def calGod(uid, power):
+        
         u = checkopdata(uid)
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         godTime = [3600, 21600, 86400]
@@ -3752,12 +3727,14 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         minus = -1
         battleset = []
+        print 'current time ' + str(t)
         battleset = DBSession.query(Battle).filter(t-Battle.left_time > Battle.timeneed).filter(Battle.finish == 0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(uid), uid1=int(uid)).order_by(Battle.left_time)
         print "fetch battle result of " + str(uid)
         
         #gen two battle result ord
         for b in battleset:
-            print str(b.uid)
+            print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id)
+            
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
             attStr = str(b.enemy_id)+',1'
@@ -3823,12 +3800,16 @@ class RootController(BaseController):
                 print "update occupation " + str(attack.userid) + ' ' + str(defence.userid)
                 #update occupation
                 try:
-                    print "Error find same occupation record"
-                    occ = DBSession.query(Occupation).filter_by(masterid=attack.userid).filter_by(slaveid=defence.userid)
+                    print "try find if occ exist"
+                    occ = DBSession.query(Occupation).filter_by(masterid=attack.userid).filter_by(slaveid=defence.userid).one()
+                    print "occ value is " + str(occ.masterid) + ' slave ' + str(occ.slaveid)
                     occ.time = b.timeneed + b.left_time
-                except:
-                    occ = Occupation(masterid = attack.userid, slaveid = defence.userid, time = b.timeneed+b.left_time)
+
+                except InvalidRequestError:
+                    print "insert new occ record into db"
+                    occ = Occupation(attack.userid, defence.userid, b.timeneed+b.left_time)
                     DBSession.add(occ)
+
                 addnews(attack.userid, defence.otherid, 3, t, defence.user_kind)
                 addnews(defence.userid, attack.otherid, 4, t, attack.user_kind)
 
@@ -3859,21 +3840,23 @@ class RootController(BaseController):
                 defence.battleresult = defStr
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
-            b.finish = 1
 
+            b.finish = 1
         #defence fail lost 3% corn
         user = checkopdata(uid)
-		if user.nbattleresult == '' or user.nbattleresult == None:
+        if user.nbattleresult == '' or user.nbattleresult == None:
 			return ''
-
-		if user.battleresult == '' or user.battleresult == None:
+		
+        if user.battleresult == '' or user.battleresult == None:
 			user.battleresult = user.nbattleresult
-		else:
+        
+        else:
 			user.battleresult = user.battleresult + ';' + user.nbattleresult
-		temp = user.nbattleresult
-		user.nbattleresult = ''
+        
+        temp = user.nbattleresult
+        
+        user.nbattleresult = ''
         return temp    
-
 
     def recalev(u,v):
         nobility1=u.nobility
