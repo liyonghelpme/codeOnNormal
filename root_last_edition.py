@@ -11,6 +11,7 @@ from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.exc import IntegrityError
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
+from stchong.model import Dragon
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -3247,6 +3248,7 @@ class RootController(BaseController):
     #check if attack exist
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
+        print "speed up " + str(uid) + ' ' + str(enemy_id)
         uid=int(uid)
         enemy_id=int(enemy_id)
         if uid == enemy_id:
@@ -3260,9 +3262,10 @@ class RootController(BaseController):
             u=checkopdata(uid)
             
             if u.cae-2*cae>=0:
+                print "speed up suc"
                 u.cae=u.cae-2*cae  
                 ub.timeneed=0
-                ub.left_time=t
+                #ub.left_time=t no need to change left time
                 return dict(id=1)
             else:
                 return dict(id=0)
@@ -3276,6 +3279,7 @@ class RootController(BaseController):
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
         enemy_id=int(enemy_id)
+        print "attack " + str(uid) + ' ' +str(enemy_id)
         if uid ==  enemy_id:
             return dict(id = 0, status = 4)
         timeneed=int(timeneed)
@@ -3629,8 +3633,12 @@ class RootController(BaseController):
         uid=int(uid)
         battleresult=warresult2(uid) 
         u=checkopdata(uid)#cache
-
-        vic = DBSession.query(Victories).filter_by(uid=uid).one()
+        try:
+            vic = DBSession.query(Victories).filter_by(uid=uid).one()
+        except:
+            print "not find victories " + str(uid)
+            vic = Victories(uid, 0, 0)
+            DBSession.add(vic)
         min = calev(u, vic)
         u.subno = min[0]
         nob = u.nobility*3 + u.subno
@@ -4489,14 +4497,55 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+
+    #building id should change with its position ?
     @expose('json')
+    def feed(self, uid, grid_id):
+        return dict(id=0)    
+
+    #if active suc assign pid to pet update state = 1
+    #return id = 0 /1  needMore =  number left 
+    #add friend help to if satisfy then enable buy eggs still need 
+    @expose('json')
+    def activeDragon(self, uid, fid, grid_id):#fid = -1 use cea others ask friend
+        #select from ope
+        uid = int(uid)
+        fid = int(fid)
+        user = checkopdata(uid)
+        if fid == -1:#help by cae
+            print "fid"
+        else:#help by others
+            print "actvie"
+        return dict(id=0)
+        
+    @expose('json')
+    #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+        ground_id = int(ground_id)
+        user_id = int(user_id)
+        demands = [3, 1000, 1000000]
+        if ground_id / 1000 != 0:
+            user = checkopdata(user_id)
+            coinCost = 0
+            foodCost = 0
+            
+            #level OK
+            #check Cost
+            if ground_id == 1000:
+                if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
+                    dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
+                    DBSession.add(dragon)
+                    
+            return #
+
+
         i=0
         price=0
         pricefood=0
         pop=0
         stone=0
         wood=0
+
         try:
             ca=0
             price=0
