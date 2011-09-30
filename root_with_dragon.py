@@ -9,6 +9,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
@@ -3123,20 +3124,19 @@ class RootController(BaseController):
                 print "failed!"
             
             return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
-       
+    #check won in map check occupation
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
         try:
             print "upgrade map"
             userid=int(userid)
             u=checkopdata(userid)#cache
-            
             v=DBSession.query(Victories).filter_by(uid=userid).one()
             #need how many to upgrade 
             min = calev(u, v)
             print "cur minus" + str(min[1])
             if min[1] > 0:
-                print "need more ene to defeat"
+                print "need more ene to defeat " + str(min[0]) + ' ' + str(min[1])
                 return dict(id = 0)
 
             print "update occupy and warmap"
@@ -3182,7 +3182,7 @@ class RootController(BaseController):
             u.subno=0
             replacecache(userid,u)#cache
             min = calev(u, v)
-            print "next level minus" + str(min[1])
+            print "next leve need minus" + str(min[1])
             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
         except InvalidRequestError:
             return dict(id=0)
@@ -3274,6 +3274,7 @@ class RootController(BaseController):
                 print "speed up suc"
                 u.cae=u.cae-2*cae  
                 ub.timeneed=0
+                #ub.left_time=t 
                 return dict(id=1)
             else:
                 return dict(id=0)
@@ -4505,11 +4506,114 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    
+    @expose('json')
+    def namePet(self, uid, pid, name)
+        return 
+    #building id should change with its position ?
+    #loginsign decrease health
+    #when
+    #businessWrite cid groundid gid oid protime finish id
+    @expose('json')
+    def feed(self, uid, grid_id, city_id):
+        cur = int(time.mktime(time.localtime()-time.mktime(beginTime)))
+        dragon = DBSession.query(businessWrite).filter("city_id=:cid and grid_id = :gid").params(cid = int(city_id), gid=int(grid_id)).one()
+        bid = dragon.id
+        dragon = DBSession.query(dragon).filter("bid=:bid and uid =:uid").params(bid=int(bid), uid=int(uid)).one()
+        #uid, pid, bid, friNum
+        lastFeed = dragon.lastFeed
+        if (cur - lastFeed) /86400 < 1:#> 2 health -1
+            return dict(id=0, status = 0) #feed yet
 
-        
+        init = [0, 25, 40, 600]
+        addHealth = [3, 5, 7, 7]
+        growUp = [30, 100, 250, 9999]
+        reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
+        state = dragon.state -1
+        dragon.health += addHealth[state]
+        #dead won't happen here 
+        if dragon.health >= growUp[state]:
+            dragon.state += 1
+            user = checkopdata(uid)
+            user.corn += reward[state][0]
+            user.exp += reward[state][1]
+            return dict(id=1, status=1)#grow up
+
+        return dict(id=1, status=2)#normal    
+
+    #if active suc assign pid to pet update state = 1
+    #return id = 0 /1  needMore =  number left 
+    #add friend help to if satisfy then enable buy eggs still need 
+    @expose('json')
+    def activeDragon(self, uid, fid, grid_id, city_id):#fid = -1 use cea others ask friend
+        #select from ope
+        caeCost = 1
+        needFri = 8
+        uid = int(uid)
+        fid = int(fid)
+        user = checkopdata(uid)
+        #friend id other id ?
+        firend = checkopdata(fid)
+        if fid == -1:#help by cae
+            print "use cae"
+            if user.cae > caeCost:
+                user.cae -= caeCost
+                return dict(id=1)
+        else:#help by others check if help yet ?
+            print "I help my friend"
+            dragon = DBSession.query(dragon).filter("uid = :fid and cityid=:cid and grid = :gid").one()
+            if dragon.state == 0:#not active
+                friList = dragon.friList
+                if friList == None:
+                    friList = [fid]
+                else:
+                    friList = json.loads(friList)
+                    try:
+                       myPos = friList.index(uid)
+                       return dict(id=0)
+                    except:
+                        friList.append(uid)
+                dragon.friList = json.dump(friList)
+                dragon.friNum += 1
+                if dragon.friNum >= needFri:
+                    dragon.state = 1#egg
+                    dragon.health = 9
+                    dragon.lastFeed = 0
+                return dict(id=1, leftNum=needFri-dragon.friNum)
+        return dict(id=0)
+    
+    #1000 dragon    
     @expose('json')
     #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+        ground_id = int(ground_id)
+        user_id = int(user_id)
+        demands = [3, 1000, 1000000]
+        if ground_id / 1000 != 0:
+            user = checkopdata(user_id)
+            coinCost = 0
+            foodCost = 0
+            
+            #level OK
+            #check Cost
+            if ground_id == 1000:
+                if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
+                    #cost
+                    user.food -= demands[1]
+                    user.corn -= demands[2]
+                    
+                    #reward
+                    dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
+                    DBSession.add(dragon)
+                    #when active 
+                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id)
+                    DBSession.add(building)
+                    #update business read for logsign
+                    read(city_id)
+                    return dict(id=1)
+            return dict(id = 0)
+
+
         i=0
         price=0
         pricefood=0
@@ -4573,17 +4677,6 @@ class RootController(BaseController):
                             return dict(id=0)
                 except:
                     xx=-1                                                
-            ################
-           #if p.ground_id>=1 and p.ground_id<=99:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id>=100 and p.ground_id<=199:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id >=200 and p.ground_id<=299:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=300 and p.ground_id<=399:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=400 and p.ground_id<=499:
-           #    u.exp=u.exp+lis[3]
             if ground_id>=1 and ground_id<=499:
                 pricefood=lis[1]
             if ground_id >=1 and ground_id<=99:
@@ -4646,14 +4739,6 @@ class RootController(BaseController):
                         p.producttime=ti
                         
                     p.ground_id=int(ground_id)
-                    #if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412:
-                    #    u.food_god_lev=u.food_god_lev+1
-                    #elif p.ground_id==401 or p.ground_id==405 or p.ground_id==409 or p.ground_id==413:
-                    #    u.person_god_lev=u.person_god_lev+1
-                    #elif p.ground_id==402 or p.ground_id==406 or p.ground_id==410 or p.ground_id==414:
-                    #    u.wealth_god_lev=u.wealth_god_lev+1
-                    #elif p.ground_id==403 or p.ground_id==407 or p.ground_id==411 or p.ground_id==415:
-                    #    u.war_god_lev=u.war.god_lev+1                   
                     read(city_id)
                     replacecache(u.userid,u)#cache
                     return dict(id=1)

@@ -1,95 +1,216 @@
---- root_last_edition.py	2011-09-28 21:00:39.333901000 -0400
-+++ root_now.py	2011-09-28 21:01:17.913901001 -0400
-@@ -3641,39 +3641,61 @@
-         u.subno = min[0]
-         nob = u.nobility*3 + u.subno
-         return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
--    def callost(myFull, eneFull, myPure, enePure, type):
--    	lost = [0, 0]
--    	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
-+    def callost(poweru,powere,poweruu,poweree,type):#poweru，powere为加成后兵力，poweruu，poweree为原始战斗力
-+        lost=[0,0]
-+        constu=0
-+        conste=0
-+        attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
-         defenceLost = [[35, 35, 35, 35], [20, 30, 45, 45] ]
--        attackPow = [myFull, myPure]
--        defencePow = [eneFull, enePure]
--        if type == 0:
--        	attackPow = [eneFull, enePure]
--        	defencePow = [myFull, myPure]
--        attWin = 1
--        winPow = attackPow
--        losePow = defencePow
--        if attackPow[0] < defencePow[0]:
--			attWin = 0
--			winPow = defencePow
--			losePow = attackPow
--		        	
-         situation = 0
--        stage = [2, 10, 100]
--        for i in stage:
--        	if winPow[0] < losePow[0]*i:
--        		break
--        	situation++
--        #attack power lost 
--        lost[1]=int((defencePow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
--        lost[0]=int((attackPow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
--        if type == 0
--        	temp = lost[0]
--        	lost[0] = lost[1]
--        	lost[1] = lost[0]
--        print "lost is my " + str(lost[0]) + ' ene ' + str(lost[1])
--        return lost     
--	def getexp(kill):#
-+        if type==1:#poweru为进攻兵力
-+            if poweru>powere:#attack succress
-+                if poweru>powere and poweru<=2*powere:
-+                    situation = 0
-+                elif poweru>2*powere and poweru<=10*powere:
-+                    situation = 1
-+                elif poweru>10*powere and poweru<=100*powere:
-+                    situation = 2
+--- root_last_edition.py	2011-09-30 02:10:28.509544001 -0400
++++ root_liyong.py	2011-09-30 11:25:12.941053002 -0400
+@@ -9,6 +9,7 @@
+ from repoze.what import predicates
+ from sqlalchemy.exc import InvalidRequestError
+ from sqlalchemy.exc import IntegrityError
++from sqlalchemy.sql import or_
+ from stchong.lib.base import BaseController
+ from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
+ from stchong.model import Dragon
+@@ -3123,20 +3124,19 @@
+                 print "failed!"
+             
+             return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
+-       
++    #check won in map check occupation
+     @expose('json')
+     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
+         try:
+             print "upgrade map"
+             userid=int(userid)
+             u=checkopdata(userid)#cache
+-            
+             v=DBSession.query(Victories).filter_by(uid=userid).one()
+             #need how many to upgrade 
+             min = calev(u, v)
+             print "cur minus" + str(min[1])
+             if min[1] > 0:
+-                print "need more ene to defeat"
++                print "need more ene to defeat " + str(min[0]) + ' ' + str(min[1])
+                 return dict(id = 0)
+ 
+             print "update occupy and warmap"
+@@ -3149,6 +3149,15 @@
+             for oo in o:
+                 DBSession.delete(oo)
+             
++            print "remove all current running battle"
++            curBattle = DBSession.query(Battle).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).filter(Battle.finish == 0).all();
++            for b in curBattle:
++                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) 
++                b.finish = 1
++                attacker = checkopdata(b.uid)
++                attacker.infantrypower += b.powerin
++                attacker.cavalrypower += b.powerca
++            
+             c=upd(p.mapid,u.nobility+1)
+             
+             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
+@@ -3173,7 +3182,7 @@
+             u.subno=0
+             replacecache(userid,u)#cache
+             min = calev(u, v)
+-            print "need minus" + str(min[1])
++            print "next leve need minus" + str(min[1])
+             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
+         except InvalidRequestError:
+             return dict(id=0)
+@@ -3265,7 +3274,7 @@
+                 print "speed up suc"
+                 u.cae=u.cae-2*cae  
+                 ub.timeneed=0
+-                #ub.left_time=t no need to change left time
++                #ub.left_time=t 
+                 return dict(id=1)
+             else:
+                 return dict(id=0)
+@@ -4497,27 +4506,83 @@
+                         return dict(id=0)
+         except InvalidRequestError:
+             return dict(id=0)
+-
+-    #building id should change with its position ?
++    
+     @expose('json')
+-    def feed(self, uid, grid_id):
+-        return dict(id=0)    
++    def namePet(self, uid, pid, name)
++        return 
++    #building id should change with its position ?
++    #loginsign decrease health
++    #when
++    #businessWrite cid groundid gid oid protime finish id
++    @expose('json')
++    def feed(self, uid, grid_id, city_id):
++        cur = int(time.mktime(time.localtime()-time.mktime(beginTime)))
++        dragon = DBSession.query(businessWrite).filter("city_id=:cid and grid_id = :gid").params(cid = int(city_id), gid=int(grid_id)).one()
++        bid = dragon.id
++        dragon = DBSession.query(dragon).filter("bid=:bid and uid =:uid").params(bid=int(bid), uid=int(uid)).one()
++        #uid, pid, bid, friNum
++        lastFeed = dragon.lastFeed
++        if (cur - lastFeed) /86400 < 1:#> 2 health -1
++            return dict(id=0, status = 0) #feed yet
++
++        init = [0, 25, 40, 600]
++        addHealth = [3, 5, 7, 7]
++        growUp = [30, 100, 250, 9999]
++        reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
++        state = dragon.state -1
++        dragon.health += addHealth[state]
++        #dead won't happen here 
++        if dragon.health >= growUp[state]:
++            dragon.state += 1
++            user = checkopdata(uid)
++            user.corn += reward[state][0]
++            user.exp += reward[state][1]
++            return dict(id=1, status=1)#grow up
++
++        return dict(id=1, status=2)#normal    
+ 
+     #if active suc assign pid to pet update state = 1
+     #return id = 0 /1  needMore =  number left 
+     #add friend help to if satisfy then enable buy eggs still need 
+     @expose('json')
+-    def activeDragon(self, uid, fid, grid_id):#fid = -1 use cea others ask friend
++    def activeDragon(self, uid, fid, grid_id, city_id):#fid = -1 use cea others ask friend
+         #select from ope
++        caeCost = 1
++        needFri = 8
+         uid = int(uid)
+         fid = int(fid)
+         user = checkopdata(uid)
++        #friend id other id ?
++        firend = checkopdata(fid)
+         if fid == -1:#help by cae
+-            print "fid"
+-        else:#help by others
+-            print "actvie"
++            print "use cae"
++            if user.cae > caeCost:
++                user.cae -= caeCost
++                return dict(id=1)
++        else:#help by others check if help yet ?
++            print "I help my friend"
++            dragon = DBSession.query(dragon).filter("uid = :fid and cityid=:cid and grid = :gid").one()
++            if dragon.state == 0:#not active
++                friList = dragon.friList
++                if friList == None:
++                    friList = [fid]
 +                else:
-+                    situation = 3
-+                lost[1]=int((poweree*defenceLost[1][situation] + defenceLost[1][situation]-1)/100)#defence lost
-+                lost[0]=int((poweree*attackLost[1][situation] + attackLost[1][situation]-1)/100)#attack won
-+            else:
-+                if powere<=2*poweru:
-+                    situation = 0
-+                elif powere>2*poweru and powere<=10*poweru:
-+                    situation = 1
-+                elif powere>10*poweru and powere<=100*poweru:
-+                    situation = 2
-+                else:
-+                    situation = 3
-+                lost[1]=int((poweruu*defenceLost[0][situation] + defenceLost[0][situation]-1)/100)#defence lost
-+                lost[0]=int((poweruu*attackLost[0][situation] + attackLost[0][situation]-1)/100)#attack won
-+        else:
-+            if poweru>powere:
-+                if poweru>powere and poweru<=2*powere:
-+                    situation = 0
-+                elif poweru>2*powere and poweru<=10*powere:
-+                    situation = 1
-+                elif poweru>10*powere and poweru<=100*powere:
-+                    situation = 2
-+                else:
-+                    situation = 3
-+                lost[1]=int((poweree*defenceLost[0][situation] + defenceLost[0][situation]-1)/100)#defence lost
-+                lost[0]=int((poweree*attackLost[0][situation] + attackLost[0][situation]-1)/100)#attack won
-+            else:
-+                if powere<=2*poweru:
-+                    situation = 0
-+                elif powere>2*poweru and powere<=10*poweru:
-+                    situation = 1
-+                elif powere>10*poweru and powere<=100*poweru:
-+                    situation = 2
-+                else:
-+                    situation = 3
-+                lost[1]=int((poweruu*defenceLost[1][situation] + defenceLost[1][situation]-1)/100)#defence lost
-+                lost[0]=int((poweruu*attackLost[1][situation] + attackLost[1][situation]-1)/100)#attack won
-+        return lost        
-+    def getexp(kill):#
-         return 0
-         """
-         exp=0
++                    friList = json.loads(friList)
++                    try:
++                       myPos = friList.index(uid)
++                       return dict(id=0)
++                    except:
++                        friList.append(uid)
++                dragon.friList = json.dump(friList)
++                dragon.friNum += 1
++                if dragon.friNum >= needFri:
++                    dragon.state = 1#egg
++                    dragon.health = 9
++                    dragon.lastFeed = 0
++                return dict(id=1, leftNum=needFri-dragon.friNum)
+         return dict(id=0)
+-        
++    
++    #1000 dragon    
+     @expose('json')
+     #return id = 1 suc  id = 0 fail 
+     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+@@ -4533,10 +4598,20 @@
+             #check Cost
+             if ground_id == 1000:
+                 if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
++                    #cost
++                    user.food -= demands[1]
++                    user.corn -= demands[2]
++                    
++                    #reward
+                     dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
+                     DBSession.add(dragon)
+-                    
+-            return #
++                    #when active 
++                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id)
++                    DBSession.add(building)
++                    #update business read for logsign
++                    read(city_id)
++                    return dict(id=1)
++            return dict(id = 0)
+ 
+ 
+         i=0
+@@ -4602,17 +4677,6 @@
+                             return dict(id=0)
+                 except:
+                     xx=-1                                                
+-            ################
+-           #if p.ground_id>=1 and p.ground_id<=99:
+-           #    u.exp=u.exp+lis[4]
+-           #elif p.ground_id>=100 and p.ground_id<=199:
+-           #    u.exp=u.exp+lis[4]
+-           #elif p.ground_id >=200 and p.ground_id<=299:
+-           #    u.exp=u.exp+lis[5]
+-           #elif p.ground_id>=300 and p.ground_id<=399:
+-           #    u.exp=u.exp+lis[5]
+-           #elif p.ground_id>=400 and p.ground_id<=499:
+-           #    u.exp=u.exp+lis[3]
+             if ground_id>=1 and ground_id<=499:
+                 pricefood=lis[1]
+             if ground_id >=1 and ground_id<=99:
+@@ -4675,14 +4739,6 @@
+                         p.producttime=ti
+                         
+                     p.ground_id=int(ground_id)
+-                    #if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412:
+-                    #    u.food_god_lev=u.food_god_lev+1
+-                    #elif p.ground_id==401 or p.ground_id==405 or p.ground_id==409 or p.ground_id==413:
+-                    #    u.person_god_lev=u.person_god_lev+1
+-                    #elif p.ground_id==402 or p.ground_id==406 or p.ground_id==410 or p.ground_id==414:
+-                    #    u.wealth_god_lev=u.wealth_god_lev+1
+-                    #elif p.ground_id==403 or p.ground_id==407 or p.ground_id==411 or p.ground_id==415:
+-                    #    u.war_god_lev=u.war.god_lev+1                   
+                     read(city_id)
+                     replacecache(u.userid,u)#cache
+                     return dict(id=1)
