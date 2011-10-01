@@ -5708,6 +5708,150 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)
     @expose('json')
+    def plantingall(self,user_id,city_id,object_id):
+        ground_num=0
+        plant_list=[]
+        try:
+            u=checkopdata(user_id)#cache
+            temp_cae = u.cae-1
+            if temp_cae>=0:
+                price=Plant_Price[int(object_id)][0]
+                ground = DBSession.query(businessWrite).filter("city_id=:cid and producttime=0 and finish = 1 and ground_id <=4 and ground_id>=1").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                if price<0:
+                    price=0-price
+                    temp_cae = temp_cae-price
+                    if temp_cae < 0:
+                        return dict(id=0)
+                    temp_cae=temp_cae+price
+                    for g in ground:
+                        temp_cae=temp_cae-price
+                        if temp_cae>=0:
+                            plant_list.append(g.grid_id)
+                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                            g.object_id=int(object_id)
+                            g.producttime=ti
+                        else:
+                            temp_cae = temp_cae+price
+                            u.cae = temp_cae
+                            read(city_id)
+                            replacecache(u.userid,u)#cache
+                            return dict(id=0,plant=plant_list)
+                    u.cae = temp_cae
+                    read(city_id)
+                    replacecache(u.userid,u)#cache
+                    return dict(id=1,plant=plant_list)
+                else:
+                    temp_corn = u.corn 
+                    if temp_corn-price < 0:
+                        return dict(id=0)
+                    for g in ground:
+                        if temp_corn-price>=0:
+                            temp_corn = temp_corn-price
+                            plant_list.append(g.grid_id)
+                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                            g.object_id=int(object_id)
+                            g.producttime=ti
+                        else:
+                            u.corn=temp_corn
+                            u.cae=temp_cae
+                            read(city_id)
+                            replacecache(u.userid,u)
+                            return dict(id=0,plant=plant_list)
+                    u.corn=temp_corn
+                    u.cae=temp_cae
+                    read(city_id)
+                    replacecache(u.userid,u)
+                    return dict(id=1,plant=plant_list)
+            else:
+                return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
+    @expose('json')
+    def harvestall(self,user_id,city_id):
+        expadd=0
+        foodadd=0
+        try:
+            u=checkopdata(user_id)#cache
+            temp_cae = u.cae-1
+            if temp_cae>=0:
+                map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                factor=1
+                factor2=1.0
+                if u.food_god==1 and t-u.foodgodtime<3600:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                elif u.food_god==2 and t-u.foodgodtime<21600:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                elif u.food_god==3 and t-u.foodgodtime<86400:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                else:
+                    u.food_god=0
+                    u.foodgodtime=-1
+                for g in ground:
+                    grid_id=g.grid_id
+                    object_id=g.object_id
+                    producttime=g.producttime
+                    single_exp=Plant_Price[int(object_id)][1]
+                    single_food=Plant_Price[int(object_id)][2]
+                    growtime=Plant_Price[int(object_id)][3]
+                    if g.ground_id==2:
+                        factor2=1.2
+                    elif g.ground_id==3:
+                        factor2=1.4
+                    elif g.ground_id==4:
+                        factor2=1.6
+                    if producttime+growtime<=t:
+                        mark=minusstateeli(u,map,grid_id,producttime)
+                        if t-producttime>86400*3 and producttime!=1:
+                            expadd = expadd+single_exp
+                        else:
+                            foodadd = foodadd+int(single_food*factor*(int(factor2*10))/10)
+                            expadd = expadd+single_exp
+                        g.object_id=-1
+                        g.producttime=0
+                u.exp=u.exp+expadd
+                u.food=u.food+foodadd
+                u.cae = temp_cae
+                read(city_id)
+                replacecache(u.userid,u)#cache
+                return dict(id=1,expadd=expadd,foodadd=foodadd)
+            else:
+                return dict(id=0)
+        except InvalidRequestError:
+                return dict(id=0)
+    @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
            p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
