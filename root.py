@@ -7,8 +7,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong import model
@@ -3255,14 +3255,15 @@ class RootController(BaseController):
             return 0 
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
+        print 'speed ' + str(uid) + ' ' + str(enemy_id)
         uid=int(uid)
         enemy_id=int(enemy_id)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
-            return dict(id=0)
+            return dict(id=0, rea='self')
         try:
             f=checkopdata(enemy_id)
-            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish==0).one()
+            ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
             cae=int((tl+3600-1)/3600)
             u=checkopdata(uid)
@@ -3273,9 +3274,9 @@ class RootController(BaseController):
                 #ub.left_time=t
                 return dict(id=1)
             else:
-                return dict(id=0)
+                return dict(id=0, rea='cae')
         except:
-            return dict(id=0)
+            return dict(id=0, rea='no bat')
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
@@ -3647,7 +3648,7 @@ class RootController(BaseController):
         if attWin == 1:
             lost[1]=int((defencePow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
             lost[0]=int((defencePow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
-         else:
+        else:
             lost[1]=int((attackPow[1]*defenceLost[attWin][situation] + defenceLost[attWin][situation]-1)/100)#defence lost
             lost[0]=int((attackPow[1]*attackLost[attWin][situation] + attackLost[attWin][situation]-1)/100)#attack won
         if type == 0:
