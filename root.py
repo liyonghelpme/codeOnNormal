@@ -4107,7 +4107,7 @@ class RootController(BaseController):
                     attacklist.append(atemp)
             dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
             for x in dlist:
-                if x.finish==0 and t-x.left_time>x.timeneed/2 :
+                if x.finish==0 :
                     #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                     ue=checkopdata(x.uid)#cache
                     wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
