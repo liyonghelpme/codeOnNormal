@@ -209,6 +209,8 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
+        #reward = [1, 5, 15, 40]
+        reward = [2, 7, 20, 50]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -218,17 +220,17 @@ class RootController(BaseController):
                     u.cae=u.cae+int(int(papapas)/100)
                     caeplus=int(int(papapas)/100)
                 elif int(papapas)==1000:
-                    u.cae=u.cae+11
-                    caeplus=11
+                    u.cae=u.cae+10 + reward[0]
+                    caeplus=10+reward[0]
                 elif int(papapas)==2500:
-                    u.cae=u.cae+30
-                    caeplus=30
+                    u.cae=u.cae+25 + reward[1]
+                    caeplus=25 + reward[1]
                 elif int(papapas)==5000:
-                    u.cae=u.cae+65
-                    caeplus=65
+                    u.cae=u.cae+50 + reward[2]
+                    caeplus=50 + reward[2]
                 elif int(papapas)==10000:
-                    u.cae=u.cae+140
-                    caeplus=140
+                    u.cae=u.cae+100 + reward[3]
+                    caeplus=100 + reward[3]
                 else:
                     u.cae=u.cae+int(int(papapas)/100)
                 ca=u.cae
