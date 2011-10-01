@@ -3261,6 +3261,7 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
             return dict(id=0, rea='self')
+        wm = DBSession.query(warmap).filter()
         try:
             f=checkopdata(enemy_id)
             ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
@@ -3817,7 +3818,7 @@ class RootController(BaseController):
                 attReward = getresource(lost[0], attack, 1)
                 defReward = getresource(lost[1], defence, 2)
 
-            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
+            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(returnIn)+','+str(returnCa)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
             defStr += str(lost[1])+','+str(defFullPow)+','+str(attFullPow)+','+defReward+','+attack.otherid+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+attack.empirename+','+str(attack.nobility*3+attack.subno)+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+str(defGod)+','+str(attGod)+','+str(defence.defencepower)
 
             if attack.nbattleresult == '' or attack.nbattleresult == None:
