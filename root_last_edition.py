@@ -3149,6 +3149,15 @@ class RootController(BaseController):
             for oo in o:
                 DBSession.delete(oo)
             
+            print "remove all current running battle"
+            curBattle = DBSession.query(Battle).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).filter(Battle.finish == 0).all();
+            for b in curBattle:
+                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) 
+                b.finish = 1
+                attacker = checkopdata(b.uid)
+                attacker.infantrypower += b.powerin
+                attacker.cavalrypower += b.powerca
+            
             c=upd(p.mapid,u.nobility+1)
             
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
@@ -3173,7 +3182,7 @@ class RootController(BaseController):
             u.subno=0
             replacecache(userid,u)#cache
             min = calev(u, v)
-            print "need minus" + str(min[1])
+            print "next level minus" + str(min[1])
             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
         except InvalidRequestError:
             return dict(id=0)
@@ -3265,7 +3274,6 @@ class RootController(BaseController):
                 print "speed up suc"
                 u.cae=u.cae-2*cae  
                 ub.timeneed=0
-                #ub.left_time=t no need to change left time
                 return dict(id=1)
             else:
                 return dict(id=0)
@@ -4498,47 +4506,10 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)
 
-    #building id should change with its position ?
-    @expose('json')
-    def feed(self, uid, grid_id):
-        return dict(id=0)    
-
-    #if active suc assign pid to pet update state = 1
-    #return id = 0 /1  needMore =  number left 
-    #add friend help to if satisfy then enable buy eggs still need 
-    @expose('json')
-    def activeDragon(self, uid, fid, grid_id):#fid = -1 use cea others ask friend
-        #select from ope
-        uid = int(uid)
-        fid = int(fid)
-        user = checkopdata(uid)
-        if fid == -1:#help by cae
-            print "fid"
-        else:#help by others
-            print "actvie"
-        return dict(id=0)
         
     @expose('json')
     #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
-        ground_id = int(ground_id)
-        user_id = int(user_id)
-        demands = [3, 1000, 1000000]
-        if ground_id / 1000 != 0:
-            user = checkopdata(user_id)
-            coinCost = 0
-            foodCost = 0
-            
-            #level OK
-            #check Cost
-            if ground_id == 1000:
-                if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
-                    dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
-                    DBSession.add(dragon)
-                    
-            return #
-
-
         i=0
         price=0
         pricefood=0

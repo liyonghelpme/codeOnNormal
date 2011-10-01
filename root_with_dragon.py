@@ -9,8 +9,10 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
+from stchong.model import Dragon
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -2836,8 +2838,7 @@ class RootController(BaseController):
             return dict(id=0)
     @expose('json')
     def logsign(self,papayaid,user_kind,md5):# 对外接口，登陆注册login if signed or sign;operationalData:query
-        print "login from 1"
-	user=None
+        user=None
         oid=papayaid#papayaid改为string类型
         user_kind=int(user_kind)
         logintime=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -3123,20 +3124,19 @@ class RootController(BaseController):
                 print "failed!"
             
             return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
-       
+    #check won in map check occupation
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
         try:
             print "upgrade map"
             userid=int(userid)
             u=checkopdata(userid)#cache
-            
             v=DBSession.query(Victories).filter_by(uid=userid).one()
             #need how many to upgrade 
             min = calev(u, v)
             print "cur minus" + str(min[1])
             if min[1] > 0:
-                print "need more ene to defeat"
+                print "need more ene to defeat " + str(min[0]) + ' ' + str(min[1])
                 return dict(id = 0)
 
             print "update occupy and warmap"
@@ -3157,6 +3157,7 @@ class RootController(BaseController):
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
                 attacker.cavalrypower += b.powerca
+            
             c=upd(p.mapid,u.nobility+1)
             
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
@@ -3181,7 +3182,7 @@ class RootController(BaseController):
             u.subno=0
             replacecache(userid,u)#cache
             min = calev(u, v)
-            print "next level minus" + str(min[1])
+            print "next leve need minus" + str(min[1])
             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
         except InvalidRequestError:
             return dict(id=0)
@@ -3253,30 +3254,32 @@ class RootController(BaseController):
             return fullpower
         except InvalidRequestError:
             return 0 
+    #check if attack exist
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
-        print 'speed ' + str(uid) + ' ' + str(enemy_id)
+        print "speed up " + str(uid) + ' ' + str(enemy_id)
         uid=int(uid)
         enemy_id=int(enemy_id)
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
-            return dict(id=0, rea='self')
+            return dict(id=0)
+        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         try:
             f=checkopdata(enemy_id)
-            ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
+            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish == 0).one()
             tl=ub.timeneed-(t-ub.left_time)
             cae=int((tl+3600-1)/3600)
             u=checkopdata(uid)
             
             if u.cae-2*cae>=0:
+                print "speed up suc"
                 u.cae=u.cae-2*cae  
                 ub.timeneed=0
-                #ub.left_time=t
+                #ub.left_time=t 
                 return dict(id=1)
             else:
-                return dict(id=0, rea='cae')
+                return dict(id=0)
         except:
-            return dict(id=0, rea='no bat')
+            return dict(id=0)
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
@@ -3285,8 +3288,9 @@ class RootController(BaseController):
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
         enemy_id=int(enemy_id)
-        if uid == enemy_id:
-            return dict(id=0)
+        print "attack " + str(uid) + ' ' +str(enemy_id)
+        if uid ==  enemy_id:
+            return dict(id = 0, status = 4)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
@@ -3406,7 +3410,6 @@ class RootController(BaseController):
                 u.cae=u.cae-2*(u.nobility+1)
                 ca=u.cae
                 caelog(cb,ca)
-                #uv=DBSession.query(operationalData).filter_by(userid=enemy_id).one()
                 uv=checkopdata(enemy_id)#cache
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()
                 allypower=allyhelp(uv.userid,1,uv.infantrypower+uv.cavalrypower)      
@@ -3526,10 +3529,19 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-                fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.meritrank<21).filter(Rank.meritrank>0).order_by(Rank.meritrank).all()
                 one=[]
                 for n in fl:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+		    one=list(one)
+		    one.append(n[1])
+		    one.append(n[2])
+		    one.append(n[3])
+		    one.append(n[4])
+		    one1=DBSession.query(operationalData.nobility,operationalData.subno).filter_by(userid=int(n[0])).one()
+		    one1=list(one1)
+		    one.append(one1[0])
+		    one.append(one1[1])#papayaname,empirename,otherid,meritrank,power,won,nobility,subno
                     rank1.append(one)
                 return dict(rank=rank1)
             else:
@@ -3541,10 +3553,20 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
-                rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
+                otherid=list(otherid)
+                fll.append(otherid[0])
+		rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
                 for n in rank1:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+      	            one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+		    one.append(n[1])
+		    one.append(n[2])
+		    one.append(n[3])
+		    one.append(n[4])
+		    one1=DBSession.query(operationalData.nobility,operationalData.subno).filter_by(userid=int(n[0])).one()
+		    one1=list(one1)
+		    one.append(one1[0])
+		    one.append(one1[1])
                     rank2.append(one) 
                 if rank2==None or len(rank2)==0:
                     return dict(id=0)
@@ -3570,10 +3592,15 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-                fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
                 one=[]
                 for n in fl:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
                     rank1.append(one)
                 return dict(rank=rank1)
             else:
@@ -3584,10 +3611,16 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
-                rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
+                otherid=list(otherid)
+                fll.append(otherid[0])
+                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
                 for n in rank1:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
                     rank2.append(one)
                 if rank2==None or len(rank2)==0:
                     return dict(id=0)
@@ -3603,12 +3636,12 @@ class RootController(BaseController):
             return dict(id=0)                
     @expose('json')
     def war(self,uid):#对外接口，战争结果
+        print 'fetch warresult ' + str(uid)
         if uid==None:
             return dict(id=0)
         uid=int(uid)
         battleresult=warresult2(uid) 
         u=checkopdata(uid)#cache
-
         try:
             vic = DBSession.query(Victories).filter_by(uid=uid).one()
         except:
@@ -3619,12 +3652,10 @@ class RootController(BaseController):
         u.subno = min[0]
         nob = u.nobility*3 + u.subno
         return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
-
     def callost(myFull, eneFull, myPure, enePure, type):
     	lost = [0, 0]
     	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
         defenceLost = [[35, 35, 35, 35], [20, 30, 45, 45] ]
-        
         attackPow = [myFull, myPure]
         defencePow = [eneFull, enePure]
         if type == 0:
@@ -3637,8 +3668,8 @@ class RootController(BaseController):
 			attWin = 0
 			winPow = defencePow
 			losePow = attackPow
+		        	
         situation = 0
-
         stage = [2, 10, 100]
         for i in stage:
         	if winPow[0] < losePow[0]*i:
@@ -3692,12 +3723,10 @@ class RootController(BaseController):
             cornlost =-int((u.corn+20-1)/20)
             cornget = kill*20
             u.corn += cornget+cornlost
-            if u.corn < 0:
-                u.corn = 0
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)     
         return bonusstring 
-    
     def calGod(uid, power):
+        
         u = checkopdata(uid)
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         godTime = [3600, 21600, 86400]
@@ -3845,6 +3874,7 @@ class RootController(BaseController):
         
         user.nbattleresult = ''
         return temp    
+
     def recalev(u,v):
         nobility1=u.nobility
         subno=0
@@ -4476,14 +4506,121 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    
     @expose('json')
+    def namePet(self, uid, pid, name)
+        return 
+    #building id should change with its position ?
+    #loginsign decrease health
+    #when
+    #businessWrite cid groundid gid oid protime finish id
+    @expose('json')
+    def feed(self, uid, grid_id, city_id):
+        cur = int(time.mktime(time.localtime()-time.mktime(beginTime)))
+        dragon = DBSession.query(businessWrite).filter("city_id=:cid and grid_id = :gid").params(cid = int(city_id), gid=int(grid_id)).one()
+        bid = dragon.id
+        dragon = DBSession.query(dragon).filter("bid=:bid and uid =:uid").params(bid=int(bid), uid=int(uid)).one()
+        #uid, pid, bid, friNum
+        lastFeed = dragon.lastFeed
+        if (cur - lastFeed) /86400 < 1:#> 2 health -1
+            return dict(id=0, status = 0) #feed yet
+
+        init = [0, 25, 40, 600]
+        addHealth = [3, 5, 7, 7]
+        growUp = [30, 100, 250, 9999]
+        reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
+        state = dragon.state -1
+        dragon.health += addHealth[state]
+        #dead won't happen here 
+        if dragon.health >= growUp[state]:
+            dragon.state += 1
+            user = checkopdata(uid)
+            user.corn += reward[state][0]
+            user.exp += reward[state][1]
+            return dict(id=1, status=1)#grow up
+
+        return dict(id=1, status=2)#normal    
+
+    #if active suc assign pid to pet update state = 1
+    #return id = 0 /1  needMore =  number left 
+    #add friend help to if satisfy then enable buy eggs still need 
+    @expose('json')
+    def activeDragon(self, uid, fid, grid_id, city_id):#fid = -1 use cea others ask friend
+        #select from ope
+        caeCost = 1
+        needFri = 8
+        uid = int(uid)
+        fid = int(fid)
+        user = checkopdata(uid)
+        #friend id other id ?
+        firend = checkopdata(fid)
+        if fid == -1:#help by cae
+            print "use cae"
+            if user.cae > caeCost:
+                user.cae -= caeCost
+                return dict(id=1)
+        else:#help by others check if help yet ?
+            print "I help my friend"
+            dragon = DBSession.query(dragon).filter("uid = :fid and cityid=:cid and grid = :gid").one()
+            if dragon.state == 0:#not active
+                friList = dragon.friList
+                if friList == None:
+                    friList = [fid]
+                else:
+                    friList = json.loads(friList)
+                    try:
+                       myPos = friList.index(uid)
+                       return dict(id=0)
+                    except:
+                        friList.append(uid)
+                dragon.friList = json.dump(friList)
+                dragon.friNum += 1
+                if dragon.friNum >= needFri:
+                    dragon.state = 1#egg
+                    dragon.health = 9
+                    dragon.lastFeed = 0
+                return dict(id=1, leftNum=needFri-dragon.friNum)
+        return dict(id=0)
+    
+    #1000 dragon    
+    @expose('json')
+    #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+        ground_id = int(ground_id)
+        user_id = int(user_id)
+        demands = [3, 1000, 1000000]
+        if ground_id / 1000 != 0:
+            user = checkopdata(user_id)
+            coinCost = 0
+            foodCost = 0
+            
+            #level OK
+            #check Cost
+            if ground_id == 1000:
+                if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
+                    #cost
+                    user.food -= demands[1]
+                    user.corn -= demands[2]
+                    
+                    #reward
+                    dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
+                    DBSession.add(dragon)
+                    #when active 
+                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id)
+                    DBSession.add(building)
+                    #update business read for logsign
+                    read(city_id)
+                    return dict(id=1)
+            return dict(id = 0)
+
+
         i=0
         price=0
         pricefood=0
         pop=0
         stone=0
         wood=0
+
         try:
             ca=0
             price=0
@@ -4540,17 +4677,6 @@ class RootController(BaseController):
                             return dict(id=0)
                 except:
                     xx=-1                                                
-            ################
-           #if p.ground_id>=1 and p.ground_id<=99:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id>=100 and p.ground_id<=199:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id >=200 and p.ground_id<=299:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=300 and p.ground_id<=399:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=400 and p.ground_id<=499:
-           #    u.exp=u.exp+lis[3]
             if ground_id>=1 and ground_id<=499:
                 pricefood=lis[1]
             if ground_id >=1 and ground_id<=99:
@@ -4613,14 +4739,6 @@ class RootController(BaseController):
                         p.producttime=ti
                         
                     p.ground_id=int(ground_id)
-                    #if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412:
-                    #    u.food_god_lev=u.food_god_lev+1
-                    #elif p.ground_id==401 or p.ground_id==405 or p.ground_id==409 or p.ground_id==413:
-                    #    u.person_god_lev=u.person_god_lev+1
-                    #elif p.ground_id==402 or p.ground_id==406 or p.ground_id==410 or p.ground_id==414:
-                    #    u.wealth_god_lev=u.wealth_god_lev+1
-                    #elif p.ground_id==403 or p.ground_id==407 or p.ground_id==411 or p.ground_id==415:
-                    #    u.war_god_lev=u.war.god_lev+1                   
                     read(city_id)
                     replacecache(u.userid,u)#cache
                     return dict(id=1)
@@ -4964,149 +5082,6 @@ class RootController(BaseController):
             return dict(id=1,tu=tu[2])
         except InvalidRequestError:
             return dict(id=0)
-    @expose('json')
-    def plantingall(self,user_id,city_id,object_id):
-        ground_num=0
-        plant_list=[]
-        try:
-            u=checkopdata(user_id)#cache
-            temp_cae = u.cae-1
-            if temp_cae>=0:
-                price=Plant_Price[int(object_id)][0]
-                ground = DBSession.query(businessWrite).filter("city_id=:cid and producttime=0 and finish = 1 and ground_id <=4 and ground_id>=1").params(cid = int(city_id)).all()
-                if ground==None or len(ground)==0:
-                    return dict(id=0)
-                if price<0:
-                    price=0-price
-                    temp_cae = temp_cae-price
-                    if temp_cae < 0:
-                        return dict(id=0)
-                    temp_cae=temp_cae+price
-                    for g in ground:
-                        temp_cae=temp_cae-price
-                        if temp_cae>=0:
-                            plant_list.append(g.grid_id)
-                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                            g.object_id=int(object_id)
-                            g.producttime=ti
-                        else:
-                            temp_cae = temp_cae+price
-                            u.cae = temp_cae
-                            read(city_id)
-                            replacecache(u.userid,u)#cache
-                            return dict(id=0,plant=plant_list)
-                    temp_cae = temp_cae+price
-                    u.cae = temp_cae
-                    read(city_id)
-                    replacecache(u.userid,u)#cache
-                    return dict(id=1,plant=plant_list)
-                else:
-                    temp_corn = u.corn
-                    if temp_corn-price < 0:
-                        return dict(id=0)
-                    for g in ground:
-                        if temp_corn-price>=0:
-                            temp_corn = temp_corn-price
-                            plant_list.append(g.grid_id)
-                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                            g.object_id=int(object_id)
-                            g.producttime=ti
-                        else:
-                            u.corn=temp_corn
-                            read(city_id)
-                            replacecache(u.userid,u)
-                            return dict(id=0,plant=plant_list)
-                    u.corn=temp_corn
-                    read(city_id)
-                    replacecache(u.userid,u)
-                    return dict(id=1,plant=plant_list)
-            else:
-                return dict(id=0)
-        except InvalidRequestError:
-            return dict(id=0)
-    @expose('json')
-    def harvestall(self,user_id,city_id):
-        expadd=0
-        foodadd=0
-        try:
-            u=checkopdata(user_id)#cache
-            temp_cae = u.cae-1
-            if temp_cae>=0:
-                map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>0").params(cid = int(city_id)).all()
-                if ground==None or len(ground)==0:
-                    return dict(id=0)
-                factor=1
-                factor2=1.0
-                if u.food_god==1 and t-u.foodgodtime<3600:
-                    if u.food_god_lev==1:
-                        factor=1.2
-                    elif u.food_god_lev==2:
-                        factor=1.4
-                    elif u.food_god_lev==3:
-                        factor=1.6
-                    elif u.food_god_lev==4:
-                        factor=1.8
-                    elif u.food_god_lev==5:
-                        factor=2
-                elif u.food_god==2 and t-u.foodgodtime<21600:
-                    if u.food_god_lev==1:
-                        factor=1.2
-                    elif u.food_god_lev==2:
-                        factor=1.4
-                    elif u.food_god_lev==3:
-                        factor=1.6
-                    elif u.food_god_lev==4:
-                        factor=1.8
-                    elif u.food_god_lev==5:
-                        factor=2
-                elif u.food_god==3 and t-u.foodgodtime<86400:
-                    if u.food_god_lev==1:
-                        factor=1.2
-                    elif u.food_god_lev==2:
-                        factor=1.4
-                    elif u.food_god_lev==3:
-                        factor=1.6
-                    elif u.food_god_lev==4:
-                        factor=1.8
-                    elif u.food_god_lev==5:
-                        factor=2
-                else:
-                    u.food_god=0
-                    u.foodgodtime=-1
-                for g in ground:
-                    grid_id=g.grid_id
-                    object_id=g.object_id
-                    producttime=g.producttime
-                    single_exp=Plant_Price[int(object_id)][1]
-                    single_food=Plant_Price[int(object_id)][2]
-                    growtime=Plant_Price[int(object_id)][3]
-                    if g.ground_id==2:
-                        factor2=1.2
-                    elif g.ground_id==3:
-                        factor2=1.4
-                    elif g.ground_id==4:
-                        factor2=1.6
-                    if producttime+growtime<=t:
-                        mark=minusstateeli(u,map,grid_id,producttime)
-                        if t-producttime>86400*3:
-                            expadd = expadd+single_exp
-                        else:
-                            foodadd = foodadd+int(single_food*factor*(int(factor2*10))/10)
-                            expadd = expadd+single_exp
-                        g.object_id=-1
-                        g.producttime=0
-                u.exp=u.exp+expadd
-                u.food=u.food+foodadd
-                u.cae = temp_cae
-                read(city_id)
-                replacecache(u.userid,u)#cache
-                return dict(id=1,expadd=expadd,foodadd=foodadd)
-            else:
-                return dict(id=0)
-        except InvalidRequestError:
-                return dict(id=0)
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
