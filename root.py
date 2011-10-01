@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+
 """Main Controller"""
 
 from tg import expose, flash, require, url, request, redirect,response
@@ -208,6 +209,8 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
+        #reward = [1, 5, 15, 40]
+        reward = [2, 7, 20, 50]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -217,17 +220,17 @@ class RootController(BaseController):
                     u.cae=u.cae+int(int(papapas)/100)
                     caeplus=int(int(papapas)/100)
                 elif int(papapas)==1000:
-                    u.cae=u.cae+11
-                    caeplus=11
+                    u.cae=u.cae+10 + reward[0]
+                    caeplus=10+reward[0]
                 elif int(papapas)==2500:
-                    u.cae=u.cae+30
-                    caeplus=30
+                    u.cae=u.cae+25 + reward[1]
+                    caeplus=25 + reward[1]
                 elif int(papapas)==5000:
-                    u.cae=u.cae+65
-                    caeplus=65
+                    u.cae=u.cae+50 + reward[2]
+                    caeplus=50 + reward[2]
                 elif int(papapas)==10000:
-                    u.cae=u.cae+140
-                    caeplus=140
+                    u.cae=u.cae+100 + reward[3]
+                    caeplus=100 + reward[3]
                 else:
                     u.cae=u.cae+int(int(papapas)/100)
                 ca=u.cae
@@ -3541,10 +3544,20 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
-                rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
+                otherid=list(otherid)
+                fll.append(otherid[0])
+		rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.meritrank,Rank.power,Rank.won).filter(Rank.otherid.in_(fll)).order_by(Rank.meritrank).all()
                 for n in rank1:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+      	            one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+		    one.append(n[1])
+		    one.append(n[2])
+		    one.append(n[3])
+		    one.append(n[4])
+		    one1=DBSession.query(operationalData.nobility,operationalData.subno).filter_by(userid=int(n[0])).one()
+		    one1=list(one1)
+		    one.append(one1[0])
+		    one.append(one1[1])
                     rank2.append(one) 
                 if rank2==None or len(rank2)==0:
                     return dict(id=0)
@@ -3570,10 +3583,15 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-                fl=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.fortunerank<21).order_by(Rank.fortunerank).all()
                 one=[]
                 for n in fl:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.lev,operationalData.cae,operationalData.corn).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
                     rank1.append(one)
                 return dict(rank=rank1)
             else:
@@ -3584,10 +3602,16 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
-                rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
+                otherid=list(otherid)
+                fll.append(otherid[0])
+                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
                 for n in rank1:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
                     rank2.append(one)
                 if rank2==None or len(rank2)==0:
                     return dict(id=0)
@@ -3696,6 +3720,7 @@ class RootController(BaseController):
                 u.corn = 0
             bonusstring=bonusstring+str(cornget)+'!'+str(cornlost)     
         return bonusstring 
+<<<<<<< HEAD
     
     def calGod(uid, power):
         u = checkopdata(uid)
@@ -4995,13 +5020,12 @@ class RootController(BaseController):
                             read(city_id)
                             replacecache(u.userid,u)#cache
                             return dict(id=0,plant=plant_list)
-                    temp_cae = temp_cae+price
                     u.cae = temp_cae
                     read(city_id)
                     replacecache(u.userid,u)#cache
                     return dict(id=1,plant=plant_list)
                 else:
-                    temp_corn = u.corn
+                    temp_corn = u.corn 
                     if temp_corn-price < 0:
                         return dict(id=0)
                     for g in ground:
@@ -5013,10 +5037,12 @@ class RootController(BaseController):
                             g.producttime=ti
                         else:
                             u.corn=temp_corn
+                            u.cae=temp_cae
                             read(city_id)
                             replacecache(u.userid,u)
                             return dict(id=0,plant=plant_list)
                     u.corn=temp_corn
+                    u.cae=temp_cae
                     read(city_id)
                     replacecache(u.userid,u)
                     return dict(id=1,plant=plant_list)
@@ -5034,7 +5060,7 @@ class RootController(BaseController):
             if temp_cae>=0:
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>0").params(cid = int(city_id)).all()
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
                 if ground==None or len(ground)==0:
                     return dict(id=0)
                 factor=1
@@ -5090,7 +5116,7 @@ class RootController(BaseController):
                         factor2=1.6
                     if producttime+growtime<=t:
                         mark=minusstateeli(u,map,grid_id,producttime)
-                        if t-producttime>86400*3:
+                        if t-producttime>86400*3 and producttime!=1:
                             expadd = expadd+single_exp
                         else:
                             foodadd = foodadd+int(single_food*factor*(int(factor2*10))/10)
