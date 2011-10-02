@@ -2876,8 +2876,11 @@ class RootController(BaseController):
             exp=user.exp
             fo=user.food
             tasklist=[]
-            #if user.currenttask=='' or user.currenttask==None:
-            #    tasklist=newtask(user)
+            
+            dif = logintime - user.logintime
+            days = dif / 86400 
+            #pets = getPet           
+
             user.logintime=logintime
             lisa=[]
             try:
@@ -3261,8 +3264,7 @@ class RootController(BaseController):
         enemy_id=int(enemy_id)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
-            return dict(id=0, rea='self')
-        wm = DBSession.query(warmap).filter()
+            return dict(id=0, reason='self attack self')
         try:
             f=checkopdata(enemy_id)
             ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
@@ -3276,9 +3278,9 @@ class RootController(BaseController):
                 #ub.left_time=t
                 return dict(id=1)
             else:
-                return dict(id=0, rea='cae')
+                return dict(id=0, reason='cae')
         except:
-            return dict(id=0, rea='no bat')
+            return dict(id=0, reason='no bat')
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
