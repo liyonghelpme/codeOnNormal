@@ -3246,6 +3246,7 @@ class RootController(BaseController):
             return 0 
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
+	print "attack speed up"
         uid=int(uid)
         enemy_id=int(enemy_id)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -5740,7 +5741,7 @@ class RootController(BaseController):
                     replacecache(u.userid,u)#cache
                     return dict(id=1,plant=plant_list)
                 else:
-                    temp_corn = u.corn
+                    temp_corn = u.corn 
                     if temp_corn-price < 0:
                         return dict(id=0)
                     for g in ground:
