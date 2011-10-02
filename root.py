@@ -2252,6 +2252,10 @@ class RootController(BaseController):
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
                 cardlist.append(ca.logincard)
+                cardlist.append(ca.foodcard)
+                cardlist.append(ca.fortunecard)
+                cardlist.append(ca.popcard)
+                cardlist.append(ca.warcard)
             except:
                 cardlist=[]
             if visit.visited==0:
@@ -2835,10 +2839,29 @@ class RootController(BaseController):
             return dict(id=1)
         except:
             return dict(id=0)
+
+     @expose('json')
+    def changecard(self,userid,cardnum,type):
+        cardtype=int(type)
+        cardnum=int(cardnum)
+        userid=int(userid)
+        try:
+            card=DBSession.query(Card).filter("uid=:uid").params(uid=userid).one()
+            if cardtype==0:
+                card.foodcard=cardnum
+            elif cardtype==1:
+                card.fortunecard=cardnum
+            elif cardtype==2:
+                card.popcard=cardnum
+            elif cardtype==3:
+                card.warcard=cardnum
+            return dict(id=1,card=card)
+        except InvalidRequestError:
+            return dict(id=0)
     @expose('json')
     def logsign(self,papayaid,user_kind,md5):# 对外接口，登陆注册login if signed or sign;operationalData:query
         print "login from 1"
-	user=None
+        user=None
         oid=papayaid#papayaid改为string类型
         user_kind=int(user_kind)
         logintime=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -2877,9 +2900,6 @@ class RootController(BaseController):
             fo=user.food
             tasklist=[]
             
-            dif = logintime - user.logintime
-            days = dif / 86400 
-            #pets = getPet           
 
             user.logintime=logintime
             lisa=[]
@@ -2896,6 +2916,10 @@ class RootController(BaseController):
             try:
                 card=DBSession.query(Card).filter_by(uid=user.userid).one()
                 cardlist.append(card.logincard)
+                cardlist.append(card.foodcard)
+                cardlist.append(card.fortunecard)
+                cardlist.append(card.popcard)
+                cardlist.append(card.warcard)
             except:
                 card=None
             #######卡片数量列表
@@ -3612,10 +3636,16 @@ class RootController(BaseController):
                 for n in fl:
                     fll.append(n[0])
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
-                fll.append(otherid)
-                rank1=DBSession.query(Rank.userid,Rank.otherid).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
+                otherid=list(otherid)
+                fll.append(otherid[0])
+                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.fortunerank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.fortunerank).all()
                 for n in rank1:
-                    one=DBSession.query(operationalData.otherid,operationalData.papayaname,operationalData.empirename,operationalData.nobility,operationalData.subno,operationalData.infantrypower+operationalData.cavalrypower).filter_by(userid=int(n[0])).one()
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
                     rank2.append(one)
                 if rank2==None or len(rank2)==0:
                     return dict(id=0)
@@ -4998,8 +5028,11 @@ class RootController(BaseController):
         plant_list=[]
         try:
             u=checkopdata(user_id)#cache
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
             temp_cae = u.cae-1
-            if temp_cae>=0:
+            if temp_cae>=0 or card.foodcard==5:
+                if card.foodcard==5:
+                    temp_cae=temp_cae+1
                 price=Plant_Price[int(object_id)][0]
                 ground = DBSession.query(businessWrite).filter("city_id=:cid and producttime=0 and finish = 1 and ground_id <=4 and ground_id>=1").params(cid = int(city_id)).all()
                 if ground==None or len(ground)==0:
@@ -5057,11 +5090,14 @@ class RootController(BaseController):
     def harvestall(self,user_id,city_id):
         expadd=0
         foodadd=0
-        flag = 0
+        flag=0
         try:
             u=checkopdata(user_id)#cache
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
             temp_cae = u.cae-1
-            if temp_cae>=0:
+            if temp_cae>=0 or card.foodcard==5:
+                if card.foodcard==5:
+                    temp_cae=temp_cae+1
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
@@ -5118,7 +5154,7 @@ class RootController(BaseController):
                         factor2=1.4
                     elif g.ground_id==4:
                         factor2=1.6
-                    if producttime+growtime<=t:#成熟了
+                    if producttime+growtime<=t:
                         flag=1
                         mark=minusstateeli(u,map,grid_id,producttime)
                         if t-producttime>86400*3 and producttime!=1:
@@ -5131,7 +5167,7 @@ class RootController(BaseController):
                     factor2=1.0
                 u.exp=u.exp+expadd
                 u.food=u.food+foodadd
-                if flag==1:#确实收获了农田
+                if flag==1:
                     u.cae = temp_cae
                 read(city_id)
                 replacecache(u.userid,u)#cache
