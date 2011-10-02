@@ -2840,7 +2840,7 @@ class RootController(BaseController):
         except:
             return dict(id=0)
 
-     @expose('json')
+    @expose('json')
     def changecard(self,userid,cardnum,type):
         cardtype=int(type)
         cardnum=int(cardnum)
