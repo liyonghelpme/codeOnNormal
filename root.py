@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+
 """Main Controller"""
 
 from tg import expose, flash, require, url, request, redirect,response
@@ -208,6 +209,8 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
+        #reward = [1, 5, 15, 40]
+        reward = [2, 7, 20, 50]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -217,17 +220,17 @@ class RootController(BaseController):
                     u.cae=u.cae+int(int(papapas)/100)
                     caeplus=int(int(papapas)/100)
                 elif int(papapas)==1000:
-                    u.cae=u.cae+12
-                    caeplus=12
+                    u.cae=u.cae+10 + reward[0]
+                    caeplus=10+reward[0]
                 elif int(papapas)==2500:
-                    u.cae=u.cae+32
-                    caeplus=32
+                    u.cae=u.cae+25 + reward[1]
+                    caeplus=25 + reward[1]
                 elif int(papapas)==5000:
-                    u.cae=u.cae+70
-                    caeplus=70
+                    u.cae=u.cae+50 + reward[2]
+                    caeplus=50 + reward[2]
                 elif int(papapas)==10000:
-                    u.cae=u.cae+150
-                    caeplus=150
+                    u.cae=u.cae+100 + reward[3]
+                    caeplus=100 + reward[3]
                 else:
                     u.cae=u.cae+int(int(papapas)/100)
                 ca=u.cae
@@ -5831,7 +5834,7 @@ class RootController(BaseController):
                         factor2=1.4
                     elif g.ground_id==4:
                         factor2=1.6
-                    if producttime+growtime<=t:
+                    if producttime+growtime<=t:#成熟了
                         flag=1
                         mark=minusstateeli(u,map,grid_id,producttime)
                         if t-producttime>86400*3 and producttime!=1:
@@ -5844,7 +5847,7 @@ class RootController(BaseController):
                     factor2=1.0
                 u.exp=u.exp+expadd
                 u.food=u.food+foodadd
-                if flag==1:
+                if flag==1:#确实收获了农田
                     u.cae = temp_cae
                 read(city_id)
                 replacecache(u.userid,u)#cache
