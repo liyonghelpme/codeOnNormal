@@ -5021,7 +5021,6 @@ class RootController(BaseController):
                             read(city_id)
                             replacecache(u.userid,u)#cache
                             return dict(id=0,plant=plant_list)
-                    temp_cae = temp_cae+price
                     u.cae = temp_cae
                     read(city_id)
                     replacecache(u.userid,u)#cache
@@ -5039,10 +5038,12 @@ class RootController(BaseController):
                             g.producttime=ti
                         else:
                             u.corn=temp_corn
+                            u.cae=temp_cae
                             read(city_id)
                             replacecache(u.userid,u)
                             return dict(id=0,plant=plant_list)
                     u.corn=temp_corn
+                    u.cae=temp_cae
                     read(city_id)
                     replacecache(u.userid,u)
                     return dict(id=1,plant=plant_list)
@@ -5054,13 +5055,14 @@ class RootController(BaseController):
     def harvestall(self,user_id,city_id):
         expadd=0
         foodadd=0
+        flag = 0
         try:
             u=checkopdata(user_id)#cache
             temp_cae = u.cae-1
             if temp_cae>=0:
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>0").params(cid = int(city_id)).all()
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
                 if ground==None or len(ground)==0:
                     return dict(id=0)
                 factor=1
@@ -5114,18 +5116,21 @@ class RootController(BaseController):
                         factor2=1.4
                     elif g.ground_id==4:
                         factor2=1.6
-                    if producttime+growtime<=t:
+                    if producttime+growtime<=t:#成熟了
+                        flag=1
                         mark=minusstateeli(u,map,grid_id,producttime)
-                        if t-producttime>86400*3:
+                        if t-producttime>86400*3 and producttime!=1:
                             expadd = expadd+single_exp
                         else:
                             foodadd = foodadd+int(single_food*factor*(int(factor2*10))/10)
                             expadd = expadd+single_exp
                         g.object_id=-1
                         g.producttime=0
+                    factor2=1.0
                 u.exp=u.exp+expadd
                 u.food=u.food+foodadd
-                u.cae = temp_cae
+                if flag==1:#确实收获了农田
+                    u.cae = temp_cae
                 read(city_id)
                 replacecache(u.userid,u)#cache
                 return dict(id=1,expadd=expadd,foodadd=foodadd)
