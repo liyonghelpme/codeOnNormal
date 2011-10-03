@@ -3181,7 +3181,7 @@ class RootController(BaseController):
             curBattle = DBSession.query(Battle).filter(Battle.finish==0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in curBattle:
                 print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) + ' ' +str(b.powerin) + ' ' + str(b.powerca) 
-                b.finish = 1
+                b.finish = 3#cancel
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
                 attacker.cavalrypower += b.powerca
@@ -3328,7 +3328,7 @@ class RootController(BaseController):
             print "no occupy data"
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
-            if ub.finish != 1:
+            if ub.finish == 0:
                 return dict(id = 0, status = 1)
 
             u=checkopdata(uid)#cache
@@ -3887,7 +3887,10 @@ class RootController(BaseController):
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
-            b.finish = 1
+            if attFullPow > defFullPow:
+            	b.finish = 1
+            else:
+                b.finish = 2
         #defence fail lost 3% corn
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
