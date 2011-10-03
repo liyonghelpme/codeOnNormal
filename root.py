@@ -2660,10 +2660,18 @@ class RootController(BaseController):
     def newcomplete(self,uid,level):#对外接口，新手任务
         try:
             level=int(level)
+            print "new comp " + str(uid) + ' ' + str(level)
             #user=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             user=checkopdata(uid)#cache
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             war=DBSession.query(warMap).filter_by(userid=int(uid)).one()
+            print "finding warmap"
+
+	    print "finding all building " + str(war.city_id)
+	    allbuilding = DBSession.query(businessWrite).filter_by(city_id = war.city_id).all()
+	    for b in allbuilding:
+	        print 'my building ' + str(b.ground_id)
+	    print "all building len "+ str(uid)+' ' + str(len(allbuilding))
             if level==1:        
                 user.newcomer=level
                 user.corn=950
@@ -3017,6 +3025,7 @@ class RootController(BaseController):
         except InvalidRequestError:
             newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
             DBSession.add(newuser)
+            newuser = DBSession.query(operationalData).filter_by(otherid = oid).one()
             c1=DBSession.query('LAST_INSERT_ID()')
             c1=c1[0]
             gi=0
@@ -3036,6 +3045,7 @@ class RootController(BaseController):
             nu.monsterlist='0,7'
             nwMap=warMap(c1[0],-1,-1,0)
             DBSession.add(nwMap)
+
             gi=-1
             mi=-1
             #if mid[0]!=0:
@@ -3053,71 +3063,72 @@ class RootController(BaseController):
             #    gi=i
             #    mi=mid[0]
             #    DBSession.add(nwMap)
-            cid=DBSession.query('LAST_INSERT_ID()')
+            cid = DBSession.query(warMap).filter_by(userid=newuser.userid).one()
+            #cid=DBSession.query('LAST_INSERT_ID()')
             inistr=''
             inistr=inistr+INITIALSTR2+str(logintime)+',0;'+'100,575,-1,'+str(logintime-86400)+',1;300,570,-1,'+str(logintime-86400)+',1;1,690,0,'+str(logintime-86400)+',1';
             
-            nbr=businessRead(city_id=cid[0][0],layout=inistr)
+            nbr=businessRead(city_id=cid.city_id,layout=inistr)
             DBSession.add(nbr)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
+            nbw=businessWrite(city_id=cid.city_id,ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)                                    
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
+            nbw=businessWrite(city_id=cid.city_id,ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
             DBSession.add(nbw)       
             ds=Datesurprise(uid=nu.userid,datesurprise=0)
             DBSession.add(ds)
@@ -3127,6 +3138,7 @@ class RootController(BaseController):
             nc=Card(uid=nuid)
             DBSession.add(nc)
             ####卡片
+
             try:
                 nuf=DBSession.query(Papayafriend).filter_by(papayaid=papayaid).filter_by(user_kind=int(user_kind)).all()
                 for x in nuf:
@@ -3149,8 +3161,11 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            
-            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
+            """
+	    allbuilding = DBSession.query(businessWrite).filter_by(city_id = war.city_id).all()
+	    print "all building len "+ str(uid)+' ' + str(len(allbuilding))
+		"""
+            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
        
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
@@ -3780,7 +3795,8 @@ class RootController(BaseController):
         #gen two battle result ord
         for b in battleset:
             print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id) + ' finish ' + str(b.finish)
-            
+            if b.finish != 0:
+                continue        
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
             attStr = str(b.enemy_id)+',1'
