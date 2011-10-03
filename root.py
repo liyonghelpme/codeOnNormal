@@ -3189,6 +3189,8 @@ class RootController(BaseController):
             curBattle = DBSession.query(Battle).filter(Battle.finish==0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in curBattle:
                 print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) + ' ' +str(b.powerin) + ' ' + str(b.powerca) 
+                if b.finish != 0:
+                    continue
                 b.finish = 3#cancel
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
