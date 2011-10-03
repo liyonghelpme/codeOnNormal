@@ -4,3 +4,6 @@ class Occupation(object):
         self.masterid=masterid
         self.slaveid=slaveid
 	self.time = time
+    def __init__(self, masterid, slaveid):
+        self.masterid = masterid
+        self.slaveid = slaveid
