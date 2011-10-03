@@ -2665,13 +2665,14 @@ class RootController(BaseController):
             user=checkopdata(uid)#cache
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             war=DBSession.query(warMap).filter_by(userid=int(uid)).one()
+"""
             print "finding warmap"
-
-	    print "finding all building " + str(war.city_id)
-	    allbuilding = DBSession.query(businessWrite).filter_by(city_id = war.city_id).all()
-	    for b in allbuilding:
-	        print 'my building ' + str(b.ground_id)
-	    print "all building len "+ str(uid)+' ' + str(len(allbuilding))
+            print "finding all building " + str(war.city_id)
+            allbuilding = DBSession.query(businessWrite).filter_by(city_id = war.city_id).all()
+            for b in allbuilding:
+                print 'my building ' + str(b.ground_id)
+            print "all building len "+ str(uid)+' ' + str(len(allbuilding))
+"""
             if level==1:        
                 user.newcomer=level
                 user.corn=950
