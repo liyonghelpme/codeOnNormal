@@ -3324,11 +3324,10 @@ class RootController(BaseController):
         uid=int(uid)
         enemy_id=int(enemy_id)
         if uid == enemy_id:
-            return dict(id=0, 3)
+            return dict(id=0, status = 3)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
 
         try:
             occupy = DBSession.query(Occupation).filter_by(masterid=uid).filter_by(slaveid=enemy_id).one()
@@ -3336,25 +3335,27 @@ class RootController(BaseController):
             return dict(id = 0, status = 2)
         except:
             print "no occupy data"
+
+        u=checkopdata(uid)#cache
+        f=checkopdata(enemy_id)
+        myMap = DBSession.query(warMap.mapid).filter_by(userid = u.userid).one()
+        eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
+        print "mymap " + str(myMap.mapid) + "enemap " + str(eneMap.mapid)
+        if myMap.mapid != eneMap.mapid:
+	    return dict(id = 0, status = 4, reason = "not in same map")
+
+        if checkprotect(f)>0:
+            print "target in protect"
+            pType = f.protecttype
+            pTime = [7200, 28800, 86400]
+            endt = pTime[pType] + f.protecttime
+            return dict(id=0, status=0, endtime = endt)
+
+        timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
             if ub.finish == 0:
                 return dict(id = 0, status = 1)
-
-            u=checkopdata(uid)#cache
-            f=checkopdata(enemy_id)
-            myMap = DBSession.query(warMap.mapid).filter_by(userid = u.userid).one()
-            eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
-            if myMap.mapid != eneMap.mapid:
-                return dict(id = 0, status = 4, reason = "not in same map")
-            timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-            
-            if checkprotect(f)>0:
-                print "target in protect"
-                pType = f.protecttype
-                pTime = [7200, 28800, 86400]
-                endt = pTime[pType] + f.protecttime
-                return dict(id=0, status=0, endtime = endt)
 
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry  
@@ -3366,12 +3367,8 @@ class RootController(BaseController):
             ub.power=infantry+cavalry
             allypower=allyhelp(uid,0,infantry+cavalry)
             ub.allypower=allypower
-            u.signtime=0
-            u.protecttime=-1
-            u.protecttype=-1
-            print 'normal battle information' + str(uid)
-            replacecache(uid,u)#cache
-            return dict(id=1)   
+            print 'replace old battle info ' + str(uid)
+            rep = 1
         except InvalidRequestError:
            # u=DBSession.query(operationalData).filter_by(userid=uid).one()
             print 'attack ' + str(uid) + ' ' + str(enemy_id) + ' timeneed ' + str(timeneed)
@@ -3379,12 +3376,13 @@ class RootController(BaseController):
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry   
             allypower=allyhelp(uid,0,infantry+cavalry)    
-            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=t,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
+            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=timeNow,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
             DBSession.add(nb)
-            u.protecttime = -1
-            u.protecttype = -1
-            replacecache(uid,u)#cache
-            return dict(id=1)                                     
+            rep = 0
+        u.signtime = 0
+        u.protecttime = -1
+        u.protecttype = -1
+        return dict(id=1, replace = rep)                                     
     def returnscout(u):#返回侦察兵数量
         scout=[]
         scout.append(u.scout1_num)
