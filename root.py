@@ -3324,7 +3324,7 @@ class RootController(BaseController):
         uid=int(uid)
         enemy_id=int(enemy_id)
         if uid == enemy_id:
-            return dict(id=0)
+            return dict(id=0, 3)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
@@ -3343,6 +3343,10 @@ class RootController(BaseController):
 
             u=checkopdata(uid)#cache
             f=checkopdata(enemy_id)
+            myMap = DBSession.query(warMap.mapid).filter_by(userid = u.userid).one()
+            eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
+            if myMap.mapid != eneMap.mapid:
+                return dict(id = 0, status = 4, reason = "not in same map")
             timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
             
             if checkprotect(f)>0:
