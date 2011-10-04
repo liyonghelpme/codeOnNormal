@@ -9,6 +9,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong import model
@@ -2660,6 +2661,7 @@ class RootController(BaseController):
     def newcomplete(self,uid,level):#对外接口，新手任务
         try:
             level=int(level)
+            print "new comp " + str(uid) + ' ' + str(level)
             #user=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             user=checkopdata(uid)#cache
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -3017,6 +3019,7 @@ class RootController(BaseController):
         except InvalidRequestError:
             newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
             DBSession.add(newuser)
+            newuser = DBSession.query(operationalData).filter_by(otherid = oid).one()
             c1=DBSession.query('LAST_INSERT_ID()')
             c1=c1[0]
             gi=0
@@ -3036,6 +3039,7 @@ class RootController(BaseController):
             nu.monsterlist='0,7'
             nwMap=warMap(c1[0],-1,-1,0)
             DBSession.add(nwMap)
+
             gi=-1
             mi=-1
             #if mid[0]!=0:
@@ -3053,71 +3057,72 @@ class RootController(BaseController):
             #    gi=i
             #    mi=mid[0]
             #    DBSession.add(nwMap)
-            cid=DBSession.query('LAST_INSERT_ID()')
+            cid = DBSession.query(warMap).filter_by(userid=newuser.userid).one()
+            #cid=DBSession.query('LAST_INSERT_ID()')
             inistr=''
             inistr=inistr+INITIALSTR2+str(logintime)+',0;'+'100,575,-1,'+str(logintime-86400)+',1;300,570,-1,'+str(logintime-86400)+',1;1,690,0,'+str(logintime-86400)+',1';
             
-            nbr=businessRead(city_id=cid[0][0],layout=inistr)
+            nbr=businessRead(city_id=cid.city_id,layout=inistr)
             DBSession.add(nbr)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
+            nbw=businessWrite(city_id=cid.city_id,ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)                                    
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
+            nbw=businessWrite(city_id=cid.city_id,ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
             DBSession.add(nbw)       
             ds=Datesurprise(uid=nu.userid,datesurprise=0)
             DBSession.add(ds)
@@ -3127,6 +3132,7 @@ class RootController(BaseController):
             nc=Card(uid=nuid)
             DBSession.add(nc)
             ####卡片
+
             try:
                 nuf=DBSession.query(Papayafriend).filter_by(papayaid=papayaid).filter_by(user_kind=int(user_kind)).all()
                 for x in nuf:
@@ -3149,8 +3155,11 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            
-            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
+            """
+	    allbuilding = DBSession.query(businessWrite).filter_by(city_id = war.city_id).all()
+	    print "all building len "+ str(uid)+' ' + str(len(allbuilding))
+		"""
+            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
        
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
@@ -3178,10 +3187,12 @@ class RootController(BaseController):
                 DBSession.delete(oo)
             
             print "remove all current running battle"
-            curBattle = DBSession.query(Battle).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).filter(Battle.finish == 0).all();
+            curBattle = DBSession.query(Battle).filter(Battle.finish==0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in curBattle:
-                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) 
-                b.finish = 1
+                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) + ' ' +str(b.powerin) + ' ' + str(b.powerca) 
+                if b.finish != 0:
+                    continue
+                b.finish = 3#cancel
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
                 attacker.cavalrypower += b.powerca
@@ -3314,11 +3325,10 @@ class RootController(BaseController):
         uid=int(uid)
         enemy_id=int(enemy_id)
         if uid == enemy_id:
-            return dict(id=0)
+            return dict(id=0, status = 4)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
 
         try:
             occupy = DBSession.query(Occupation).filter_by(masterid=uid).filter_by(slaveid=enemy_id).one()
@@ -3326,21 +3336,27 @@ class RootController(BaseController):
             return dict(id = 0, status = 2)
         except:
             print "no occupy data"
+
+        u=checkopdata(uid)#cache
+        f=checkopdata(enemy_id)
+        myMap = DBSession.query(warMap.mapid).filter_by(userid = u.userid).one()
+        eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
+        print "mymap " + str(myMap.mapid) + "enemap " + str(eneMap.mapid)
+        if myMap.mapid != eneMap.mapid:
+            return dict(id = 0, status = 3, reason = "not in same map")
+
+        if checkprotect(f)>0:
+            print "target in protect"
+            pType = f.protecttype
+            pTime = [7200, 28800, 86400]
+            endt = pTime[pType] + f.protecttime
+            return dict(id=0, status=0, endtime = endt)
+
+        timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
-            if ub.finish != 1:
+            if ub.finish == 0:
                 return dict(id = 0, status = 1)
-
-            u=checkopdata(uid)#cache
-            f=checkopdata(enemy_id)
-            timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-            
-            if checkprotect(f)>0:
-                print "target in protect"
-                pType = f.protecttype
-                pTime = [7200, 28800, 86400]
-                endt = pTime[pType] + f.protecttime
-                return dict(id=0, status=0, endtime = endt)
 
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry  
@@ -3352,25 +3368,22 @@ class RootController(BaseController):
             ub.power=infantry+cavalry
             allypower=allyhelp(uid,0,infantry+cavalry)
             ub.allypower=allypower
-            u.signtime=0
-            u.protecttime=-1
-            u.protecttype=-1
-            print 'normal battle information' + str(uid)
-            replacecache(uid,u)#cache
-            return dict(id=1)   
+            print 'replace old battle info ' + str(uid)
+            rep = 1
         except InvalidRequestError:
            # u=DBSession.query(operationalData).filter_by(userid=uid).one()
-            print 'user check ' + str(uid)
+            print 'attack ' + str(uid) + ' ' + str(enemy_id) + ' timeneed ' + str(timeneed)
             u = checkopdata(uid)
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry   
             allypower=allyhelp(uid,0,infantry+cavalry)    
-            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=t,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
+            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=timeNow,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
             DBSession.add(nb)
-            u.protecttime = -1
-            u.protecttype = -1
-            replacecache(uid,u)#cache
-            return dict(id=1)                                     
+            rep = 0
+        u.signtime = 0
+        u.protecttime = -1
+        u.protecttype = -1
+        return dict(id=1, replace = rep)                                     
     def returnscout(u):#返回侦察兵数量
         scout=[]
         scout.append(u.scout1_num)
@@ -3774,13 +3787,14 @@ class RootController(BaseController):
         minus = -1
         battleset = []
         print 'current time ' + str(t)
-        battleset = DBSession.query(Battle).filter(t-Battle.left_time > Battle.timeneed).filter(Battle.finish == 0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(uid), uid1=int(uid)).order_by(Battle.left_time)
+        battleset = DBSession.query(Battle).filter_by(finish = 0).filter(Battle.timeneed+Battle.left_time<t).filter(or_(Battle.uid==uid, Battle.enemy_id==uid)).order_by(Battle.left_time).all()
         print "fetch battle result of " + str(uid)
         
         #gen two battle result ord
         for b in battleset:
-            print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id)
-            
+            print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id) + ' finish ' + str(b.finish)
+            if b.finish != 0:
+                continue        
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
             attStr = str(b.enemy_id)+',1'
@@ -3887,7 +3901,10 @@ class RootController(BaseController):
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
-            b.finish = 1
+            if attFullPow > defFullPow:
+            	b.finish = 1
+            else:
+                b.finish = 2
         #defence fail lost 3% corn
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
