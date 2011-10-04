@@ -3375,7 +3375,7 @@ class RootController(BaseController):
             u.cavalrypower=u.cavalrypower-cavalry  
             ub.timeneed=timeneed
             ub.finish=0
-            ub.left_time=t
+            ub.left_time=timeNow
             ub.powerin=infantry
             ub.powerca=cavalry
             ub.power=infantry+cavalry
