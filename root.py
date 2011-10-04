@@ -3342,7 +3342,7 @@ class RootController(BaseController):
         eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
         print "mymap " + str(myMap.mapid) + "enemap " + str(eneMap.mapid)
         if myMap.mapid != eneMap.mapid:
-	    return dict(id = 0, status = 3, reason = "not in same map")
+            return dict(id = 0, status = 3, reason = "not in same map")
 
         if checkprotect(f)>0:
             print "target in protect"
