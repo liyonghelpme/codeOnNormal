@@ -9,6 +9,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong import model
@@ -3786,7 +3787,7 @@ class RootController(BaseController):
         minus = -1
         battleset = []
         print 'current time ' + str(t)
-        battleset = DBSession.query(Battle).filter(Battle.finish == 0).filter(Battle.timeneed+Battle.left_time<t).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(uid), uid1=int(uid)).order_by(Battle.left_time).all()
+        battleset = DBSession.query(Battle).filter_by(finish = 0).filter(Battle.timeneed+Battle.left_time<t).filter(or_(Battle.uid==uid, Battle.enemy_id==uid)).order_by(Battle.left_time).all()
         print "fetch battle result of " + str(uid)
         
         #gen two battle result ord
