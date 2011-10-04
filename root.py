@@ -7,8 +7,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -44,6 +44,8 @@ class RootController(BaseController):
     """
     secc = SecureController()
     
+
+    global accCost
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
@@ -3304,14 +3306,25 @@ class RootController(BaseController):
             f=checkopdata(enemy_id)
             ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
-            cae=int((tl+3600-1)/3600)
+            hour = 3600
+            cae = 0
+            if tl < 0:#finish yet
+               cae = 0
+            elif tl < 3 * hour:
+               cae = 2
+            elif tl < 6 * hour:
+               cae = 4
+            elif tl < 9 * hour:
+               cae = 6
+            else:
+               cae = 10
             u=checkopdata(uid)
             
-            if u.cae-2*cae>=0:
-                u.cae=u.cae-2*cae  
+            if u.cae-cae>=0:
+                u.cae=u.cae-cae  
                 ub.timeneed=0
-                #ub.left_time=t
-                return dict(id=1)
+                print "speed cae " + str(cae) + 'time ' + str(tl)
+                return dict(id=1, caesars = cae)
             else:
                 return dict(id=0, reason='cae')
         except:
@@ -4571,7 +4584,6 @@ class RootController(BaseController):
             lis=getGround_id(int(ground_id))
             if lis==None:
                 return dict(id=int(ground_id))
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ptime=p.producttime
@@ -4953,7 +4965,6 @@ class RootController(BaseController):
         try:
             type=int(type)
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
             
@@ -5198,20 +5209,8 @@ class RootController(BaseController):
         try:
            p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
            lis=getGround_id(p.ground_id)
-           #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
            u=checkopdata(user_id)#cache
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-           #if p.ground_id>=1 and p.ground_id<=99:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id>=100 and p.ground_id<=199:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id >=200 and p.ground_id<=299:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=300 and p.ground_id<=399:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=400 and p.ground_id<=499:
-           #    u.exp=u.exp+lis[3]
-               #u.populationupbound=u.populationupbound+lis[4]
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                if p.ground_id==400:
                    u.food_god_lev=1
@@ -5268,161 +5267,134 @@ class RootController(BaseController):
            return dict(id=1)
         except InvalidRequestError:
            return dict(id=0)
+    def accCost(timeLeft):
+        caesars = 0
+        hour = 3600
+        if timeLeft < 0:
+                caesars = 0
+        elif timeLeft < 3*hour:
+                caesars = 1
+        elif timeLeft < 6*hour:
+                caesars = 2
+        elif timeLeft < 9*hour:
+                caesars = 3
+        else:
+                caesars = 5
+        print "acc time " + str(timeLeft) + ' ' + str(caesars)
+        return caesars   
     @expose('json')
     def speedup(self,user_id,city_id,grid_id):#对外接口，加速operationalData:query->update; businessWrite:query->update
         try:
             caesars=1
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
-            
+            print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
             if p.ground_id==0:
-                return dict(id=0)
+                return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
-                if p.finish==0:
-                    return dict(id=0)                        
+                if p.finish == 0:
+                    p.finish = 1
+                    read(city_id)
+                    return dict(id=0, reason = "farm not finish")       
                 else:
-                    if p.ground_id<5:
-                        caesars=(Plant_Price[p.object_id][3]-t+3600-1)/3600
+                    if p.object_id ==  -1:
+                        return dict(id = 0, reason="not planting")
+                    if p.ground_id < 5:
+                        timeLeft=Plant_Price[p.object_id][3]-t
                     elif p.ground_id==5:
-                        caesars=(woods[p.object_id][3]-t+3600-1)/3600
+                        timeLeft=woods[p.object_id][3]-t
                     else:
-                        caesars=(stones[p.object_id][3]-t+3600-1)/3600
+                        timeLeft=stones[p.object_id][3]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
-                        p.producttime=1
+                        u.cae=u.cae-caesars
+                        p.producttime=1#finish product
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t)
+                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "farm cae not enu")
             elif p.ground_id>=100 and p.ground_id<=199:
                 if p.finish==0:
-                    caesars=(housebuild[p.ground_id-100][5]-t+3600-1)/3600
+                    timeLeft= housebuild[p.ground_id-100][5]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=0
-                        #u.exp=u.exp+housebuild[p.ground_id-100][4]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5],)
+                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
                     else:
-                        return dict(id=1)
+                        return dict(id=0, reason = "house fin cae not eno")
                 else:
-                    caesars=(houses[p.ground_id-100][3]-t+3600-1)/3600
+                    timeLeft = houses[p.ground_id-100][3]-t
+                    caesars = accCost(timeLeft)
+                    #0 not working 1 speedup yet
+                    if p.producttime == 0 or p.producttime == 1:
+                        return dict(id = 0, reason='house not working', pro = p.producttime)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=1
-                        #u.exp=u.exp+houses[p.ground_id-100][2]
-                        #if u.population+houses[p.ground_id-100][0]>u.populationupbound:
-                            #u.population=u.populationupbound
-                        #else:
-                            #u.population=u.population+houses[p.ground_id-100][0]
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars)
+                        return dict(id=1,caesars=caesars, result = "house pop")
                     else:
-                        return dict(id=0)
-  
+                        return dict(id=0, reason="house cae not")
             elif p.ground_id>=200 and p.ground_id<=299:
                 if p.finish==0:
-                    caesars=(milbuild[p.ground_id-200][6]-t+3600-1)/3600
+                    timeLeft = milbuild[p.ground_id-200][6]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
-                        
+                        u.cae=u.cae-caesars
                         p.producttime=0
-                        #u.exp=u.exp+milbuild[p.ground_id-200][5]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1)
+                        return dict(id=1, result = "finish militry")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "mil cae not en")
                 else:
                     if p.object_id>=0:
-                        caesars=(soldie[p.object_id][4]-t+3600-1)/3600
+                        timeLeft = soldie[p.object_id][4]-t
+                        caesars = accCost(timeLeft)
                         if u.cae-caesars>=0:
-                            if u.cae-caesars<u.cae:
-                                cb=u.cae
-                                u.cae=u.cae-caesars
-                                ca=u.cae
-                                caelog(cb,ca)
-                            #sid=p.object_id
-                            #if int(sid)>=0 and int(sid)<9:
-                                #u.infantry_num=u.infantry_num+soldie[int(sid)][2]
-                            #if int(sid)>=9 and int(sid)<18:
-                                #u.cavalry_num=u.cavalry_num+soldie[int(sid)][2]
-                            #if int(sid)>=18 :
-                                #u.scout_num=u.scout_num+soldie[int(sid)][2]
-                            #u.exp=u.exp+soldiernum[int(sid)]
+                            u.cae=u.cae-caesars
                             p.producttime=1
-                            
                             read(city_id)
-                            replacecache(u.userid,u)#cache
-                            return dict(id=1)
+                            return dict(id=1, result = "mil product")
                         else:
-                            return dict(id=0)
+                            return dict(id=0, reason = "mil not cae")
                     else:
                         return dict(id=0) 
             elif p.ground_id>=300 and p.ground_id<=399:
                 if p.finish==0:
-                    caesars=(businessbuild[p.ground_id-300][6]-t+3600-1)/3600
+                    timeLeft = businessbuild[p.ground_id-300][6]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=ti
-                        #u.exp=u.exp+businessbuild[p.ground_id-300][5]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars,t=businessbuild[p.ground_id-300][6])
+                        return dict(id=1,caesars=caesars,t=businessbuild[p.ground_id-300][6], result = "business fin bui")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "busines not fin")
                 else:
-                    caesars=(production[p.ground_id-300][3]-t+3600-1)/3600
+                    timeLeft = production[p.ground_id-300][3]-t
+                    caesars = accCost(timeLeft)
+                    if p.producttime == 1:
+                        return dict(id = 0, reason = "busi speedup yet")
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        #u.exp=u.exp+production[p.ground_id-300][1]
-                        #u.corn=u.corn+production[p.ground_id-300][0]
-                    return dict(id=1)     
+                        return dict(id = 1, result = "busi tax")
+                    else:
+                        return dict(id=0, reason = "busi cae not")     
             elif p.ground_id>=400 and p.ground_id<499:
-                caesars=(godbuild[p.ground_id-400][5]-t+3600-1)/3600
+                timeLeft = godbuild[p.ground_id-400][5]-t
+                caesars = accCost(timeLeft)
                 if p.finish==0 and u.cae-caesars>0:
-                    cb=u.cae
                     u.cae=u.cae-caesars
-                    ca=u.cae
-                    caelog(cb,ca)
                     p.producttime=0
-                    #u.populationupbound=u.populationupbound+godbuild[p.ground_id-400][4]
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         if p.ground_id==400:
                             u.food_god_lev=1
@@ -5469,23 +5441,21 @@ class RootController(BaseController):
                             u.war_god_lev=5                        
                     p.finish=1
                     read(city_id)
-                    replacecache(u.userid,u)#cache
-                    return dict(id=1)
+                    return dict(id=1, result = "god build fin")
                 else:
-                    return dict(id=0)                  
+                    return dict(id=0, reason = "god not enu")                  
+            return dict(id = 0, reason = str(p.ground_id) + "can't speed")
         except InvalidRequestError:
-            return dict(id=0)
+            return dict(id=0, reason = "building not find")
 
     @expose('json')
     def population(self,user_id,city_id,grid_id):#对外接口，招募人口recruit population;operationalData:query->update; businessWrite:query->update
         try:
-                
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             num=houses[p.ground_id-100][0]
             food=houses[p.ground_id-100][1]
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             ptime=p.producttime
             if ptime>0:
@@ -5493,7 +5463,7 @@ class RootController(BaseController):
             if u.food-food>=0:
                 u.food=u.food-food
                 p.producttime=ti
-                #u.exp=u.exp+houses[p.ground_id-100][2]
+                p.object_id = 0
                 read(city_id)
                 replacecache(u.userid,u)#cache
                 return dict(id=1)
@@ -5505,7 +5475,6 @@ class RootController(BaseController):
     def finipop(self,user_id,city_id,grid_id):#对外接口，完成人口招募 finish population;warMap:query; operationalData,businessWrite:query->update
         try:
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
             num=houses[p.ground_id-100][0]
@@ -5515,6 +5484,7 @@ class RootController(BaseController):
             factor=1
             if p.producttime!=1 and t-p.producttime>3*86400:
                 p.producttime=0
+                p.object_id = -1
                 u.exp=u.exp+houses[p.ground_id-100][2]
                 read(city_id)
                 replacecache(u.userid,u)#cache 
@@ -5555,11 +5525,10 @@ class RootController(BaseController):
             else:
                 u.person_god=0
                 u.popgodtime=-1                                
-            #if mark==0 and u.population+int(num*(int(factor*10))/10)>u.populationupbound:
-            #    u.population=u.populationupbound
             if mark==0:
                 u.population=u.population+int(num*(int(factor*10))/10)
             p.producttime=0
+            p.object_id = -1
             u.exp=u.exp+houses[p.ground_id-100][2]
             read(city_id)
             replacecache(u.userid,u)#cache
