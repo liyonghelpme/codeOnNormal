@@ -3309,7 +3309,7 @@ class RootController(BaseController):
             hour = 3600
             if tl < 0:#finish yet
                cae = 0
-            elif tl < 3*hour:
+            elif tl < 3 * hour:
                cae = 2
             elif tl < 6 * hour:
                cae = 4
@@ -3317,13 +3317,13 @@ class RootController(BaseController):
                cae = 6
             else:
                cae = 10
-            #cae=int((tl+3600-1)/3600)
             u=checkopdata(uid)
             
             if u.cae-cae>=0:
                 u.cae=u.cae-cae  
                 ub.timeneed=0
-                return dict(id=1)
+                print "speed cae " + str(cae) + 'time ' + str(tl)
+                return dict(id=1i, cae = cae)
             else:
                 return dict(id=0, reason='cae')
         except:
@@ -5281,19 +5281,19 @@ class RootController(BaseController):
         except InvalidRequestError:
            return dict(id=0)
     def accCost(timeLeft):
-	caesars = 0
+	    caesars = 0
         hour = 3600
-	if timeLeft < 0:
-            caesars = 0
-	elif timeLeft < 3*hour:
-            caesars = 2
-	elif timeLeft < 6*hour:
-            caesars = 4
-	elif timeLeft < 9*hour:
-            caesars = 6
-	else:
-            caesars = 10
-        print "acc time " + str(timeLeft) + ' ' + str(caesars)
+        if timeLeft < 0:
+                caesars = 0
+        elif timeLeft < 3*hour:
+                caesars = 2
+        elif timeLeft < 6*hour:
+                caesars = 4
+        elif timeLeft < 9*hour:
+                caesars = 6
+        else:
+                caesars = 10
+            print "acc time " + str(timeLeft) + ' ' + str(caesars)
         return caesars   
     @expose('json')
     def speedup(self,user_id,city_id,grid_id):#对外接口，加速operationalData:query->update; businessWrite:query->update
@@ -5308,9 +5308,9 @@ class RootController(BaseController):
                 return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
                 if p.finish==0:
-                    return dict(id=0, reason = "farm not finish")                        
+                    return dict(id=0, reason = "farm not finish")       
                 else:
-                    if p.ground_id<5:
+                    if p.ground_id < 5:
                         timeLeft=Plant_Price[p.object_id][3]-t
                     elif p.ground_id==5:
                         timeLeft=woods[p.object_id][3]-t
@@ -5346,7 +5346,6 @@ class RootController(BaseController):
                         return dict(id=1,caesars=caesars)
                     else:
                         return dict(id=0, reason="cae not enough")
-  
             elif p.ground_id>=200 and p.ground_id<=299:
                 if p.finish==0:
                     timeLeft = milbuild[p.ground_id-200][6]-t
