@@ -5273,13 +5273,13 @@ class RootController(BaseController):
         if timeLeft < 0:
                 caesars = 0
         elif timeLeft < 3*hour:
-                caesars = 2
+                caesars = 1
         elif timeLeft < 6*hour:
-                caesars = 4
+                caesars = 2
         elif timeLeft < 9*hour:
-                caesars = 6
+                caesars = 3
         else:
-                caesars = 10
+                caesars = 5
         print "acc time " + str(timeLeft) + ' ' + str(caesars)
         return caesars   
     @expose('json')
