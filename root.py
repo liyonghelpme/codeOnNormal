@@ -9,7 +9,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import or_, and_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
@@ -26,26 +26,9 @@ import hashlib
 import copy
 import httplib
 import json
-import stchong.controllers.pet import PetController
 __all__ = ['RootController']
-
-
 class RootController(BaseController):
-    """
-    The root controller for the stchong application.
-
-    All the other controllers and WSGI applications should be mounted on this
-    controller. For example::
-
-        panel = ControlPanelController()
-        another_app = AnotherWSGIApplication()
-
-    Keep in mind that WSGI applications shouldn't be mounted directly: They
-    must be wrapped around with :class:`tg.controllers.WSGIAppController`.
-
-    """
     secc = SecureController()
-
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
@@ -134,7 +117,6 @@ class RootController(BaseController):
     global recalev#计算爵位等级差
     global battlebonus#战争时根据爵位获得奖励
     admin = AdminController(model, DBSession, config_type=TGAdminConfig)
-    pet = PetController()
     #housebuild：corn,food,resource(+:m -:s),快速升级cae,exp,time，特殊物品，解锁等级
     housebuild=[[500,10,0,0,3,600,None,1],[1400,30,0,1,8,1200,'a,1',1],[2800,0,70,2,15,2400,'a,2;b,3',1],[int(500*1.1),10,0,0,3,600,None,1],[int(1400*1.1),30,0,1,8,1200,'a,1',1],[int(2800*1.1),0,70,2,15,2400,'a,2;b,3',1],[int(500*1.2),10,0,0,3,600,None,1],[int(1400*1.2),30,0,1,8,1200,'a,1',1],[int(2800*1.2),0,70,2,15,2400,'a,2;b,3',1],[int(500*1.3),10,0,0,3,600,None,1],[int(1400*1.3),30,0,1,8,1200,'a,1',1],[int(2800*1.3),0,70,2,15,2400,'a,2;b,3',1],[1500,60,0,0,5,1800,None,5],[4800,120,0,3,13,4800,'b,2;c,2',5],[9000,0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.1),60,0,0,5,1800,None,5],[int(4800*1.1),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.1),0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.2),60,0,0,5,1800,None,5],[int(4800*1.2),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.2),0,100,4,24,9000,'c,2;d,3',5],[int(1500*1.3),60,0,0,5,1800,None,5],[int(4800*1.3),120,0,3,13,4800,'b,2;c,2',5],[int(9000*1.3),0,100,4,24,9000,'c,2;d,3',5],[7300,400,0,0,13,15840,None,10],[15000,0,150,4,21,24480,'f,2;g,2',10],[19000,0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.1),400,0,0,13,15840,None,10],[int(15000*1.1),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.1),0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.2),400,0,0,13,15840,None,10],[int(15000*1.2),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.2),0,-150,5,30,30600,'g,2;h,3',10],[int(7300*1.3),400,0,0,13,15840,None,10],[int(15000*1.3),0,150,4,21,24480,'f,2;g,2',10],[int(19000*1.3),0,-150,5,30,30600,'g,2;h,3',10],[3500,200,0,0,11,5400,None,15],[6600,0,120,5,25,11160,'d,2;e,2',15],[11000,0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.1),200,0,0,11,5400,None,15],[int(6600*1.1),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.1),0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.2),200,0,0,11,5400,None,15],[int(6600*1.2),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.2),0,-120,6,39,21240,'e,2;f,3',15],[int(3500*1.3),200,0,0,11,5400,None,15],[int(6600*1.3),0,120,5,25,11160,'d,2;e,2',15],[int(11000*1.3),0,-120,6,39,21240,'e,2;f,3',15],[10500,600,0,0,20,25200,None,20],[15500,0,200,7,32,36720,'h,2;i,2',20],[19500,0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.1),600,0,0,20,25200,None,20],[int(15500*1.1),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.1),0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.2),600,0,0,20,25200,None,20],[int(15500*1.2),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.2),0,-200,8,43,71640,'i,2;j,2',20],[int(10500*1.3),600,0,0,20,25200,None,20],[int(15500*1.3),0,200,7,32,36720,'h,2;i,2',20],[int(19500*1.3),0,-200,8,43,71640,'i,2;j,2',20],[-10,0,0,0,15,7560,None,5],[20000,0,300,12,25,15480,'b,2;c,2',5],[25000,0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.1),0,0,0,15,7560,None,5],[int(20000*1.1),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.1),0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.2),0,0,0,15,7560,None,5],[int(20000*1.2),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.2),0,-300,15,40,30600,'c,2;d,3',5],[int(-10*1.3),0,0,0,15,7560,None,5],[int(20000*1.3),0,300,12,25,15480,'b,2;c,2',5],[int(25000*1.3),0,-300,15,40,30600,'c,2;d,3',5],[-8,0,0,0,20,12240,None,3],[22000,0,310,15,30,19800,'a,2;f,2',3],[26000,0,-310,20,50,28800,'d,2;i,4',3],[int(-9),0,0,0,20,12240,None,3],[int(1.1*22000),0,310,15,30,19800,'a,2;f,2',3],[int(1.1*26000),0,-310,20,50,28800,'d,2;i,4',3]]#corn,food,resource(+:m -:s),快速升级cae,exp,time，特殊物品，解锁等级corn,food,resource(+:m -:s),cae,exp,time
     #resourcebuild：corn,food,labor_num,wood,exps，解锁等级
@@ -4508,66 +4490,197 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    """
     #修改宠物属性 pay
     @expose('json')
-    def assignAttToPet(self, uid, gid, att, cid)
-        bid = DBSession.query(businessWrite).filter("city_id = :cid and grid_id = :gid").params(cid=int(cid), gid = int(gid)).one()
-        pet = DBSession.query(dragon).filter("uid=:uid and bid=:bid").params(uid=int(uid), bid=int(bid.bid))#add building id to data base
-        pet.kind = att
+    def assignAttToPet(self, uid, gid, att, cid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
+        dragon. =        
         return dict(id=1)
-    #命名宠物 修改名字
+    """
+    global initH
+    global addHealth
+    global growUp
+    global reward
+    global allowFriend
+    global eggCost
+    eggCost = [[50000, 100, 5], [100000, 150, 6], [1000000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
+    initH = [0, 25, 40, 600]
+    addHealth = [3, 5, 7, 7]
+    growUp = [51, 100, 250, 9999]
+    reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
+    allowFriend = 3
     @expose('json')
-    def namePet(self, uid, gid, name, cid)
-        bid = DBSession.query(businessWrite).filter("city_id = :cid and grid_id = :gid").params(cid=int(cid), gid = int(gid)).one()
-        pet = DBSession.query(dragon).filter("uid=:uid and bid=:bid").params(uid=int(uid), bid=int(bid.bid))#add building id to data base
-        pet.name = name        
-        return dict(id=1)
-    #喂养宠物
-    @expose('json')
-    def feed(self, uid, grid_id, city_id):
-        cur = int(time.mktime(time.localtime()-time.mktime(beginTime)))
-        dragon = DBSession.query(businessWrite).filter("city_id=:cid and grid_id = :gid").params(cid = int(city_id), gid=int(grid_id)).one()
-        bid = dragon.id
-        dragon = DBSession.query(dragon).filter("bid=:bid and uid =:uid").params(bid=int(bid), uid=int(uid)).one()
-        #uid, pid, bid, friNum
-        lastFeed = dragon.lastFeed
-        if (cur - lastFeed) /86400 < 1:#> 2 health -1
-            return dict(id=0, status = 0) #feed yet
-
-        init = [0, 25, 40, 600]
-        addHealth = [3, 5, 7, 7]
-        growUp = [30, 100, 250, 9999]
-        reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
-        state = dragon.state -1
-        dragon.health += addHealth[state]
-        #dead won't happen here 
-        if dragon.health >= growUp[state]:
-            dragon.state += 1
-            user = checkopdata(uid)
-            user.corn += reward[state][0]
-            user.exp += reward[state][1]
-            return dict(id=1, status=1)#grow up
-
-        return dict(id=1, status=2)#normal    
-    #帮助好友， 使用凯撒币激活宠物 进入finish状态
-    @expose('json')
-    def activeDragon(self, uid, fid, grid_id, city_id):#fid = -1 use cea others ask friend
-        #select from ope
-        caeCost = 1
-        needFri = 8
-        uid = int(uid)
-        fid = int(fid)
+    def relive(self, uid, cid, gid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
+        #-1 dead 0 not active 1 egg 2 child 3 adult 4 old when health < 0 dead update
+        if dragon.state != -1:#dead = -1 0 not active
+            return dict(id=0, reason="not dead yet")
         user = checkopdata(uid)
-        #friend id other id ?
-        firend = checkopdata(fid)
+        if user.cae <= 10:
+            return dict(id = 0, reason="cae not enough")
+        user.cae -= 10
+        #dead = 0
+        dragon.kind += 1
+        if dragon.kind >= len(eggCost):
+            dragon.kind = len(eggCost)-1
+        dragon.state = 2#egg = 2
+        dragon.health = 9
+        dragon.friList = '[]'
+        dragon.lastFeed = 0
+        dragon.attack = eggCost[dragon.kind][1]+dragon.health*eggCost[dragon.kind][2] 
+        return dict(id=1, result = "relive suc")
+
+    @expose('json')
+    def getBids(self, uid, cid):
+        buildings = DBSession.query(businessWrite.bid, businessWrite.grid_id).filter_by(city_id = cid).all()
+        return dict(id=1, bids = buildings)
+    @expose('json')
+    def getPets(self, uid, cid):
+        dragon = DBSession.query(Dragon).filter(Dragon.uid == uid).all()#index bid
+        return dict(id=1, pets=dragon)
+
+    #命名宠物 修改名字
+    @expose('json')#state = 2
+    def namePet(self, uid, gid, name, cid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
+        dragon.name = name        
+        return dict(id=1)
+    #喂养宠物 self feed friend feed 
+
+    
+    @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
+    def feed(self, uid, gid, cid):
+        try:
+            building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+            dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()
+        except InvalidRequestError:
+            return dict(id=0, reason="no such dragon")
+        if dragon.state < 2:
+            return dict(id=0, reason="not buy egg yet")
+
+        state = dragon.state - 2
+        if dragon.uid == uid:#feed my dragon
+            #I feed 1 fri 2 not 0
+            if dragon.lastFeed & 1 == 1:
+                return dict(id=0, reason="you feed yet") 
+            dragon.lastFeed |= 1
+            #update health
+            dragon.health += addHealth[state]
+            if dragon.health >= growUp[state]:
+                dragon.state += 1
+            #update attack
+            incAtt = dragon.health*eggCost[dragon.kind][2]
+            attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+            if attack > dragon.attack:
+                dragon.attack = attack
+        else:
+            friList = dragon.friList
+            friList = json.loads(friList)
+            if len(friList) > allowFriend:
+                return dict(id = 0, reason = "enough friend helped")
+            user = DBSession.query(operationalData).filter_by(userid = uid).one()
+            try:
+                pos = friList.index(user.otherid)
+                return dict(id=0, reason="help yet")
+            except:
+                friList.append(user.otherid)
+                dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
+                dragon.feed |= 2
+                #update health
+                dragon.health += 1
+                if dragon.health >= growUp[state]:
+                    dragon.state += 1
+                    user = checkopdata(uid)
+                    user.corn += reward[state][0]
+                    user.exp += reward[state][1]
+                #update attack
+                incAtt = dragon.health*eggCost[dragon.kind][2]
+                attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+                if attack > dragon.attack:
+                    dragon.attack = attack
+                return dict(id=1, result="help suc")
+
+        return dict(id=0, reason="unknow reason")
+
+    #使用银币购买宠物蛋 state = 1
+    @expose('json')
+    def buyEgg(self, uid, cid, gid, kind):
+        try:
+            building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+            dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
+            if dragon.state != 1:
+                return dict(id=0, reason = "dragon not in buy state")
+            if kind >=0 and kind < len(eggCost):
+                user = DBSession.query(operationalData).filter_by(userid = uid).one()
+                if eggCost[kind][0] > 0:
+                    if user.corn >= eggCost[0]:
+                        user.corn -= eggCost[0]
+                        dragon.attack = eggCost[kind][1]
+                        dragon.kind = kind
+                        dragon.state = 2
+                        dragon.health = 9
+                        return dict(id=1, result = "buy suc corn")
+                    return dict(id=0, reason="need corn")
+                else:
+                    if user.cae >= abs(eggCost[0]):
+                        user.cae -= eggCost[0]
+                        dragon.attack = eggCost[kind][1]
+                        dragon.kind = kind
+                        dragon.state = 2
+                        dragon.health = 9
+                        return dict(id=1, result = "buy suc cae")
+                    return dict(id=0, reason="need cae")
+            return dict(id=0, reason="kind out of range")
+        except InvalidRequestError:
+            return dict(id=0, reason = "no dragon")
+
+    #帮助好友， 使用凯撒币激活宠物 进入finish状态 state = 0
+    @expose('json')
+    def activeDragon(self, uid, fid, gid, cid):#fid = -1 use cea others ask friend
+        #select from ope
+        caeCost = 1#each cost
+        needFri = 10#total need
+        uid = int(uid)
+        user = checkopdata(uid)
+
+        try:
+            fid = int(fid)
+        except:
+            print "otherid not number"
+
         if fid == -1:#help by cae
             print "use cae"
-            if user.cae > caeCost:
-                user.cae -= caeCost
-                return dict(id=1)
+            try:
+                building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+                dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
+            except InvalidRequestError:
+                print str(uid) + 'not dragon ' + str(cid) + ' ' + str(gid) 
+                return dict(id=0, reason="no dragon")
+            if dragon.state == 0:#not active 
+                if user.cae >= caeCost:
+                    user.cae -= caeCost
+                    dragon.friNum += 1
+                    if dragon.friNum >= needFri:
+                        dragon.state = 1
+                        dragon.friList = "[]"#clear friendList
+                        print "can buy egg"
+                    return dict(id=1, leftNum = needFri - dragon.friNum)
+                return dict(id=0, reason="cae not enou")
+            else:
+                return dict(id=0, reason="active yet")
         else:#help by others check if help yet ?
             print "I help my friend"
-            dragon = DBSession.query(dragon).filter("uid = :fid and cityid=:cid and grid = :gid").one()
+            #friend id other id ?
+            try:
+                friend = DBSession.query(operationalData).filter_by(otherid=fid).one()
+                building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+                dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == friend.userid, Dragon.bid == building.bid)).one()
+            except InvalidRequestError:
+                return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
                 friList = dragon.friList
                 if friList == None:
@@ -4576,17 +4689,19 @@ class RootController(BaseController):
                     friList = json.loads(friList)
                     try:
                        myPos = friList.index(uid)
-                       return dict(id=0)
+                       return dict(id=0, reason = "you help yet")
                     except:
                         friList.append(uid)
-                dragon.friList = json.dump(friList)
+                dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
                 if dragon.friNum >= needFri:
                     dragon.state = 1#egg
-                    dragon.health = 9
-                    dragon.lastFeed = 0
+                    dragon.friList = "[]"#clear friendList
+                    print "can buy egg"
                 return dict(id=1, leftNum=needFri-dragon.friNum)
-        return dict(id=0)
+            else:
+                return dict(id=0, reason="active yet")
+        return dict(id=0, reason = "unknown reason")
     
     @expose('json')
     #return id = 1 suc  id = 0 fail 
@@ -4594,7 +4709,8 @@ class RootController(BaseController):
         #建造宠物巢穴
         ground_id = int(ground_id)
         user_id = int(user_id)
-        demands = [3, 1000, 1000000]
+        demands = [10, 10000, 100000]#lev 10 food 10000 corn 10W
+        #upbound + 100
         if ground_id / 1000 != 0:
             user = checkopdata(user_id)
             coinCost = 0
@@ -4604,20 +4720,30 @@ class RootController(BaseController):
             #check Cost
             if ground_id == 1000:
                 if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
-                    #cost
+                    #remove exist ground = -1 building
+                    building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).all()
+                    for b in building:
+                        if b.ground_id != -1:
+                            return dict(id = 0, reason = "exist building")
+                        else:
+                            DBSession.delete(b)
+
+                    #not exist or exist mutiple 
+                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
+                    DBSession.add(building)
+                    building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).one()
+                    
                     user.food -= demands[1]
                     user.corn -= demands[2]
-                    
                     #reward
-                    dragon = Dragon(uid = user_id, grid_id = grid_id, ground_id = ground_id)
+                    user.populationupbound += 100
+
+                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', lastFeed = 0, attack=0)
                     DBSession.add(dragon)
-                    #when active 
-                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id)
-                    DBSession.add(building)
                     #update business read for logsign
                     read(city_id)
-                    return dict(id=1)
-            return dict(id = 0)
+                    return dict(id=1, result = "build dragon suc")
+            return dict(id = 0, reason = "dragon fail")
 
 
         i=0
