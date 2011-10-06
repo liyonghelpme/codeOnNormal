@@ -29,6 +29,7 @@ import json
 __all__ = ['RootController']
 class RootController(BaseController):
     secc = SecureController()
+    global getCity
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
