@@ -577,6 +577,7 @@ class RootController(BaseController):
                 u.wartaskstring='0'
                 replacecache(uid,u)
                 return [wartaskbonus[ct+1][0],u.warcurrenttask]                  
+    #no task 0 just add a task at position
     def tasknew(uid):
         u=checkopdata(uid)
         if u.currenttask=='-1' or u.currenttask=='':
@@ -629,41 +630,10 @@ class RootController(BaseController):
                 return [taskbonus[ct+1][0],u.currenttask]
     @expose('json')
     def newtask(self,uid,taskid):
+        print "new task id"
         u=checkopdata(uid)
         u.currenttask=taskid#差taskstring
         return dict(id=1)  
-    #def newtask(u):#内部函数，创建新任务
-        #tl=[]
-        #if u.tasknum==0:
-        #    u.currenttask='3,0'
-        #    taskstring=mktaskstr(3,0)
-        #    if taskstring=='':
-        #        return dict(id=tl)
-         #   u.taskstring=taskstring
-         #   u.tasknum=1
-         #   return tasklist[0][0]
-       # else:
-         #   taskl=u.currenttask.split(',')
-         #   tasklev=int(taskl[0])
-          #  tasknum=int(taskl[1])
-         #   if tasknum==len(tasklist[tasklev-3])-1:
-         #       if u.lev<tasklev+1:#当用户的级数小于当前将要选择的用户的级数，返回空list
-          #          return tl
-           #     if tasklev-2==len(tasklist):
-           #         return tl                
-           #     taskstring=mktaskstr(tasklev+1,0)
-           #     if taskstring=='':
-            #        return tl
-           #     u.taskstring=taskstring
-           #     u.currenttask=str(tasklev+1)+','+'0'                
-           #     return tasklist[tasklev-2][0]#-3+1
-           # else:
-            #    taskstring=mktaskstr(tasklev,tasknum+1)
-            #    if taskstring=='':
-            #        return tl
-            #    u.taskstring=taskstring
-            #    u.currenttask=str(tasklev)+','+str(tasknum+1)
-             #   return tasklist[tasklev-3][tasknum+1]         
     def mktaskstr(lev,num):#内部函数，任务字符串
         if lev-3>=len(tasklist)or num>=len(tasklist[lev-3]):
             return ''
@@ -2821,6 +2791,7 @@ class RootController(BaseController):
         except:
             return dict(id=0)
     @expose('json')
+    #user_kind 
     def logsign(self,papayaid,user_kind,md5):# 对外接口，登陆注册login if signed or sign;operationalData:query
         user=None
         oid=papayaid#papayaid改为string类型
@@ -4530,7 +4501,7 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon).filter(Dragon.uid == uid).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         return dict(id=1, pets=dragon)
 
     #命名宠物 修改名字
@@ -4545,6 +4516,7 @@ class RootController(BaseController):
     
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
+        uid = int(uid)
         try:
             building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
             dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()
@@ -4563,24 +4535,29 @@ class RootController(BaseController):
             dragon.health += addHealth[state]
             if dragon.health >= growUp[state]:
                 dragon.state += 1
+                user = checkopdata(uid)
+                user.corn += reward[state][0]
+                user.exp += reward[state][1]
             #update attack
             incAtt = dragon.health*eggCost[dragon.kind][2]
             attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
+            return dict(id=1, result="self feed suc", state= dragon.state)
         else:
             friList = dragon.friList
             friList = json.loads(friList)
             if len(friList) > allowFriend:
                 return dict(id = 0, reason = "enough friend helped")
-            user = DBSession.query(operationalData).filter_by(userid = uid).one()
+            user = DBSession.query(warMap.userid).filter_by(city_id=cid).one()
+            user = DBSession.query(operationalData).filter_by(userid = user.userid).one()
             try:
                 pos = friList.index(user.otherid)
                 return dict(id=0, reason="help yet")
             except:
                 friList.append(user.otherid)
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
-                dragon.feed |= 2
+                dragon.lastFeed |= 2
                 #update health
                 dragon.health += 1
                 if dragon.health >= growUp[state]:
@@ -4593,7 +4570,7 @@ class RootController(BaseController):
                 attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
-                return dict(id=1, result="help suc")
+                return dict(id=1, result="help suc", state = dragon.state)
 
         return dict(id=0, reason="unknow reason")
 
@@ -4605,25 +4582,26 @@ class RootController(BaseController):
             dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
             if dragon.state != 1:
                 return dict(id=0, reason = "dragon not in buy state")
-            print 'kind' + str(kind)
+            kind = int(kind)
             if kind >=0 and kind < len(eggCost):
-                user = DBSession.query(operationalData).filter_by(userid = uid).one()
+                user = DBSession.query(operationalData).filter_by(userid = int(uid)).one()
+                #print str(user.corn) + ' corn id ' + str(user.userid)
                 if eggCost[kind][0] > 0:
-                    if user.corn >= eggCost[0]:
-                        user.corn -= eggCost[0]
-                        dragon.attack = eggCost[kind][1]
+                    if user.corn >= eggCost[kind][0]:
+                        user.corn -= eggCost[kind][0]
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
+                        dragon.attack = eggCost[kind][1] + dragon.health*eggCost[kind][2]
                         return dict(id=1, result = "buy suc corn")
                     return dict(id=0, reason="need corn")
                 else:
-                    if user.cae >= abs(eggCost[0]):
-                        user.cae -= eggCost[0]
-                        dragon.attack = eggCost[kind][1]
+                    if user.cae >= abs(eggCost[kind][0]):
+                        user.cae -= eggCost[kind][0]
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
+                        dragon.attack = eggCost[kind][1]+dragon.health*eggCost[kind][2]
                         return dict(id=1, result = "buy suc cae")
                     return dict(id=0, reason="need cae")
             return dict(id=0, reason="kind out of range")
