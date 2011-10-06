@@ -2196,8 +2196,9 @@ class RootController(BaseController):
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
             friendid=u.userid
             city=DBSession.query(warMap).filter_by(userid=u.userid).one()
-            read=DBSession.query(businessRead).filter_by(city_id=city.city_id).one()
-            readstr=read.layout
+            #read=DBSession.query(businessRead).filter_by(city_id=city.city_id).one()
+            #readstr=read.layout
+            readstr = getCity(city.city_id)
             #lis=present(u)
             #lis2=present(uu)
             #####卡片
@@ -2250,6 +2251,8 @@ class RootController(BaseController):
             #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
+            if p.ground_id >= 1000 and p.ground_id < 1100:
+                return dict(id = 0, reason="pet house can't be sold")
             lis=getGround_id(p.ground_id)
             if lis==None:
                 return dict(id=0)
@@ -2477,10 +2480,12 @@ class RootController(BaseController):
                     popuplog(ub,ua,u.userid)
                 #if u.population>u.populationupbound:
                 #    u.population=u.populationupbound      
-                p.ground_id=-1
-                p.producttime=0
-                p.object_id=-1
-                p.finish=0
+                DBSession.delete(p)
+                DBSession.flush()
+                #p.ground_id=-1
+                #p.producttime=0
+                #p.object_id=-1
+                #p.finish=0
                 read(city_id)
                 replacecache(user_id,u)#cache
                 return  dict(id=1)
@@ -2575,8 +2580,24 @@ class RootController(BaseController):
                 return [i,cid[0]]
         except:
             return [0,0]
+    def getCity(city_id):
+        s=''
+        try:
+            i=0
+            cid=int(city_id)
+            cset=DBSession.query(businessWrite).filter_by(city_id=cid).all()
+            for c in cset:
+                if i==0:
+                    s=s+str(c.ground_id)+','+str(c.grid_id)+','+str(c.object_id)+','+str(c.producttime)+','+str(c.finish)
+                    i=1
+                else :
+                    s=s+';'+str(c.ground_id)+','+str(c.grid_id)+','+str(c.object_id)+','+str(c.producttime)+','+str(c.finish)
+        except InvalidRequestError:
+            return ''
+        return s
     ###############
     def read(city_id):# 向businessread表中写入数据
+        """
         try:
             s=''
             i=0
@@ -2599,7 +2620,7 @@ class RootController(BaseController):
                 return 2
         except InvalidRequestError:
             return 0
-
+        """
     @expose('json')
     def changename(self,userid,newname):#对外接口，更改领地名
         #u=DBSession.query(operationalData).filter_by(userid=int(userid)).one()
@@ -2747,7 +2768,8 @@ class RootController(BaseController):
         u=checkopdata(uid)
         try:
             s=DBSession.query(warMap).filter_by(userid=u.userid).one()#获取city_id
-            st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息  
+            st = getCity(s.city_id)
+            #st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息  
               
             return dict(id=1,stri=st.layout,monsterdefeat=u.monsterdefeat,monsterstr=u.monsterlist,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,exp=u.exp,corn=u.corn,cae=u.cae,lev=u.lev,nobility=u.nobility,wood=u.wood,stone=u.stone,labor_num=u.labor_num,population=u.population,populationupbound=u.populationupbound)
         except:
@@ -2822,7 +2844,8 @@ class RootController(BaseController):
             bonus=loginBonus(user)#获取登录奖励
             lbonus=bonus
             s=DBSession.query(warMap).filter_by(userid=user.userid).one()#获取city_id
-            st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息
+            st = getCity(s.city_id)
+            #st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息
             stt=st.layout
             corn=user.corn
             cae=user.cae
@@ -2985,8 +3008,8 @@ class RootController(BaseController):
             inistr=''
             inistr=inistr+INITIALSTR2+str(logintime)+',0;'+'100,575,-1,'+str(logintime-86400)+',1;300,570,-1,'+str(logintime-86400)+',1;1,690,0,'+str(logintime-86400)+',1';
             
-            nbr=businessRead(city_id=cid[0][0],layout=inistr)
-            DBSession.add(nbr)
+            #nbr=businessRead(city_id=cid[0][0],layout=inistr)
+            #DBSession.add(nbr)
             nbw=businessWrite(city_id=cid[0][0],ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
             DBSession.add(nbw)
             nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
