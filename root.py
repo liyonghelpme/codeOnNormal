@@ -30,6 +30,8 @@ __all__ = ['RootController']
 class RootController(BaseController):
     secc = SecureController()
     global getCity
+    
+    global accCost
     global Plant_Price#农作物列表
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
@@ -131,7 +133,7 @@ class RootController(BaseController):
     #decorationbuild：cornorcae，人口上限，解锁等级
     decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[8000,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3]]#corn(or cae),populationupbound
     #农作物list：#corn,exp,food,time，解锁等级
-    Plant_Price=[[50,1,20,600,1],[165,3,50,2700,1],[-1,8,120,3600,5],[700,7,150,9360,5],[1440,12,300,22680,7],[-3,25,430,14400,7],[203,5,45,1200,10],[400,9,70,2700,15],[-2,30,280,9000,10],[1210,15,200,11520,20],[3000,25,410,29160,25],[-5,50,650,25200,15]]#corn,food,cae
+    Plant_Price=[[50,1,20,600,1],[165,3,50,2700,1],[-1,8,120,3600,5],[700,7,150,9360,5],[1440,12,300,22680,7],[-3,25,430,14400,7],[230,5,52,1800,13],[600,9,80,5400,16],[-2,30,280,9000,10],[1210,15,200,11520,20],[3000,25,410,29160,25],[-5,50,650,25200,15]]#corn,food,cae
     beginTime=(2011,1,1,0,0,0,0,0,0)
     #人口招募 招募人口数population,消耗food,exp got,cae（不用） 
     houses=[[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0]]##人口招募 招募人口数population,消耗food,exp got,cae（不用） 
@@ -140,7 +142,7 @@ class RootController(BaseController):
     #士兵经验
     soldiernum=[5,8,13,9,15,21,16,25,34,10,15,20,30,40,50,60,75,90,3,6,9,5,8,13,9,15,21]#soldier exp
     #商业生产 产量，经验，cae（不要），时间
-    production=[[100,1,1,600],[300,2,1,600],[500,5,1,600],[600,3,1,5400],[900,5,1,5400],[1200,9,1,5400],[800,5,2,1800],[1400,9,2,1800],[2100,15,2,1800],[1200,5,1,10440],[1800,9,1,10440],[2600,17,1,10440],[2300,12,2,21600],[3200,20,2,21600],[4500,29,2,21600],[2500,18,3,7200],[4400,28,3,7200],[6800,40,3,7200],[1400,10,2,11160],[2100,19,2,11160],[3100,30,2,11160],[3500,23,3,30600],[4400,34,3,30600],[5600,45,3,30600],[5000,30,12,26200],[7000,50,12,26200],[9000,70,12,26200],[1000,4,0,16200],[2300,8,0,16200],[3200,12,0,16200]]#corn that the plant can produce for a cycle,production,exp,speedup cae 
+    production=[[100,1,1,600],[300,2,1,600],[500,5,1,600],[600,3,1,5400],[900,5,1,5400],[1200,9,1,5400],[800,5,2,1800],[1400,9,2,1800],[2100,15,2,1800],[1200,5,1,10440],[1800,9,1,10440],[2600,17,1,10440],[2300,12,2,21600],[3200,20,2,21600],[4500,29,2,21600],[2500,18,3,7200],[4400,28,3,7200],[6800,40,3,7200],[1400,10,2,11160],[2100,19,2,11160],[3100,30,2,11160],[3500,23,3,30600],[6500,34,3,30600],[8000,45,3,30600],[5000,30,12,26200],[8000,50,12,26200],[10000,70,12,26200],[1000,4,0,16200],[2300,8,0,16200],[3200,12,0,16200]]#corn that the plant can produce for a cycle,production,exp,speedup cae 
     #扩地list 金钱，cae币
     expanding=[[10000,1,10],[50000,3,20],[100000,5,50],[500000,7,90],[1000000,10,140],[1500000,15,200],[2000000,20,330],[2500000,27,580],[3000000,37,740],[5000000,50,920]]#ing land corn,cae
     error = ErrorController()
@@ -195,6 +197,7 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
+        reward = [2, 7, 20, 50]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -204,17 +207,17 @@ class RootController(BaseController):
                     u.cae=u.cae+int(int(papapas)/100)
                     caeplus=int(int(papapas)/100)
                 elif int(papapas)==1000:
-                    u.cae=u.cae+11
-                    caeplus=11
+                    u.cae=u.cae+10+reward[0]
+                    caeplus=10+reward[0]
                 elif int(papapas)==2500:
-                    u.cae=u.cae+30
-                    caeplus=30
+                    u.cae=u.cae+25+reward[1]
+                    caeplus=25+reward[1]
                 elif int(papapas)==5000:
-                    u.cae=u.cae+65
-                    caeplus=65
+                    u.cae=u.cae+50+reward[2]
+                    caeplus=50+reward[2]
                 elif int(papapas)==10000:
-                    u.cae=u.cae+140
-                    caeplus=140
+                    u.cae=u.cae+100+reward[3]
+                    caeplus=100+reward[3]
                 else:
                     u.cae=u.cae+int(int(papapas)/100)
                 ca=u.cae
@@ -2203,6 +2206,10 @@ class RootController(BaseController):
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
                 cardlist.append(ca.logincard)
+                cardlist.append(ca.foodcard)
+                cardlist.append(ca.fortunecard)
+                cardlist.append(ca.popcard)
+                cardlist.append(ca.warcard)
             except:
                 cardlist=[]
             if visit.visited==0:
@@ -2223,7 +2230,7 @@ class RootController(BaseController):
                 sub=0
                 
             
-            return dict(sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
             #newvisit=visitFriend(userid=userid,friendid=friendid)
             #DBSession.add(newvisit)
@@ -2239,7 +2246,7 @@ class RootController(BaseController):
                 cardlist=[]            
             addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
             replacecache(userid,uu)#cache
-            return dict(cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
         try:
@@ -2627,6 +2634,7 @@ class RootController(BaseController):
     def newcomplete(self,uid,level):#对外接口，新手任务
         try:
             level=int(level)
+            print "new comp " + str(uid) + ' ' + str(level)
             #user=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             user=checkopdata(uid)#cache
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -2760,15 +2768,14 @@ class RootController(BaseController):
          
     @expose('json')
     def datarefresh(self,uid):
-        u=checkopdata(uid)
         try:
-            s=DBSession.query(warMap).filter_by(userid=u.userid).one()#获取city_id
+            u=checkopdata(uid)
+            s=DBSession.query(warMap).filter_by(userid=uid).one()#获取city_id
             st = getCity(s.city_id)
-            #st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息  
               
-            return dict(id=1,stri=st.layout,monsterdefeat=u.monsterdefeat,monsterstr=u.monsterlist,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,exp=u.exp,corn=u.corn,cae=u.cae,lev=u.lev,nobility=u.nobility,wood=u.wood,stone=u.stone,labor_num=u.labor_num,population=u.population,populationupbound=u.populationupbound)
+            return dict(id=1,stri=st,monsterdefeat=u.monsterdefeat,monsterstr=u.monsterlist,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,exp=u.exp,corn=u.corn,cae=u.cae,lev=u.lev,nobility=u.nobility,wood=u.wood,stone=u.stone,labor_num=u.labor_num,population=u.population,populationupbound=u.populationupbound)
         except:
-            return dict(id=0)
+            return dict(id=0, reason = "city not find")
              
     def newwarmap(u):#新建地图
         gi=-1
@@ -2807,9 +2814,29 @@ class RootController(BaseController):
             return dict(id=1)
         except:
             return dict(id=0)
+
+    @expose('json')
+    def changecard(self,userid,cardnum,type):
+        cardtype=int(type)
+        cardnum=int(cardnum)
+        userid=int(userid)
+        try:
+            card=DBSession.query(Card).filter("uid=:uid").params(uid=userid).one()
+            if cardtype==0:
+                card.foodcard=cardnum
+            elif cardtype==1:
+                card.fortunecard=cardnum
+            elif cardtype==2:
+                card.popcard=cardnum
+            elif cardtype==3:
+                card.warcard=cardnum
+            return dict(id=1,card=card)
+        except InvalidRequestError:
+            return dict(id=0)
     @expose('json')
     #user_kind 
     def logsign(self,papayaid,user_kind,md5):# 对外接口，登陆注册login if signed or sign;operationalData:query
+        print "login from 1"
         user=None
         oid=papayaid#papayaid改为string类型
         user_kind=int(user_kind)
@@ -2843,8 +2870,8 @@ class RootController(BaseController):
             exp=user.exp
             fo=user.food
             tasklist=[]
-            #if user.currenttask=='' or user.currenttask==None:
-            #    tasklist=newtask(user)
+            
+
             user.logintime=logintime
             lisa=[]
             try:
@@ -2860,6 +2887,10 @@ class RootController(BaseController):
             try:
                 card=DBSession.query(Card).filter_by(uid=user.userid).one()
                 cardlist.append(card.logincard)
+                cardlist.append(card.foodcard)
+                cardlist.append(card.fortunecard)
+                cardlist.append(card.popcard)
+                cardlist.append(card.warcard)
             except:
                 card=None
             #######卡片数量列表
@@ -2957,6 +2988,7 @@ class RootController(BaseController):
         except InvalidRequestError:
             newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
             DBSession.add(newuser)
+            newuser = DBSession.query(operationalData).filter_by(otherid = oid).one()
             c1=DBSession.query('LAST_INSERT_ID()')
             c1=c1[0]
             gi=0
@@ -2973,72 +3005,73 @@ class RootController(BaseController):
             nu.monsterlist='0,7'
             nwMap=warMap(c1[0],-1,-1,0)
             DBSession.add(nwMap)
+
             gi=-1
             mi=-1
 
-            cid=DBSession.query('LAST_INSERT_ID()')
+            cid = DBSession.query(warMap).filter_by(userid=newuser.userid).one()
             inistr=''
             inistr=inistr+INITIALSTR2+str(logintime)+',0;'+'100,575,-1,'+str(logintime-86400)+',1;300,570,-1,'+str(logintime-86400)+',1;1,690,0,'+str(logintime-86400)+',1';
             
-            nbw=businessWrite(city_id=cid[0][0],ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=527,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=528,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
+            nbw=businessWrite(city_id=cid.city_id,ground_id=200,grid_id=566,object_id=-1,producttime=logintime,finish=0)#bingying
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=567,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=531,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)            
-            nbw=businessWrite(city_id=cid[0][0],ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=520,grid_id=568,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=100,grid_id=575,object_id=-1,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=571,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=515,grid_id=493,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=606,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=607,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=608,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=609,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=610,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=611,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=612,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=613,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=614,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=615,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=616,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=530,grid_id=646,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=651,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw) 
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=691,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=731,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=503,grid_id=771,object_id=-1,producttime=0,finish=1)
             DBSession.add(nbw)                                    
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=688,object_id=-1,producttime=0,finish=1) 
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
+            nbw=businessWrite(city_id=cid.city_id,ground_id=1,grid_id=690,object_id=0,producttime=logintime-86400,finish=1)
             DBSession.add(nbw)
-            nbw=businessWrite(city_id=cid[0][0],ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
+            nbw=businessWrite(city_id=cid.city_id,ground_id=300,grid_id=570,object_id=-1,producttime=logintime-86400,finish=1)  
             DBSession.add(nbw)       
             ds=Datesurprise(uid=nu.userid,datesurprise=0)
             DBSession.add(ds)
@@ -3048,6 +3081,7 @@ class RootController(BaseController):
             nc=Card(uid=nuid)
             DBSession.add(nc)
             ####卡片
+
             try:
                 nuf=DBSession.query(Papayafriend).filter_by(papayaid=papayaid).filter_by(user_kind=int(user_kind)).all()
                 for x in nuf:
@@ -3060,6 +3094,8 @@ class RootController(BaseController):
                         DBSession.add(xxx)
             except InvalidRequestError:
                 x=0
+            #should not do internet connection which will block
+            """
             conn = httplib.HTTPConnection(SERVER_NAME)
             #user_id is a var
             url_send = "/a/misc/wonderempire_event?uid="+papayaid+"&event=1"
@@ -3070,8 +3106,8 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            
-            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid[0][0],mapid=mi,gridid=gi)
+            """
+            return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
     #check won in map check occupation
     @expose('json')
     def upgrademap(self,userid):#对外接口，爵位升级，进入新地图 user update and go to new map#OccupationData:query operationalData:query->update;warMap:update;Victories:update
@@ -3098,10 +3134,12 @@ class RootController(BaseController):
                 DBSession.delete(oo)
             
             print "remove all current running battle"
-            curBattle = DBSession.query(Battle).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).filter(Battle.finish == 0).all();
+            curBattle = DBSession.query(Battle).filter(Battle.finish==0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in curBattle:
-                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) 
-                b.finish = 1
+                print 'remove b ' + str(b.uid) + ' ' + str(b.enemy_id) + ' ' +str(b.powerin) + ' ' + str(b.powerca) 
+                if b.finish != 0:
+                    continue
+                b.finish = 3#cancel
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
                 attacker.cavalrypower += b.powerca
@@ -3209,25 +3247,34 @@ class RootController(BaseController):
         uid=int(uid)
         enemy_id=int(enemy_id)
         if uid == enemy_id:
-            return dict(id=0)
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+            return dict(id=0, reason='self attack self')
         try:
             f=checkopdata(enemy_id)
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish == 0).one()
             tl=ub.timeneed-(t-ub.left_time)
-            cae=int((tl+3600-1)/3600)
+            hour = 3600
+            cae = 0
+            if tl < 0:#finish yet
+               cae = 0
+            elif tl < 3 * hour:
+               cae = 2
+            elif tl < 6 * hour:
+               cae = 4
+            elif tl < 9 * hour:
+               cae = 6
+            else:
+               cae = 10
             u=checkopdata(uid)
             
-            if u.cae-2*cae>=0:
-                print "speed up suc"
-                u.cae=u.cae-2*cae  
+            if u.cae-cae>=0:
+                u.cae=u.cae-cae  
                 ub.timeneed=0
-                #ub.left_time=t 
-                return dict(id=1)
+                print "speed cae " + str(cae) + 'time ' + str(tl)
+                return dict(id=1, caesars = cae)
             else:
-                return dict(id=0)
+                return dict(id=0, reason='cae')
         except:
-            return dict(id=0)
+            return dict(id=0, reason='no bat')
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
@@ -3236,13 +3283,11 @@ class RootController(BaseController):
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
         enemy_id=int(enemy_id)
-        print "attack " + str(uid) + ' ' +str(enemy_id)
-        if uid ==  enemy_id:
-            return dict(id = 0, status = 4)
+        if uid == enemy_id:
+            return dict(id=0, status = 4)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
 
         try:
             occupy = DBSession.query(Occupation).filter_by(masterid=uid).filter_by(slaveid=enemy_id).one()
@@ -3250,51 +3295,54 @@ class RootController(BaseController):
             return dict(id = 0, status = 2)
         except:
             print "no occupy data"
+
+        u=checkopdata(uid)#cache
+        f=checkopdata(enemy_id)
+        myMap = DBSession.query(warMap.mapid).filter_by(userid = u.userid).one()
+        eneMap = DBSession.query(warMap.mapid).filter_by(userid = f.userid).one()
+        print "mymap " + str(myMap.mapid) + "enemap " + str(eneMap.mapid)
+        if myMap.mapid != eneMap.mapid:
+            return dict(id = 0, status = 3, reason = "not in same map")
+
+        if checkprotect(f)>0:
+            print "target in protect"
+            pType = f.protecttype
+            pTime = [7200, 28800, 86400]
+            endt = pTime[pType] + f.protecttime
+            return dict(id=0, status=0, endtime = endt)
+
+        timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
-            if ub.finish != 1:
+            if ub.finish == 0:
                 return dict(id = 0, status = 1)
-
-            u=checkopdata(uid)#cache
-            f=checkopdata(enemy_id)
-            timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-            
-            if checkprotect(f)>0:
-                print "target in protect"
-                pType = f.protecttype
-                pTime = [7200, 28800, 86400]
-                endt = pTime[pType] + f.protecttime
-                return dict(id=0, status=0, endtime = endt)
 
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry  
             ub.timeneed=timeneed
             ub.finish=0
-            ub.left_time=t
+            ub.left_time=timeNow
             ub.powerin=infantry
             ub.powerca=cavalry
             ub.power=infantry+cavalry
             allypower=allyhelp(uid,0,infantry+cavalry)
             ub.allypower=allypower
-            u.signtime=0
-            u.protecttime=-1
-            u.protecttype=-1
-            print 'normal battle information' + str(uid)
-            replacecache(uid,u)#cache
-            return dict(id=1)   
+            print 'replace old battle info ' + str(uid)
+            rep = 1
         except InvalidRequestError:
            # u=DBSession.query(operationalData).filter_by(userid=uid).one()
-            print 'user check ' + str(uid)
+            print 'attack ' + str(uid) + ' ' + str(enemy_id) + ' timeneed ' + str(timeneed)
             u = checkopdata(uid)
             u.infantrypower=u.infantrypower-infantry
             u.cavalrypower=u.cavalrypower-cavalry   
             allypower=allyhelp(uid,0,infantry+cavalry)    
-            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=t,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
+            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=timeNow,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry,allypower=allypower)
             DBSession.add(nb)
-            u.protecttime = -1
-            u.protecttype = -1
-            replacecache(uid,u)#cache
-            return dict(id=1)                                     
+            rep = 0
+        u.signtime = 0
+        u.protecttime = -1
+        u.protecttype = -1
+        return dict(id=1, replace = rep)                                     
     def returnscout(u):#返回侦察兵数量
         scout=[]
         scout.append(u.scout1_num)
@@ -3693,13 +3741,14 @@ class RootController(BaseController):
         minus = -1
         battleset = []
         print 'current time ' + str(t)
-        battleset = DBSession.query(Battle).filter(t-Battle.left_time > Battle.timeneed).filter(Battle.finish == 0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(uid), uid1=int(uid)).order_by(Battle.left_time)
+        battleset = DBSession.query(Battle).filter_by(finish = 0).filter(Battle.timeneed+Battle.left_time<t).filter(or_(Battle.uid==uid, Battle.enemy_id==uid)).order_by(Battle.left_time).all()
         print "fetch battle result of " + str(uid)
         
         #gen two battle result ord
         for b in battleset:
-            print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id)
-            
+            print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id) + ' finish ' + str(b.finish)
+            if b.finish != 0:
+                continue        
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
             attStr = str(b.enemy_id)+',1'
@@ -3806,7 +3855,10 @@ class RootController(BaseController):
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
-            b.finish = 1
+            if attFullPow > defFullPow:
+            	b.finish = 1
+            else:
+                b.finish = 2
         #defence fail lost 3% corn
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
@@ -4084,7 +4136,7 @@ class RootController(BaseController):
                     attacklist.append(atemp)
             dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
             for x in dlist:
-                if x.finish==0 and t-x.left_time>x.timeneed/2 :
+                if x.finish==0 :
                     #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                     ue=checkopdata(x.uid)#cache
                     wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
@@ -4728,7 +4780,6 @@ class RootController(BaseController):
             lis=getGround_id(int(ground_id))
             if lis==None:
                 return dict(id=int(ground_id))
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ptime=p.producttime
@@ -5091,7 +5142,6 @@ class RootController(BaseController):
         try:
             type=int(type)
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
             
@@ -5178,24 +5228,166 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)
     @expose('json')
+    def plantingall(self,user_id,city_id,object_id):
+        ground_num=0
+        plant_list=[]
+        try:
+            u=checkopdata(user_id)#cache
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
+            temp_cae = u.cae-1
+            if temp_cae>=0 or card.foodcard==5:
+                if card.foodcard==5:
+                    temp_cae=temp_cae+1
+                price=Plant_Price[int(object_id)][0]
+                ground = DBSession.query(businessWrite).filter("city_id=:cid and producttime=0 and finish = 1 and ground_id <=4 and ground_id>=1").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                if price<0:
+                    price=0-price
+                    temp_cae = temp_cae-price
+                    if temp_cae < 0:
+                        return dict(id=0)
+                    temp_cae=temp_cae+price
+                    for g in ground:
+                        temp_cae=temp_cae-price
+                        if temp_cae>=0:
+                            plant_list.append(g.grid_id)
+                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                            g.object_id=int(object_id)
+                            g.producttime=ti
+                        else:
+                            temp_cae = temp_cae+price
+                            u.cae = temp_cae
+                            read(city_id)
+                            replacecache(u.userid,u)#cache
+                            return dict(id=0,plant=plant_list)
+                    u.cae = temp_cae
+                    read(city_id)
+                    replacecache(u.userid,u)#cache
+                    return dict(id=1,plant=plant_list)
+                else:
+                    temp_corn = u.corn
+                    if temp_corn-price < 0:
+                        return dict(id=0)
+                    for g in ground:
+                        if temp_corn-price>=0:
+                            temp_corn = temp_corn-price
+                            plant_list.append(g.grid_id)
+                            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                            g.object_id=int(object_id)
+                            g.producttime=ti
+                        else:
+                            u.corn=temp_corn
+                            u.cae=temp_cae
+                            read(city_id)
+                            replacecache(u.userid,u)
+                            return dict(id=0,plant=plant_list)
+                    u.corn=temp_corn
+                    u.cae=temp_cae
+                    read(city_id)
+                    replacecache(u.userid,u)
+                    return dict(id=1,plant=plant_list)
+            else:
+                return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
+    @expose('json')
+    def harvestall(self,user_id,city_id):
+        expadd=0
+        foodadd=0
+        flag=0
+        try:
+            u=checkopdata(user_id)#cache
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
+            temp_cae = u.cae-1
+            if temp_cae>=0 or card.foodcard==5:
+                if card.foodcard==5:
+                    temp_cae=temp_cae+1
+                map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                factor=1
+                factor2=1.0
+                if u.food_god==1 and t-u.foodgodtime<3600:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                elif u.food_god==2 and t-u.foodgodtime<21600:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                elif u.food_god==3 and t-u.foodgodtime<86400:
+                    if u.food_god_lev==1:
+                        factor=1.2
+                    elif u.food_god_lev==2:
+                        factor=1.4
+                    elif u.food_god_lev==3:
+                        factor=1.6
+                    elif u.food_god_lev==4:
+                        factor=1.8
+                    elif u.food_god_lev==5:
+                        factor=2
+                else:
+                    u.food_god=0
+                    u.foodgodtime=-1
+                for g in ground:
+                    grid_id=g.grid_id
+                    object_id=g.object_id
+                    producttime=g.producttime
+                    single_exp=Plant_Price[int(object_id)][1]
+                    single_food=Plant_Price[int(object_id)][2]
+                    growtime=Plant_Price[int(object_id)][3]
+                    if g.ground_id==2:
+                        factor2=1.2
+                    elif g.ground_id==3:
+                        factor2=1.4
+                    elif g.ground_id==4:
+                        factor2=1.6
+                    if producttime+growtime<=t:
+                        flag=1
+                        mark=minusstateeli(u,map,grid_id,producttime)
+                        if t-producttime>86400*3 and producttime!=1:
+                            expadd = expadd+single_exp
+                        else:
+                            foodadd = foodadd+int(single_food*factor*(int(factor2*10))/10)
+                            expadd = expadd+single_exp
+                        g.object_id=-1
+                        g.producttime=0
+                    factor2=1.0
+                u.exp=u.exp+expadd
+                u.food=u.food+foodadd
+                if flag==1:
+                    u.cae = temp_cae
+                read(city_id)
+                replacecache(u.userid,u)#cache
+                return dict(id=1,expadd=expadd,foodadd=foodadd)
+            else:
+                return dict(id=0)
+        except InvalidRequestError:
+                return dict(id=0)
+    @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
            p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
            lis=getGround_id(p.ground_id)
-           #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
            u=checkopdata(user_id)#cache
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-           #if p.ground_id>=1 and p.ground_id<=99:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id>=100 and p.ground_id<=199:
-           #    u.exp=u.exp+lis[4]
-           #elif p.ground_id >=200 and p.ground_id<=299:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=300 and p.ground_id<=399:
-           #    u.exp=u.exp+lis[5]
-           #elif p.ground_id>=400 and p.ground_id<=499:
-           #    u.exp=u.exp+lis[3]
-               #u.populationupbound=u.populationupbound+lis[4]
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                if p.ground_id==400:
                    u.food_god_lev=1
@@ -5252,161 +5444,134 @@ class RootController(BaseController):
            return dict(id=1)
         except InvalidRequestError:
            return dict(id=0)
+    def accCost(timeLeft):
+        caesars = 0
+        hour = 3600
+        if timeLeft < 0:
+                caesars = 0
+        elif timeLeft < 3*hour:
+                caesars = 1
+        elif timeLeft < 6*hour:
+                caesars = 2
+        elif timeLeft < 9*hour:
+                caesars = 3
+        else:
+                caesars = 5
+        print "acc time " + str(timeLeft) + ' ' + str(caesars)
+        return caesars   
     @expose('json')
     def speedup(self,user_id,city_id,grid_id):#对外接口，加速operationalData:query->update; businessWrite:query->update
         try:
             caesars=1
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
-            
+            print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
             if p.ground_id==0:
-                return dict(id=0)
+                return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
-                if p.finish==0:
-                    return dict(id=0)                        
+                if p.finish == 0:
+                    p.finish = 1
+                    read(city_id)
+                    return dict(id=0, reason = "farm not finish")       
                 else:
-                    if p.ground_id<5:
-                        caesars=(Plant_Price[p.object_id][3]-t+3600-1)/3600
+                    if p.object_id ==  -1:
+                        return dict(id = 0, reason="not planting")
+                    if p.ground_id < 5:
+                        timeLeft=Plant_Price[p.object_id][3]-t
                     elif p.ground_id==5:
-                        caesars=(woods[p.object_id][3]-t+3600-1)/3600
+                        timeLeft=woods[p.object_id][3]-t
                     else:
-                        caesars=(stones[p.object_id][3]-t+3600-1)/3600
+                        timeLeft=stones[p.object_id][3]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
-                        p.producttime=1
+                        u.cae=u.cae-caesars
+                        p.producttime=1#finish product
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t)
+                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "farm cae not enu")
             elif p.ground_id>=100 and p.ground_id<=199:
                 if p.finish==0:
-                    caesars=(housebuild[p.ground_id-100][5]-t+3600-1)/3600
+                    timeLeft= housebuild[p.ground_id-100][5]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=0
-                        #u.exp=u.exp+housebuild[p.ground_id-100][4]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5],)
+                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
                     else:
-                        return dict(id=1)
+                        return dict(id=0, reason = "house fin cae not eno")
                 else:
-                    caesars=(houses[p.ground_id-100][3]-t+3600-1)/3600
+                    timeLeft = houses[p.ground_id-100][3]-t
+                    caesars = accCost(timeLeft)
+                    #0 not working 1 speedup yet
+                    if p.producttime == 0 or p.producttime == 1:
+                        return dict(id = 0, reason='house not working', pro = p.producttime)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=1
-                        #u.exp=u.exp+houses[p.ground_id-100][2]
-                        #if u.population+houses[p.ground_id-100][0]>u.populationupbound:
-                            #u.population=u.populationupbound
-                        #else:
-                            #u.population=u.population+houses[p.ground_id-100][0]
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars)
+                        return dict(id=1,caesars=caesars, result = "house pop")
                     else:
-                        return dict(id=0)
-  
+                        return dict(id=0, reason="house cae not")
             elif p.ground_id>=200 and p.ground_id<=299:
                 if p.finish==0:
-                    caesars=(milbuild[p.ground_id-200][6]-t+3600-1)/3600
+                    timeLeft = milbuild[p.ground_id-200][6]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
-                        
+                        u.cae=u.cae-caesars
                         p.producttime=0
-                        #u.exp=u.exp+milbuild[p.ground_id-200][5]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1)
+                        return dict(id=1, result = "finish militry")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "mil cae not en")
                 else:
                     if p.object_id>=0:
-                        caesars=(soldie[p.object_id][4]-t+3600-1)/3600
+                        timeLeft = soldie[p.object_id][4]-t
+                        caesars = accCost(timeLeft)
                         if u.cae-caesars>=0:
-                            if u.cae-caesars<u.cae:
-                                cb=u.cae
-                                u.cae=u.cae-caesars
-                                ca=u.cae
-                                caelog(cb,ca)
-                            #sid=p.object_id
-                            #if int(sid)>=0 and int(sid)<9:
-                                #u.infantry_num=u.infantry_num+soldie[int(sid)][2]
-                            #if int(sid)>=9 and int(sid)<18:
-                                #u.cavalry_num=u.cavalry_num+soldie[int(sid)][2]
-                            #if int(sid)>=18 :
-                                #u.scout_num=u.scout_num+soldie[int(sid)][2]
-                            #u.exp=u.exp+soldiernum[int(sid)]
+                            u.cae=u.cae-caesars
                             p.producttime=1
-                            
                             read(city_id)
-                            replacecache(u.userid,u)#cache
-                            return dict(id=1)
+                            return dict(id=1, result = "mil product")
                         else:
-                            return dict(id=0)
+                            return dict(id=0, reason = "mil not cae")
                     else:
                         return dict(id=0) 
             elif p.ground_id>=300 and p.ground_id<=399:
                 if p.finish==0:
-                    caesars=(businessbuild[p.ground_id-300][6]-t+3600-1)/3600
+                    timeLeft = businessbuild[p.ground_id-300][6]-t
+                    caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=ti
-                        #u.exp=u.exp+businessbuild[p.ground_id-300][5]
                         p.finish=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        return dict(id=1,caesars=caesars,t=businessbuild[p.ground_id-300][6])
+                        return dict(id=1,caesars=caesars,t=businessbuild[p.ground_id-300][6], result = "business fin bui")
                     else:
-                        return dict(id=0)
+                        return dict(id=0, reason = "busines not fin")
                 else:
-                    caesars=(production[p.ground_id-300][3]-t+3600-1)/3600
+                    timeLeft = production[p.ground_id-300][3]-t
+                    caesars = accCost(timeLeft)
+                    if p.producttime == 1:
+                        return dict(id = 0, reason = "busi speedup yet")
                     if u.cae-caesars>=0:
-                        if u.cae-caesars<u.cae:
-                            cb=u.cae
-                            u.cae=u.cae-caesars
-                            ca=u.cae
-                            caelog(cb,ca)
+                        u.cae=u.cae-caesars
                         p.producttime=1
                         read(city_id)
-                        replacecache(u.userid,u)#cache
-                        #u.exp=u.exp+production[p.ground_id-300][1]
-                        #u.corn=u.corn+production[p.ground_id-300][0]
-                    return dict(id=1)     
+                        return dict(id = 1, result = "busi tax")
+                    else:
+                        return dict(id=0, reason = "busi cae not")     
             elif p.ground_id>=400 and p.ground_id<499:
-                caesars=(godbuild[p.ground_id-400][5]-t+3600-1)/3600
+                timeLeft = godbuild[p.ground_id-400][5]-t
+                caesars = accCost(timeLeft)
                 if p.finish==0 and u.cae-caesars>0:
-                    cb=u.cae
                     u.cae=u.cae-caesars
-                    ca=u.cae
-                    caelog(cb,ca)
                     p.producttime=0
-                    #u.populationupbound=u.populationupbound+godbuild[p.ground_id-400][4]
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         if p.ground_id==400:
                             u.food_god_lev=1
@@ -5453,23 +5618,21 @@ class RootController(BaseController):
                             u.war_god_lev=5                        
                     p.finish=1
                     read(city_id)
-                    replacecache(u.userid,u)#cache
-                    return dict(id=1)
+                    return dict(id=1, result = "god build fin")
                 else:
-                    return dict(id=0)                  
+                    return dict(id=0, reason = "god not enu")                  
+            return dict(id = 0, reason = str(p.ground_id) + "can't speed")
         except InvalidRequestError:
-            return dict(id=0)
+            return dict(id=0, reason = "building not find")
 
     @expose('json')
     def population(self,user_id,city_id,grid_id):#对外接口，招募人口recruit population;operationalData:query->update; businessWrite:query->update
         try:
-                
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             num=houses[p.ground_id-100][0]
             food=houses[p.ground_id-100][1]
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             ptime=p.producttime
             if ptime>0:
@@ -5477,7 +5640,7 @@ class RootController(BaseController):
             if u.food-food>=0:
                 u.food=u.food-food
                 p.producttime=ti
-                #u.exp=u.exp+houses[p.ground_id-100][2]
+                p.object_id = 0
                 read(city_id)
                 replacecache(u.userid,u)#cache
                 return dict(id=1)
@@ -5489,7 +5652,6 @@ class RootController(BaseController):
     def finipop(self,user_id,city_id,grid_id):#对外接口，完成人口招募 finish population;warMap:query; operationalData,businessWrite:query->update
         try:
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
             num=houses[p.ground_id-100][0]
@@ -5499,6 +5661,7 @@ class RootController(BaseController):
             factor=1
             if p.producttime!=1 and t-p.producttime>3*86400:
                 p.producttime=0
+                p.object_id = -1
                 u.exp=u.exp+houses[p.ground_id-100][2]
                 read(city_id)
                 replacecache(u.userid,u)#cache 
@@ -5539,11 +5702,10 @@ class RootController(BaseController):
             else:
                 u.person_god=0
                 u.popgodtime=-1                                
-            #if mark==0 and u.population+int(num*(int(factor*10))/10)>u.populationupbound:
-            #    u.population=u.populationupbound
             if mark==0:
                 u.population=u.population+int(num*(int(factor*10))/10)
             p.producttime=0
+            p.object_id = -1
             u.exp=u.exp+houses[p.ground_id-100][2]
             read(city_id)
             replacecache(u.userid,u)#cache
