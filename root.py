@@ -2191,20 +2191,14 @@ class RootController(BaseController):
         try:
             dv=DBSession.query(Datevisit).filter_by(uid=int(userid)).one()
             bonus=0
-            #uu=DBSession.query(operationalData).filter_by(userid=userid).one()
             uu=checkopdata(userid)#cache
             u=DBSession.query(operationalData).filter_by(otherid=otherid).filter_by(user_kind=int(user_kind)).one()#7.29,otherid 
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
             friendid=u.userid
-            city=DBSession.query(warMap).filter_by(userid=u.userid).one()
-            #read=DBSession.query(businessRead).filter_by(city_id=city.city_id).one()
-            #readstr=read.layout
-            readstr = getCity(city.city_id)
-            #lis=present(u)
-            #lis2=present(uu)
-            #####卡片
 
-            #visit=DBSession.query(visitFriend).filter_by(userid=userid).filter_by(friendid=friendid).one()
+            city=DBSession.query(warMap).filter_by(userid=u.userid).one()
+            readstr = getCity(city.city_id)
+
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
@@ -2837,17 +2831,11 @@ class RootController(BaseController):
             ruser=DBSession.query(operationalData).filter_by(otherid=oid).filter_by(user_kind=user_kind).one()
             user=checkopdata(ruser.userid)
             ds=DBSession.query(Datesurprise).filter_by(uid=user.userid).one()
-            #if ds.datesurprise==0:#计算怪物抢走的粮食
-            #    if user.monsterlist!='0,7' and user.monsterlist!=None and user.monsterlist!='' and user.monstertime==0:
-            #        fo=user.food
-            #        foodlost=random.randint(int(fo/20),int(fo/10))
-            #        user.food=user.food-foodlost
             bonus=loginBonus(user)#获取登录奖励
             lbonus=bonus
             s=DBSession.query(warMap).filter_by(userid=user.userid).one()#获取city_id
-            st = getCity(s.city_id)
-            #st=DBSession.query(businessRead).filter_by(city_id=s.city_id).one()#获取经营页面整体信息
-            stt=st.layout
+            stt= getCity(s.city_id)
+
             corn=user.corn
             cae=user.cae
             population=user.population
@@ -2973,12 +2961,9 @@ class RootController(BaseController):
             c1=c1[0]
             gi=0
             mi=0
-            #mid=getMap(0)
             nuid=c1[0]
             
             nu=DBSession.query(operationalData).filter_by(userid=nuid).one()
-            #mc.add(str(nuid),nu)
-            #nu=mc.get(str(nuid))
             nu.logintime=logintime
             nu.signtime=logintime
             newvictories=Victories(uid=c1[0],won=0,lost=0)
@@ -2990,27 +2975,11 @@ class RootController(BaseController):
             DBSession.add(nwMap)
             gi=-1
             mi=-1
-            #if mid[0]!=0:
-            #    nwMap=warMap(c1[0],mid[1],mid[0]-1,0)
-            #    DBSession.add(nwMap)
-            #    gi=mid[0]-1
-            #    mi=mid[1]
-            #else:
-            #    mid=makeMap(0)
-            #    num=insert(mid[0])
-            #    #return dict(id=num[0],mid=mid,num=num[1])
-            #    i=num-1
-             #   return dict(c1=c1[0],mid=mid,i=i)
-            #    nwMap=warMap(c1[0],mid[0],i,0)
-            #    gi=i
-            #    mi=mid[0]
-            #    DBSession.add(nwMap)
+
             cid=DBSession.query('LAST_INSERT_ID()')
             inistr=''
             inistr=inistr+INITIALSTR2+str(logintime)+',0;'+'100,575,-1,'+str(logintime-86400)+',1;300,570,-1,'+str(logintime-86400)+',1;1,690,0,'+str(logintime-86400)+',1';
             
-            #nbr=businessRead(city_id=cid[0][0],layout=inistr)
-            #DBSession.add(nbr)
             nbw=businessWrite(city_id=cid[0][0],ground_id=0,grid_id=455,object_id=0,producttime=0,finish=1)
             DBSession.add(nbw)
             nbw=businessWrite(city_id=cid[0][0],ground_id=503,grid_id=491,object_id=-1,producttime=0,finish=1)
