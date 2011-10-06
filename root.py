@@ -4490,15 +4490,6 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
-    """
-    #修改宠物属性 pay
-    @expose('json')
-    def assignAttToPet(self, uid, gid, att, cid):
-        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
-        dragon. =        
-        return dict(id=1)
-    """
     global initH
     global addHealth
     global growUp
@@ -4614,6 +4605,7 @@ class RootController(BaseController):
             dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
             if dragon.state != 1:
                 return dict(id=0, reason = "dragon not in buy state")
+            print 'kind' + str(kind)
             if kind >=0 and kind < len(eggCost):
                 user = DBSession.query(operationalData).filter_by(userid = uid).one()
                 if eggCost[kind][0] > 0:
