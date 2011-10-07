@@ -5083,7 +5083,7 @@ class RootController(BaseController):
                             u.cae = temp_cae
                             read(city_id)
                             replacecache(u.userid,u)#cache
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.cae = temp_cae
                     read(city_id)
                     replacecache(u.userid,u)#cache
@@ -5104,7 +5104,7 @@ class RootController(BaseController):
                             u.cae=temp_cae
                             read(city_id)
                             replacecache(u.userid,u)
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.corn=temp_corn
                     u.cae=temp_cae
                     read(city_id)
@@ -5203,7 +5203,7 @@ class RootController(BaseController):
             else:
                 return dict(id=0)
         except InvalidRequestError:
-                return dict(id=0)
+            return dict(id=0)
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
