@@ -1350,6 +1350,7 @@ class RootController(BaseController):
         return dict(monstertime=u.monstertime)
     @expose('json')
     def foodlost(self,uid):
+        print "foodlost " + str(uid)
         try:
             user=checkopdata(uid)
             foodlost=0
@@ -1361,10 +1362,13 @@ class RootController(BaseController):
             if ds.monfood==0 or ds.monfood==None:
                 fo=user.food
                 foodlost=random.randint(int(fo/20),int(fo/10))
+                if foodlost > 100:
+                    foodlost = 100;
                 user.food=user.food-foodlost
                 #user.monfood=1
                 ds.monfood=1 
                 replacecache(uid,user)
+            print "lostfood " + str(foodlost)
             return dict(foodlost=foodlost)
         except :
             return dict(foodlost=0)
