@@ -1404,6 +1404,8 @@ class RootController(BaseController):
             if ds.monfood==0 or ds.monfood==None:
                 fo=user.food
                 foodlost=random.randint(int(fo/20),int(fo/10))
+                if foodlost > 100:
+                    foodlost = 100
                 user.food=user.food-foodlost
                 #user.monfood=1
                 ds.monfood=1 
