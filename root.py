@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Main Controller"""
 
 
@@ -33,7 +33,7 @@ class RootController(BaseController):
     global getCity
     
     global accCost
-    global Plant_Price#农作物列表
+    global Plant_Price#农作牨
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
     global soldie#士兵列表
@@ -198,7 +198,7 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
-        reward = [2, 7, 20, 50]
+        reward = [1, 5, 15, 40]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -3754,6 +3754,8 @@ class RootController(BaseController):
                 continue        
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
+            if attack == None or defence == None:
+                continue
             attStr = str(b.enemy_id)+',1'
             defStr = str(b.uid)+',0'
             attPurePow = b.power
@@ -3854,7 +3856,7 @@ class RootController(BaseController):
             else:
                 attack.nbattleresult = attack.nbattleresult + ';' + attStr
             if defence.nbattleresult == '' or defence.nbattleresult == None:
-                defence.battleresult = defStr
+                defence.nbattleresult = defStr
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
@@ -4072,6 +4074,8 @@ class RootController(BaseController):
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                 ue=checkopdata(x.uid)#cache
                 wue=DBSession.query(warMap).filter_by(userid=x.uid).one()                
+                if ue == None or wue == None:
+                    continue
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
         return dict(attacklist=attacklist,defencelist=defencelist)
@@ -4141,10 +4145,13 @@ class RootController(BaseController):
             for x in dlist:
                 if x.finish==0 :
                     #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
-                    ue=checkopdata(x.uid)#cache
-                    wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
-                    dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
-                    defencelist.append(dtemp)
+                    try:
+                    	ue=checkopdata(x.uid)#cache
+                    	wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
+                    	dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
+                    	defencelist.append(dtemp)
+                    except:
+                        print "user deleted"
             for l in list1 :
                 l1=[]
                 try:
@@ -5215,7 +5222,8 @@ class RootController(BaseController):
             if type==0 and mark==0:
                 tu=Plant_Price[p.object_id]
                 
-                u.food=u.food+int(tu[2]*factor*(int(factor2*10))/10)
+                u.food+=int(tu[2]*factor*(int(factor2*10))/10)
+                DBSession.flush()
             elif type==1 and mark==0:
                 tu=stones[p.object_id]
                 u.stone=u.stone+int(tu[2]*factor)
@@ -5264,7 +5272,7 @@ class RootController(BaseController):
                             u.cae = temp_cae
                             read(city_id)
                             replacecache(u.userid,u)#cache
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.cae = temp_cae
                     read(city_id)
                     replacecache(u.userid,u)#cache
@@ -5285,7 +5293,7 @@ class RootController(BaseController):
                             u.cae=temp_cae
                             read(city_id)
                             replacecache(u.userid,u)
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.corn=temp_corn
                     u.cae=temp_cae
                     read(city_id)
@@ -5384,7 +5392,90 @@ class RootController(BaseController):
             else:
                 return dict(id=0)
         except InvalidRequestError:
+            return dict(id=0)
+    @expose('json')
+    def productall(self,user_id,city_id):
+        expadd=0
+        cornadd=0
+        flag=0
+        try:
+            u=checkopdata(user_id)
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
+            temp_cae = u.cae-1
+            if temp_cae>=0 or card.fortunecard==5:
+                if card.fortunecard==5:
+                    temp_cae=temp_cae+1
+                map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=329 and ground_id>=300").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                factor=1
+                if u.wealth_god==1 and t-u.wealthgodtime<3600:
+                    if u.wealth_god_lev==1:
+                        factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                if u.wealth_god==2 and t-u.wealthgodtime<21600:
+                    if u.wealth_god_lev==1:
+                       factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                if u.wealth_god==3 and t-u.wealthgodtime<86400:
+                    if u.wealth_god_lev==1:
+                        factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                else:
+                    u.wealth_god=0
+                    u.wealthgodtime=-1
+                for g in ground:
+                    grid_id = g.grid_id
+                    producttime = g.producttime
+                    single_exp = production[g.ground_id-300][1]
+                    single_corn = production[g.ground_id-300][0]
+                    needtime = production[g.ground_id-300][3]
+                    if producttime+needtime<=t or producttime==1:
+                        flag=1
+                        mark=minusstateeli(u,map,grid_id,producttime)
+                        if t-producttime>86400*3 and producttime!=1 and producttime!=0:
+                            expadd = expadd + single_exp
+                        else:
+                            expadd = expadd+single_exp
+                            cornadd = cornadd+int(single_corn*int(factor*10)/10)
+                        g.producttime = t
+                u.exp=u.exp+expadd
+                u.corn = u.corn + cornadd
+                if flag==1:
+                    u.cae = temp_cae
+                read(city_id)
+                replacecache(u.userid,u)
+                if flag==1:
+                    return dict(id=1,expadd=expadd,cornadd=cornadd)
+                else:
+                    return dict(id=0)
+            else:#cae not enough
                 return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
