@@ -4638,6 +4638,9 @@ class RootController(BaseController):
                 attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
+                curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                #help pet
+                addnews(user.userid, friend.otherid, 6, curTime, friend.user_kind)#some one help you
                 return dict(id=1, result="help suc", state = dragon.state)
 
         return dict(id=0, reason="unknow reason")
