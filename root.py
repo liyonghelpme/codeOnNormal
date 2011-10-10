@@ -4529,8 +4529,8 @@ class RootController(BaseController):
     eggCost = [[50000, 100, 5], [100000, 150, 6], [1000000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
-    growUp = [51, 100, 250, 9999]
-    reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
+    growUp = [51, 100, 250, 99999999]
+    reward = [[4500, 30], [9000, 40], [15000, 100], [0, 0]]
     allowFriend = 3
     @expose('json')
     def relive(self, uid, cid, gid):
@@ -4572,7 +4572,7 @@ class RootController(BaseController):
         return dict(id=1)
     #喂养宠物 self feed friend feed 
 
-    
+    global eggExp = 30 
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
         uid = int(uid)
@@ -4597,7 +4597,7 @@ class RootController(BaseController):
             dragon.lastFeed |= 1
             #update health
             dragon.health += addHealth[state]
-            if dragon.health >= growUp[state]:
+            if dragon.health >= growUp[state] and dragon.state < 5:
                 dragon.state += 1
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
@@ -4628,7 +4628,7 @@ class RootController(BaseController):
                 dragon.lastFeed |= 2
                 #update health
                 dragon.health += 1
-                if dragon.health >= growUp[state]:
+                if dragon.health >= growUp[state] and dragon.state < 5:
                     dragon.state += 1
                     user = checkopdata(uid)
                     user.corn += reward[state][0]
