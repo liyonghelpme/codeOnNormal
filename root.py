@@ -4589,12 +4589,16 @@ class RootController(BaseController):
             #I feed 1 fri 2 not 0
             if dragon.lastFeed & 1 == 1:
                 return dict(id=0, reason="you feed yet") 
+            needFood = addHealth[state]*20;
+            user = checkopdata(uid)
+            if user.food < needFood:
+                return dict(id=0, reason="food not enough")
+            user.food -= needFood;
             dragon.lastFeed |= 1
             #update health
             dragon.health += addHealth[state]
             if dragon.health >= growUp[state]:
                 dragon.state += 1
-                user = checkopdata(uid)
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
             #update attack
@@ -4614,6 +4618,10 @@ class RootController(BaseController):
                 pos = friList.index(user.otherid)
                 return dict(id=0, reason="help yet")
             except:
+                needFood = 20;
+                if user.food < needFood:
+                    return dict(id=0, reason="food not enough")
+                user.food -= needFood
                 friList.append(user.otherid)
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
