@@ -1,7 +1,7 @@
 import MySQLdb
 import json
 
-con = MySQLdb.connect(host='localhost', user='root', db='stcHong')
+con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='badperson3')
 cursor = con.cursor()
 
 sql = "select pid, friList, lastFeed, state, health  from dragon"
