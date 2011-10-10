@@ -4619,9 +4619,10 @@ class RootController(BaseController):
                 return dict(id=0, reason="help yet")
             except:
                 needFood = 20;
-                if user.food < needFood:
+                friend = checkopdata(uid)
+                if friend.food < needFood:
                     return dict(id=0, reason="food not enough")
-                user.food -= needFood
+                friend.food -= needFood
                 friList.append(user.otherid)
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
