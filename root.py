@@ -7,8 +7,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -143,7 +143,7 @@ class RootController(BaseController):
     #businessbuild：corn,food,labor,resource,update(cae),exp,time，特殊物品，解锁等级
     businessbuild=[[300,20,20,0,0,3,600,None,1],[500,30,5,0,1,7,1800,'a,1',1],[1100,0,10,70,2,11,3600,'a,2;b,3',1],[1200,45,40,0,0,5,3600,None,4],[1800,50,10,100,3,9,10740,'b,2;c,2',4],[3000,70,15,-100,4,14,15120,'c,2;d,3',4],[-5,0,0,0,0,15,5400,None,6],[5000,0,0,120,6,20,14400,'b,2;c,2',6],[7000,0,0,-120,7,25,23400,'c,2;d,3',6],[2000,80,50,0,0,7,19800,None,8],[3300,0,15,150,5,9,35270,'d,2;e,2',8],[4500,0,20,-150,6,11,46800,'e,2;f,3',8],[5000,100,70,0,0,9,8280,None,15],[7000,0,20,170,7,11,22320,'f,2;g,2',15],[13500,0,25,-170,8,13,28800,'g,2;h,3',15],[-8,0,0,0,0,25,20520,None,14],[9000,130,0,200,10,30,25200,'d,2;e,2',14],[11000,0,0,-200,11,35,33120,'e,2;f,3',14],[7200,130,90,0,0,20,21600,None,21],[11000,0,25,210,9,33,28800,'h,2;i,2',21],[19900,0,30,-210,10,45,36720,'i,2;j,3',21],[8000,170,110,0,0,29,30600,None,29],[13000,0,30,230,10,45,34200,'j,2;k,2',29],[21000,0,35,-230,11,61,46800,'k,2;l,3',29],[-11,0,0,0,0,35,25200,None,24],[13000,0,0,250,12,45,30240,'h,2;i,2',24],[17000,0,0,-250,13,60,39600,'i,2;j,3',24],[10000,1000,55,0,0,8,16200,None,7],[20000,0,18,300,7,15,28800,'a,5;i,4',7],[50000,0,27,-300,10,25,41400,'c,5;d,6',7]]#corn,food,labor,resource,update(cae),exp,time
     #godbuild corn,food,升级cae,exp,人口上限populationupbound，时间
-    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400]]# corn,food,cae,exp,populationupbound
+    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400]]# corn,food,cae,exp,populationupbound
     #decorationbuild：cornorcae，人口上限，解锁等级
     decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[8000,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3]]#corn(or cae),populationupbound
     #农作物list：#corn,exp,food,time，解锁等级
@@ -1975,8 +1975,10 @@ class RootController(BaseController):
             return milbuild[ground_id-200]
         elif ground_id>=300 and ground_id<=399:#business
             return businessbuild[ground_id-300]
-        elif ground_id>=400 and ground_id<=499:#god
+        elif ground_id>=400 and ground_id<420:#god
             return godbuild[ground_id-400]
+        elif ground_id>=420 and ground_id<=424:
+            return friendGod[ground_id-420]
         elif ground_id>=500 and ground_id<=699:#decoration
             return decorationbuild[ground_id-500]
         else:
@@ -2265,6 +2267,13 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:
                 bonus=100+10*(dv.visitnum)
+                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter_by(ground_id >= 420 and ground_id <= 424).all()
+                #only one friend god
+                if len(buildings) == 1:
+                    b = buildings[0];
+                    lev = b.ground_id-420;
+                    bonus += friGodReward[lev]
+                #增加访问奖励
                 uu.corn=uu.corn+100+10*(dv.visitnum)
                 dv.visitnum=dv.visitnum+1
                 uu.visitnum=dv.visitnum
@@ -4408,8 +4417,11 @@ class RootController(BaseController):
                 elif ground_id>=300 and ground_id<=399:
                     cae=lis[4]
                     pop=lis[2]
-                elif ground_id>=400 and ground_id<=499:
+                elif ground_id>=400 and ground_id<420:
                     cae=lis[2]
+                elif ground_id>=420 and ground_id<=424:
+                    lev = ground_id - 420
+                    cae=friendGod[lev][5]
                 #if u.cae-cae>=0:    
                 if u.cae-cae>=0 and u.labor_num+pop<=u.population:
                     p.producttime=ti
@@ -4430,8 +4442,10 @@ class RootController(BaseController):
                         u.exp=u.exp+lis[5]
                     elif p.ground_id>=300 and p.ground_id<=399:
                         u.exp=u.exp+lis[5]
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         u.exp=u.exp+lis[3]
+                    elif p.ground_id>=420 and p.ground_id<=424:
+                        
                     if ground_id>=400 and ground_id<=499:
                         if (ground_id-400)%4==0:
                             u.foodgodtime=-1
@@ -4573,8 +4587,44 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    #hour food corn exp popupbound upgrade_cae 
+    global friendGod
+    global friGodReward
+    friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 500, 5], [12*3600, 2000, 50000, 170, 750, 10], [18*3600, 5000, 100000, 250, 1000, 15], [24*3600, 10000, 500000, 350, 1250, 30]]
+    friGodReward = [5, 10, 20, 30, 50]
     @expose('json')
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+        curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        #420 421 422 423 424 can't build high level
+        #when visit friend add corn more
+        if ground_id >= 420 and ground_id <= 424:
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter(and_(ground_id >= 420,  ground_id <= 424)).all();
+            if len(buildings) != 0:
+                return dict(id=0, reason="friend god exist in city")
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
+            for b in buildings:
+                if b.ground_id != -1:
+                    return dict(id = 0, reason="building exist here")
+                DBSession.delete(b)
+            user = checkopdata(user_id)
+            lev = int(ground_id)-420
+            #check demands
+            if lev == 0:
+                if user.lev < 25:
+                    return dict(id=0, reason="level < 25")
+            if user.food >= friendGod[lev][1] and user.corn >= friendGod[lev][2]:
+                user.food -= friendGod[lev][1]
+                user.corn -= friendGod[lev][2]
+                user.populationupbound += friendGod[lev][4]
+                user.exp += friendGod[lev][3]
+
+                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, productime = curTime, finish = 0)
+                DBSession.add(building)
+                read(city_id)
+            else:
+                return dict(id=0, reason="resource not enough")
+            return dict(id=0, reason="unknown")
+
         i=0
         price=0
         pricefood=0
