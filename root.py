@@ -2230,7 +2230,6 @@ class RootController(BaseController):
             except:
                 sub=0
                 
-            
             return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
             #newvisit=visitFriend(userid=userid,friendid=friendid)
@@ -4552,6 +4551,14 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         return dict(id=1, pets=dragon)
 
+    @expose('json')
+    def getFriPets(self, uid, otherid, cid):
+        try:
+            user = DBSession.query(operationalData).filter_by(otherid=otherid).one();
+            dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == user.userid, businessWrite.bid==Dragon.bid)).all()#index bid
+        except:
+            return dict(id = 0, reason="no user or no dragon")
+        return dict(id=1, pets=dragon)
     #命名宠物 修改名字
     @expose('json')#state = 2
     def namePet(self, uid, gid, name, cid):
