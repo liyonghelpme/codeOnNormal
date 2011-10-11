@@ -4572,7 +4572,6 @@ class RootController(BaseController):
         return dict(id=1)
     #喂养宠物 self feed friend feed 
 
-    global eggExp = 30 
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
         uid = int(uid)
