@@ -30,15 +30,15 @@ while True:
             elif state == 5:#old
                 health -= 10
         else:
-            if state == 5:
-                health -= 10
+            #if state == 5:
+            #    health -= 10
             friList = '[]'
             lastFeed = 0
-        if health < 0 :
-            if state == 5:
-                state = -1 #dead
-            else:
-                health = 0
+        if health < 0 :#no dead at all
+            #if state == 5:
+            #    state = -1 #dead
+           # else:
+            health = 0
         sql = "update dragon set health = " + str(health) + ', state = ' + str(state) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\' where pid = ' + str(pid)
         print sql
         cursor.execute(sql)
