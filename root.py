@@ -2629,6 +2629,10 @@ class RootController(BaseController):
                 return [i,cid[0]]
         except:
             return [0,0]
+    @expose('json')
+    def readAll(self, city_id):
+        read(city_id)
+        return dict(id=1)
     ###############
     def read(city_id):# 向businessread表中写入数据
         try:
