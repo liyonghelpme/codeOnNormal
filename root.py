@@ -1363,7 +1363,7 @@ class RootController(BaseController):
                 fo=user.food
                 foodlost=random.randint(int(fo/20),int(fo/10))
                 if foodlost > 100:
-                    foodlost = 100;
+                    foodlost = 100
                 user.food=user.food-foodlost
                 #user.monfood=1
                 ds.monfood=1 
@@ -2602,6 +2602,10 @@ class RootController(BaseController):
         except InvalidRequestError:
             return ''
         return s
+    @expose('json')
+    def readAll(self, city_id):
+        read(city_id)
+        return dict(id=1)
     ###############
     def read(city_id):# 向businessread表中写入数据
         """
