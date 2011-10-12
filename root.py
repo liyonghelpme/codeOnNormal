@@ -596,15 +596,15 @@ class RootController(BaseController):
                 u.taskstring=''
                 replacecache(uid,u)
                 return [-1,u.currenttask]
-            else:
+            else:#level is ok
                 if int(u.currenttask)<0:
                     u.currenttask=str(-int(u.currenttask))
                 ct=int(u.currenttask)
-                if taskbonus[ct+1][2]>u.lev:
+                if taskbonus[ct+1][2]>u.lev:#level not satisfied
                     u.currenttask=str(-int(u.currenttask))
                     replacecache(uid,u)
                     return [-1,u.currenttask]
-                u.currenttask=str(int(u.currenttask)+1)
+                u.currenttask=str(int(u.currenttask)+1)#level satisfy move to next level
                 u.taskstring='0'
                 replacecache(uid,u)
                 return [taskbonus[ct+1][0],u.currenttask]
@@ -2975,7 +2975,7 @@ class RootController(BaseController):
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
                 task=-1
             else:
-                task=taskbonus[int(user.currenttask)][0]  
+                task=taskbonus[int(user.currenttask)][0]#id for client data base store current task  
             wartask=-1 
             if user.warcurrenttask=='' or user.warcurrenttask==None or user.warcurrenttask=='-1' or int(user.warcurrenttask)<0:
                 wartask=-1
@@ -3104,7 +3104,6 @@ class RootController(BaseController):
             except InvalidRequestError:
                 x=0
             #should not do internet connection which will block
-            """
             conn = httplib.HTTPConnection(SERVER_NAME)
             #user_id is a var
             url_send = "/a/misc/wonderempire_event?uid="+papayaid+"&event=1"
@@ -3115,7 +3114,6 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            """
             return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
     #check won in map check occupation
     @expose('json')
