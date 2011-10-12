@@ -3257,6 +3257,7 @@ class RootController(BaseController):
         print "speed up " + str(uid) + ' ' + str(enemy_id)
         uid=int(uid)
         enemy_id=int(enemy_id)
+        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
             return dict(id=0, reason='self attack self')
         try:
@@ -3856,7 +3857,7 @@ class RootController(BaseController):
                 attReward = getresource(lost[0], attack, 1)
                 defReward = getresource(lost[1], defence, 2)
 
-            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
+            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(returnIn)+','+str(returnCa)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
             defStr += str(lost[1])+','+str(defFullPow)+','+str(attFullPow)+','+defReward+','+attack.otherid+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+attack.empirename+','+str(attack.nobility*3+attack.subno)+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+str(defGod)+','+str(attGod)+','+str(defence.defencepower)
 
             if attack.nbattleresult == '' or attack.nbattleresult == None:
