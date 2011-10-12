@@ -5894,12 +5894,15 @@ class RootController(BaseController):
                if int(sid)>=9 and int(sid)<=11:
                    u.cavalry1_num=u.cavalry1_num+soldie[int(sid)][2]
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*4
+                   print str(u.userid) + ' cav1 ' + str(soldie[int(sid)][2]*4)
                elif int(sid)>=12 and int(sid)<=14:
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*5
                    u.cavalry2_num=u.cavalry2_num+soldie[int(sid)][2]
+                   print str(u.userid) + ' cav2 ' + str(soldie[int(sid)][2]*5)
                elif int(sid)>=15 and int(sid)<=17:
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*6
                    u.cavalry3_num=u.cavalry3_num+soldie[int(sid)][2]
+                   print str(u.userid) + ' cav3 ' + str(soldie[int(sid)][2]*6)
            if mark==0 and int(sid)>=18 :
                if int(sid)>=18 and int(sid)<=20:
                    u.scout1_num=u.scout1_num+soldie[int(sid)][2]
