@@ -4065,7 +4065,7 @@ class RootController(BaseController):
         attacklist=[]
         defencelist=[]
         uid=int(uid)
-        alist=DBSession.query(Battle).filter_by(uid=uid).order_by(Battle.left_time) 
+        alist=DBSession.query(Battle).filter_by(uid=uid).order_by(Battle.left_time).desc() 
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         for x in alist:
             if x.finish==0:
@@ -4075,7 +4075,7 @@ class RootController(BaseController):
                 
                 atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 attacklist.append(atemp)
-        dlist=DBSession.query(Battle).filter_by(enemy_id=uid).order_by(Battle.left_time)
+        dlist=DBSession.query(Battle).filter_by(enemy_id=uid).order_by(Battle.left_time).desc()
         for x in dlist:
             if x.finish==0 and t-x.left_time>0 :
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
