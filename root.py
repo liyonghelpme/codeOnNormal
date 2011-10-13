@@ -2267,9 +2267,9 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:
                 bonus=100+10*(dv.visitnum)
-                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter_by(ground_id >= 420 and ground_id <= 424).all()
+                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1").all()
                 #only one friend god
-                if len(buildings) == 1:
+                if len(buildings) > 0:
                     b = buildings[0];
                     lev = b.ground_id-420;
                     bonus += friGodReward[lev]
@@ -2310,9 +2310,21 @@ class RootController(BaseController):
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                lev = p.ground_id - 420
+                popUp = [250, 500, 750, 1000]#same data should not appeared in two place
+                i = 0
+                while i <= lev:
+                    u.populationupbound -= popUp[i]
+                #h f c exp
+                u.food += friendGod[lev][1]/4
+                u.corn += friendGod[lev][2]/4
+                    #todo reduce corn and food 
+                DBSession.delete(p)
+                return dict(id=1, result="sell friendGod suc")
+
             lis=getGround_id(p.ground_id)
             if lis==None:
                 return dict(id=0)
@@ -2351,11 +2363,6 @@ class RootController(BaseController):
                         u.wealth_god_lev=0
                     else:
                         u.war_god_lev=0                  
-                elif p.ground_id >= 420 and p.ground_id <= 424:
-                    lev = p.ground_id - 420
-                    popUp = [250, 500, 750, 1000]#same data should not appeared in two place
-                    u.populationupbound -= popUp[lev]
-                    #todo reduce corn and food 
                 else:
                     x=0     
                 if p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==0:
@@ -2531,8 +2538,6 @@ class RootController(BaseController):
                     u.populationupbound=u.populationupbound-decorationbuild[p.ground_id-500][1]
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                #if u.population>u.populationupbound:
-                #    u.population=u.populationupbound      
                 p.ground_id=-1
                 p.producttime=0
                 p.object_id=-1
@@ -4305,6 +4310,20 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         godtype=int(godtype)
         caetype=int(caetype)
+        caeCost = [3, 15, 30]
+        """
+        if godtype == 4:#friendGod
+            if caetype >=0 and caetype < len(caeCost):
+                buildings = DBSession.query(businessWrite.city_id, businessWrite.ground_id, businessWrite.grid_id).filter("warMap.userid=:uid and businessWrite.city_id=warMap.city_id and ground_id >=420 and ground_id <=424 and finish = 1").params(uid=uid).all()
+                if len(buildings) > 0:
+                    if u.cae >= caeCost[caetype]:
+                        u.cae -= caeCost[caetype]
+                        b = buildings[0]
+                        b.producttime = t
+                        b.object_id = caetype
+                        return dict(id=1, result="has god cae enough caetype " + str(caetype) )
+            return dict(id=0, reason="cae not enough")
+        """
         mark=0
         if caetype==0:
             if u.cae-3>=0:
@@ -4390,20 +4409,42 @@ class RootController(BaseController):
             ground_id=int(ground_id)
             stone=0
             wood=0
-            lis=getGround_id(int(ground_id))
-            if lis==None:
-                return dict(id=-int(ground_id))
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
+
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+
+            if ground_id >= 420 and ground_id <= 424:
+                lev = ground_id - 420+1#next level
+                if lev <= 4:
+                    if int(type) == 0:
+                        if u.cae >= friendGod[lev][3]:
+                            u.cae -= friendGod[lev][3]
+                            u.populationupbound += friendGod[lev][5]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti 
+                            return dict(id=1, result="update by cae")
+                    else:
+                        if u.food >= friendGod[lev][1] and u.corn >= friendGod[lev][2]:
+                            u.food -= friendGod[lev][1]
+                            u.corn -= friendGod[lev][2]
+                            u.populationupbound += friendGod[lev][5]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti
+                            return dict(id=1, result="update by food")
+            return dict(id=0, reason="lev or resource not correct")
+
+            lis=getGround_id(int(ground_id))
+            if lis==None:
+                return dict(id=-int(ground_id))
             price=lis[0]
             if p.ground_id<=0 or p.grid_id<=0:
                 return dict(id=0)
             if int(type)==0:
                 if ground_id>=100 and ground_id<=199:
                     cae=lis[3]
-                    
                 elif ground_id>=200 and ground_id<=299:
                     cae=lis[4]
                     pop=lis[2]
@@ -4412,10 +4453,7 @@ class RootController(BaseController):
                     pop=lis[2]
                 elif ground_id>=400 and ground_id<420:
                     cae=lis[2]
-                elif ground_id>=420 and ground_id<=424:
-                    lev = ground_id - 420
-                    cae=friendGod[lev][5]
-                #if u.cae-cae>=0:    
+                    
                 if u.cae-cae>=0 and u.labor_num+pop<=u.population:
                     p.producttime=ti
                     p.finish=0
@@ -5340,6 +5378,7 @@ class RootController(BaseController):
                 return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    #build or upgrade finish both call this funciton
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
@@ -5347,6 +5386,15 @@ class RootController(BaseController):
            lis=getGround_id(p.ground_id)
            u=checkopdata(user_id)#cache
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+           if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    if (ti-p.producttime) >= needTime:
+                        p.finish = 1
+                        return dict(id=1, result = "finish suc")
+                return dict(id=0, reason="need more time or finish yet")
+
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                if p.ground_id==400:
                    u.food_god_lev=1
@@ -5427,6 +5475,17 @@ class RootController(BaseController):
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
             print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    timeLeft = needTime - t
+                    cost = accCost(timeLeft)
+                    if u.cae >= cost:
+                        u.cae -= cost
+                        p.finish = 1
+                        return dict(id=1, result = "firendgod finish suc")
+                return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
                 return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
