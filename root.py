@@ -2339,7 +2339,7 @@ class RootController(BaseController):
                         lisx=getGround_id(p.ground_id-1)
                         lisy=getGround_id(p.ground_id-2)
                         u.labor_num=u.labor_num-lis[2]-lisx[2]-lisy[2]
-                elif p.ground_id>=400 and p.ground_id<499:
+                elif p.ground_id>=400 and p.ground_id<420:
                     
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         u.food_god_lev=0                                
@@ -2350,42 +2350,35 @@ class RootController(BaseController):
                                                       
                         u.wealth_god_lev=0
                     else:
-                        u.war_god_lev=0                        
+                        u.war_god_lev=0                  
+                elif p.ground_id >= 420 and p.ground_id <= 424:
+                    lev = p.ground_id - 420
+                    popUp = [250, 500, 750, 1000]#same data should not appeared in two place
+                    u.populationupbound -= popUp[lev]
+                    #todo reduce corn and food 
                 else:
                     x=0     
-                if p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==0:
+                if p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==0:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-250
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==1:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-250
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==1:
                     ub=u.populationupbound                    
                     u.populationupbound=u.populationupbound-500
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==2:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-500
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==2:
                     ub=u.populationupbound                       
                     u.populationupbound=u.populationupbound-750
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==3:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-750
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==3:
                     ub=u.populationupbound   
                     u.populationupbound=u.populationupbound-1000  
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                      
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==4:
-                    #if p.finisht==0:
-                    #    u.populationupbound=u.populationupbound-1000
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==4:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-1250  
                     ua=u.populationupbound
@@ -2396,7 +2389,7 @@ class RootController(BaseController):
                         u.corn=u.corn+lis[0]/4
                     elif p.ground_id>=500 and p.ground_id<=599:
                         u.corn=u.corn+lis[0]/4
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         if p.ground_id<=403:
                             u.corn=u.corn+2500
                         elif p.ground_id<=407:
