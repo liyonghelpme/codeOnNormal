@@ -2181,6 +2181,7 @@ class RootController(BaseController):
     #################访问好友                  
     @expose('json')
     def getfriend(self,userid,otherid,user_kind):#对外接口，用户userid 访问由otherid+user_kind确定的好友 get friends page;operationalData:query->updatewarMap:query;businessRead:query;visitFriend:query->update
+        print "visit friend " + str(userid) + ' ' + str(otherid)
         userid=int(userid)
         friendid=-1
         u=None
@@ -2249,8 +2250,12 @@ class RootController(BaseController):
                 cardlist.append(ca.logincard)
             except:
                 cardlist=[]            
-            addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
-            replacecache(userid,uu)#cache
+            try:
+                addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
+            except:
+                print "no such user" 
+            if u == None or uu == None:
+                return dict(id=0, reason="error no such user") 
             return dict(id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
@@ -3152,7 +3157,8 @@ class RootController(BaseController):
                 attacker.cavalrypower += b.powerca
             allBattle = DBSession.query(Battle).filter(Battle.finish!=0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in allBattle:
-                DBSession.delete(b)
+                if b.finish != 0:
+                    DBSession.delete(b)
             c=upd(p.mapid,u.nobility+1)
             
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
@@ -4529,7 +4535,7 @@ class RootController(BaseController):
     global reward
     global allowFriend
     global eggCost
-    eggCost = [[50000, 100, 5], [100000, 150, 6], [1000000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
+    eggCost = [[50000, 100, 5], [100000, 150, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
@@ -4613,26 +4619,31 @@ class RootController(BaseController):
             friList = dragon.friList
             friList = json.loads(friList)
             if len(friList) > allowFriend:
+                print "friend help enough"
                 return dict(id = 0, reason = "enough friend helped")
+            #be helped
             user = DBSession.query(warMap.userid).filter_by(city_id=cid).one()
             user = DBSession.query(operationalData).filter_by(userid = user.userid).one()
+            #help
+            friend = checkopdata(uid)
+            uotherid = int(friend.otherid)
             try:
-                pos = friList.index(user.otherid)
+                pos = friList.index(uotherid)
+                print "help yet " + str(uotherid) + ' ' + str(dragon.pid)
                 return dict(id=0, reason="help yet")
             except:
                 needFood = 20;
-                friend = checkopdata(uid)
                 if friend.food < needFood:
+                    print "need more food"
                     return dict(id=0, reason="food not enough")
                 friend.food -= needFood
-                friList.append(user.otherid)
+                friList.append(uotherid)
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
                 #update health
                 dragon.health += 1
                 if dragon.health >= growUp[state] and dragon.state < 5:
                     dragon.state += 1
-                    user = checkopdata(uid)
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
                 #update attack
@@ -4642,9 +4653,9 @@ class RootController(BaseController):
                     dragon.attack = attack
                 curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 #help pet
-                addnews(user.userid, friend.otherid, 6, curTime, friend.user_kind)#some one help you
+                addnews(friend.userid, user.otherid, 6, curTime, user.user_kind)#some one help you
                 return dict(id=1, result="help suc", state = dragon.state)
-
+        print "feed fail"
         return dict(id=0, reason="unknow reason")
 
     #使用银币购买宠物蛋 state = 1
@@ -4666,6 +4677,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = eggCost[kind][1] + dragon.health*eggCost[kind][2]
+                        dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc corn")
                     return dict(id=0, reason="need corn")
                 else:
@@ -4675,6 +4687,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = eggCost[kind][1]+dragon.health*eggCost[kind][2]
+                        dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc cae")
                     return dict(id=0, reason="need cae")
             return dict(id=0, reason="kind out of range")
@@ -4715,7 +4728,7 @@ class RootController(BaseController):
                 return dict(id=0, reason="no dragon")
             if dragon.state == 0:#not active 
                 if dragon.friNum >= needFri:
-                    return dict(id=0, reason="friend enough")
+                    return dict(id=0, reason="friend enough", leftNum = 0)
                 if user.cae >= caeCost:
                     user.cae -= caeCost
                     friList = dragon.friList
@@ -4747,17 +4760,18 @@ class RootController(BaseController):
                 return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
                 if dragon.friNum >= needFri:
-                    return dict(id=0, reason="friend enough")
+                    return dict(id=0, reason="friend enough", leftNum = 0)
                 friList = dragon.friList
                 if friList == None:
                     friList = [fid]
                 else:
                     friList = json.loads(friList)
+                    uotherid = int(user.otherid)
                     try:
-                       myPos = friList.index(fid)
+                       myPos = friList.index(uotherid)
                        return dict(id=0, reason = "you help yet")
                     except:
-                        friList.append(uid)
+                        friList.append(uotherid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
                 """
@@ -4780,6 +4794,7 @@ class RootController(BaseController):
         demands = [10, 1000, 100000]#lev 10 food 10000 corn 10W
         #upbound + 100
         if ground_id / 1000 != 0:
+            print "build dragon " + str(user_id)
             user = checkopdata(user_id)
             coinCost = 0
             foodCost = 0
@@ -4788,6 +4803,7 @@ class RootController(BaseController):
             #check Cost
             if ground_id == 1000:
                 if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
+                    print "check dragon"
                     #remove exist ground = -1 building
                     existDragon = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=ground_id).all()
                     if len(existDragon) != 0:
@@ -4814,7 +4830,7 @@ class RootController(BaseController):
                     #update business read for logsign
                     read(city_id)
                     return dict(id=1, result = "build dragon suc")
-            return dict(id = 0, reason = "dragon fail")
+            return dict(id = 0, reason = "dragon fail lev or food or corn need")
 
 
         i=0
