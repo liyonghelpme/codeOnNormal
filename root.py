@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Main Controller"""
 
 from tg import expose, flash, require, url, request, redirect,response
@@ -32,7 +32,7 @@ class RootController(BaseController):
     global getCity
     
     global accCost
-    global Plant_Price#农作物列表
+    global Plant_Price#农作牨
     global beginTime#2011年1月1日0时0分常量
     global houses#民居生产列表
     global soldie#士兵列表
@@ -129,7 +129,7 @@ class RootController(BaseController):
     #businessbuild：corn,food,labor,resource,update(cae),exp,time，特殊物品，解锁等级
     businessbuild=[[300,20,20,0,0,3,600,None,1],[500,30,5,0,1,7,1800,'a,1',1],[1100,0,10,70,2,11,3600,'a,2;b,3',1],[1200,45,40,0,0,5,3600,None,4],[1800,50,10,100,3,9,10740,'b,2;c,2',4],[3000,70,15,-100,4,14,15120,'c,2;d,3',4],[-5,0,0,0,0,15,5400,None,6],[5000,0,0,120,6,20,14400,'b,2;c,2',6],[7000,0,0,-120,7,25,23400,'c,2;d,3',6],[2000,80,50,0,0,7,19800,None,8],[3300,0,15,150,5,9,35270,'d,2;e,2',8],[4500,0,20,-150,6,11,46800,'e,2;f,3',8],[5000,100,70,0,0,9,8280,None,15],[7000,0,20,170,7,11,22320,'f,2;g,2',15],[13500,0,25,-170,8,13,28800,'g,2;h,3',15],[-8,0,0,0,0,25,20520,None,14],[9000,130,0,200,10,30,25200,'d,2;e,2',14],[11000,0,0,-200,11,35,33120,'e,2;f,3',14],[7200,130,90,0,0,20,21600,None,21],[11000,0,25,210,9,33,28800,'h,2;i,2',21],[19900,0,30,-210,10,45,36720,'i,2;j,3',21],[8000,170,110,0,0,29,30600,None,29],[13000,0,30,230,10,45,34200,'j,2;k,2',29],[21000,0,35,-230,11,61,46800,'k,2;l,3',29],[-11,0,0,0,0,35,25200,None,24],[13000,0,0,250,12,45,30240,'h,2;i,2',24],[17000,0,0,-250,13,60,39600,'i,2;j,3',24],[10000,1000,55,0,0,8,16200,None,7],[20000,0,18,300,7,15,28800,'a,5;i,4',7],[50000,0,27,-300,10,25,41400,'c,5;d,6',7]]#corn,food,labor,resource,update(cae),exp,time
     #godbuild corn,food,升级cae,exp,人口上限populationupbound，时间
-    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400]]# corn,food,cae,exp,populationupbound
+    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[50000,1500,10,170,250,43200],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[100000,2000,15,250,250,64800],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400],[500000,2500,30,350,250,86400]]# corn,food,cae,exp,populationupbound
     #decorationbuild：cornorcae，人口上限，解锁等级
     decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[8000,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3]]#corn(or cae),populationupbound
     #农作物list：#corn,exp,food,time，解锁等级
@@ -197,7 +197,7 @@ class RootController(BaseController):
         u=checkopdata(uid)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         caeplus=0
-        reward = [2, 7, 20, 50]
+        reward = [1, 5, 15, 40]
         if u.tid=='-1':
             s=hashlib.md5(u.otherid+'-'+tid+'-'+appsecret).hexdigest()
             cb=u.cae
@@ -1360,6 +1360,8 @@ class RootController(BaseController):
             if ds.monfood==0 or ds.monfood==None:
                 fo=user.food
                 foodlost=random.randint(int(fo/20),int(fo/10))
+                if foodlost > 100:
+                    foodlost = 100
                 user.food=user.food-foodlost
                 #user.monfood=1
                 ds.monfood=1 
@@ -1929,8 +1931,10 @@ class RootController(BaseController):
             return milbuild[ground_id-200]
         elif ground_id>=300 and ground_id<=399:#business
             return businessbuild[ground_id-300]
-        elif ground_id>=400 and ground_id<=499:#god
+        elif ground_id>=400 and ground_id<420:#god
             return godbuild[ground_id-400]
+        elif ground_id>=420 and ground_id<=424:
+            return friendGod[ground_id-420]
         elif ground_id>=500 and ground_id<=699:#decoration
             return decorationbuild[ground_id-500]
         else:
@@ -2214,6 +2218,13 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:
                 bonus=100+10*(dv.visitnum)
+                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1").all()
+                #only one friend god
+                if len(buildings) > 0:
+                    b = buildings[0];
+                    lev = b.ground_id-420;
+                    bonus += friGodReward[lev]
+                #增加访问奖励
                 uu.corn=uu.corn+100+10*(dv.visitnum)
                 dv.visitnum=dv.visitnum+1
                 uu.visitnum=dv.visitnum
@@ -2250,11 +2261,21 @@ class RootController(BaseController):
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            if p.ground_id >= 1000 and p.ground_id < 1100:
-                return dict(id = 0, reason="pet house can't be sold")
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                lev = p.ground_id - 420
+                popUp = [250, 500, 750, 1000]#same data should not appeared in two place
+                i = 0
+                while i <= lev:
+                    u.populationupbound -= popUp[i]
+                #h f c exp
+                u.food += friendGod[lev][1]/4
+                u.corn += friendGod[lev][2]/4
+                    #todo reduce corn and food 
+                DBSession.delete(p)
+                return dict(id=1, result="sell friendGod suc")
+
             lis=getGround_id(p.ground_id)
             if lis==None:
                 return dict(id=0)
@@ -2281,7 +2302,7 @@ class RootController(BaseController):
                         lisx=getGround_id(p.ground_id-1)
                         lisy=getGround_id(p.ground_id-2)
                         u.labor_num=u.labor_num-lis[2]-lisx[2]-lisy[2]
-                elif p.ground_id>=400 and p.ground_id<499:
+                elif p.ground_id>=400 and p.ground_id<420:
                     
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         u.food_god_lev=0                                
@@ -2292,42 +2313,30 @@ class RootController(BaseController):
                                                       
                         u.wealth_god_lev=0
                     else:
-                        u.war_god_lev=0                        
+                        u.war_god_lev=0                  
                 else:
                     x=0     
-                if p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==0:
+                if p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==0:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-250
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==1:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-250
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==1:
                     ub=u.populationupbound                    
                     u.populationupbound=u.populationupbound-500
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==2:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-500
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==2:
                     ub=u.populationupbound                       
                     u.populationupbound=u.populationupbound-750
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==3:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-750
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==3:
                     ub=u.populationupbound   
                     u.populationupbound=u.populationupbound-1000  
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                      
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==4:
-                    #if p.finisht==0:
-                    #    u.populationupbound=u.populationupbound-1000
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==4:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-1250  
                     ua=u.populationupbound
@@ -2338,7 +2347,7 @@ class RootController(BaseController):
                         u.corn=u.corn+lis[0]/4
                     elif p.ground_id>=500 and p.ground_id<=599:
                         u.corn=u.corn+lis[0]/4
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         if p.ground_id<=403:
                             u.corn=u.corn+2500
                         elif p.ground_id<=407:
@@ -2480,16 +2489,8 @@ class RootController(BaseController):
                     u.populationupbound=u.populationupbound-decorationbuild[p.ground_id-500][1]
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                #if u.population>u.populationupbound:
-                #    u.population=u.populationupbound      
                 DBSession.delete(p)
                 DBSession.flush()
-                #p.ground_id=-1
-                #p.producttime=0
-                #p.object_id=-1
-                #p.finish=0
-                read(city_id)
-                replacecache(user_id,u)#cache
                 return  dict(id=1)
         except InvalidRequestError:
             return dict(id=0)   
@@ -3751,6 +3752,8 @@ class RootController(BaseController):
                 continue        
             attack = checkopdata(b.uid)
             defence = checkopdata(b.enemy_id)
+            if attack == None or defence == None:
+                continue
             attStr = str(b.enemy_id)+',1'
             defStr = str(b.uid)+',0'
             attPurePow = b.power
@@ -3851,7 +3854,7 @@ class RootController(BaseController):
             else:
                 attack.nbattleresult = attack.nbattleresult + ';' + attStr
             if defence.nbattleresult == '' or defence.nbattleresult == None:
-                defence.battleresult = defStr
+                defence.nbattleresult = defStr
             else:
                 defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
@@ -4069,6 +4072,8 @@ class RootController(BaseController):
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                 ue=checkopdata(x.uid)#cache
                 wue=DBSession.query(warMap).filter_by(userid=x.uid).one()                
+                if ue == None or wue == None:
+                    continue
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
         return dict(attacklist=attacklist,defencelist=defencelist)
@@ -4138,10 +4143,13 @@ class RootController(BaseController):
             for x in dlist:
                 if x.finish==0 :
                     #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
-                    ue=checkopdata(x.uid)#cache
-                    wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
-                    dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
-                    defencelist.append(dtemp)
+                    try:
+                    	ue=checkopdata(x.uid)#cache
+                    	wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
+                    	dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
+                    	defencelist.append(dtemp)
+                    except:
+                        print "user deleted"
             for l in list1 :
                 l1=[]
                 try:
@@ -4236,6 +4244,7 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         godtype=int(godtype)
         caetype=int(caetype)
+        caeCost = [3, 15, 30]
         mark=0
         if caetype==0:
             if u.cae-3>=0:
@@ -4321,29 +4330,51 @@ class RootController(BaseController):
             ground_id=int(ground_id)
             stone=0
             wood=0
-            lis=getGround_id(int(ground_id))
-            if lis==None:
-                return dict(id=-int(ground_id))
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
+
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+
+            if ground_id >= 420 and ground_id <= 424:
+                lev = ground_id - 420#next level
+                if lev <= 4:
+                    if int(type) == 0:
+                        if u.cae >= friendGod[lev][3]:
+                            u.cae -= friendGod[lev][3]
+                            u.populationupbound += friendGod[lev][5]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti 
+                            return dict(id=1, result="update by cae")
+                    else:
+                        if u.food >= friendGod[lev][1] and u.corn >= friendGod[lev][2]:
+                            u.food -= friendGod[lev][1]
+                            u.corn -= friendGod[lev][2]
+                            u.populationupbound += friendGod[lev][5]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti
+                            return dict(id=1, result="update by food")
+            return dict(id=0, reason="lev or resource not correct")
+
+            lis=getGround_id(int(ground_id))
+            if lis==None:
+                return dict(id=-int(ground_id))
             price=lis[0]
             if p.ground_id<=0 or p.grid_id<=0:
                 return dict(id=0)
             if int(type)==0:
                 if ground_id>=100 and ground_id<=199:
                     cae=lis[3]
-                    
                 elif ground_id>=200 and ground_id<=299:
                     cae=lis[4]
                     pop=lis[2]
                 elif ground_id>=300 and ground_id<=399:
                     cae=lis[4]
                     pop=lis[2]
-                elif ground_id>=400 and ground_id<=499:
+                elif ground_id>=400 and ground_id<420:
                     cae=lis[2]
-                #if u.cae-cae>=0:    
+                    
                 if u.cae-cae>=0 and u.labor_num+pop<=u.population:
                     p.producttime=ti
                     p.finish=0
@@ -4363,8 +4394,9 @@ class RootController(BaseController):
                         u.exp=u.exp+lis[5]
                     elif p.ground_id>=300 and p.ground_id<=399:
                         u.exp=u.exp+lis[5]
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         u.exp=u.exp+lis[3]
+                        
                     if ground_id>=400 and ground_id<=499:
                         if (ground_id-400)%4==0:
                             u.foodgodtime=-1
@@ -4506,260 +4538,44 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
-    global initH
-    global addHealth
-    global growUp
-    global reward
-    global allowFriend
-    global eggCost
-    eggCost = [[50000, 100, 5], [100000, 150, 6], [1000000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
-    initH = [0, 25, 40, 600]
-    addHealth = [3, 5, 7, 7]
-    growUp = [51, 100, 250, 9999]
-    reward = [[4500, 15], [9000, 40], [15000, 100], [0, 0]]
-    allowFriend = 3
-    @expose('json')
-    def relive(self, uid, cid, gid):
-        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
-        #-1 dead 0 not active 1 egg 2 child 3 adult 4 old when health < 0 dead update
-        if dragon.state != -1:#dead = -1 0 not active
-            return dict(id=0, reason="not dead yet")
-        user = checkopdata(uid)
-        if user.cae <= 10:
-            return dict(id = 0, reason="cae not enough")
-        user.cae -= 10
-        #dead = 0
-        dragon.kind += 1
-        if dragon.kind >= len(eggCost):
-            dragon.kind = len(eggCost)-1
-        dragon.state = 2#egg = 2
-        dragon.health = 9
-        dragon.friList = '[]'
-        dragon.lastFeed = 0
-        dragon.attack = eggCost[dragon.kind][1]+dragon.health*eggCost[dragon.kind][2] 
-        return dict(id=1, result = "relive suc")
-
-    @expose('json')
-    def getBids(self, uid, cid):
-        buildings = DBSession.query(businessWrite.bid, businessWrite.grid_id).filter_by(city_id = cid).all()
-        return dict(id=1, bids = buildings)
-    @expose('json')
-    def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
-        return dict(id=1, pets=dragon)
-
-    #命名宠物 修改名字
-    @expose('json')#state = 2
-    def namePet(self, uid, gid, name, cid):
-        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
-        dragon.name = name        
-        return dict(id=1)
-    #喂养宠物 self feed friend feed 
-
-    
-    @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
-    def feed(self, uid, gid, cid):
-        uid = int(uid)
-        try:
-            building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-            dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()
-        except InvalidRequestError:
-            return dict(id=0, reason="no such dragon")
-        if dragon.state < 2:
-            return dict(id=0, reason="not buy egg yet")
-
-        state = dragon.state - 2
-        if dragon.uid == uid:#feed my dragon
-            #I feed 1 fri 2 not 0
-            if dragon.lastFeed & 1 == 1:
-                return dict(id=0, reason="you feed yet") 
-            dragon.lastFeed |= 1
-            #update health
-            dragon.health += addHealth[state]
-            if dragon.health >= growUp[state]:
-                dragon.state += 1
-                user = checkopdata(uid)
-                user.corn += reward[state][0]
-                user.exp += reward[state][1]
-            #update attack
-            incAtt = dragon.health*eggCost[dragon.kind][2]
-            attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
-            if attack > dragon.attack:
-                dragon.attack = attack
-            return dict(id=1, result="self feed suc", state= dragon.state)
-        else:
-            friList = dragon.friList
-            friList = json.loads(friList)
-            if len(friList) > allowFriend:
-                return dict(id = 0, reason = "enough friend helped")
-            user = DBSession.query(warMap.userid).filter_by(city_id=cid).one()
-            user = DBSession.query(operationalData).filter_by(userid = user.userid).one()
-            try:
-                pos = friList.index(user.otherid)
-                return dict(id=0, reason="help yet")
-            except:
-                friList.append(user.otherid)
-                dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
-                dragon.lastFeed |= 2
-                #update health
-                dragon.health += 1
-                if dragon.health >= growUp[state]:
-                    dragon.state += 1
-                    user = checkopdata(uid)
-                    user.corn += reward[state][0]
-                    user.exp += reward[state][1]
-                #update attack
-                incAtt = dragon.health*eggCost[dragon.kind][2]
-                attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
-                if attack > dragon.attack:
-                    dragon.attack = attack
-                return dict(id=1, result="help suc", state = dragon.state)
-
-        return dict(id=0, reason="unknow reason")
-
-    #使用银币购买宠物蛋 state = 1
-    @expose('json')
-    def buyEgg(self, uid, cid, gid, kind):
-        try:
-            building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-            dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
-            if dragon.state != 1:
-                return dict(id=0, reason = "dragon not in buy state")
-            kind = int(kind)
-            if kind >=0 and kind < len(eggCost):
-                user = DBSession.query(operationalData).filter_by(userid = int(uid)).one()
-                #print str(user.corn) + ' corn id ' + str(user.userid)
-                if eggCost[kind][0] > 0:
-                    if user.corn >= eggCost[kind][0]:
-                        user.corn -= eggCost[kind][0]
-                        dragon.kind = kind
-                        dragon.state = 2
-                        dragon.health = 9
-                        dragon.attack = eggCost[kind][1] + dragon.health*eggCost[kind][2]
-                        return dict(id=1, result = "buy suc corn")
-                    return dict(id=0, reason="need corn")
-                else:
-                    if user.cae >= abs(eggCost[kind][0]):
-                        user.cae -= eggCost[kind][0]
-                        dragon.kind = kind
-                        dragon.state = 2
-                        dragon.health = 9
-                        dragon.attack = eggCost[kind][1]+dragon.health*eggCost[kind][2]
-                        return dict(id=1, result = "buy suc cae")
-                    return dict(id=0, reason="need cae")
-            return dict(id=0, reason="kind out of range")
-        except InvalidRequestError:
-            return dict(id=0, reason = "no dragon")
-
-    #帮助好友， 使用凯撒币激活宠物 进入finish状态 state = 0
-    @expose('json')
-    def activeDragon(self, uid, fid, gid, cid):#fid = -1 use cea others ask friend
-        #select from ope
-        caeCost = 1#each cost
-        needFri = 10#total need
-        uid = int(uid)
-        user = checkopdata(uid)
-
-        try:
-            fid = int(fid)
-        except:
-            print "otherid not number"
-
-        if fid == -1:#help by cae
-            print "use cae"
-            try:
-                building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-                dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
-            except InvalidRequestError:
-                print str(uid) + 'not dragon ' + str(cid) + ' ' + str(gid) 
-                return dict(id=0, reason="no dragon")
-            if dragon.state == 0:#not active 
-                if user.cae >= caeCost:
-                    user.cae -= caeCost
-                    dragon.friNum += 1
-                    if dragon.friNum >= needFri:
-                        dragon.state = 1
-                        dragon.friList = "[]"#clear friendList
-                        print "can buy egg"
-                    return dict(id=1, leftNum = needFri - dragon.friNum)
-                return dict(id=0, reason="cae not enou")
-            else:
-                return dict(id=0, reason="active yet")
-        else:#help by others check if help yet ?
-            print "I help my friend"
-            #friend id other id ?
-            try:
-                friend = DBSession.query(operationalData).filter_by(otherid=fid).one()
-                building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-                dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == friend.userid, Dragon.bid == building.bid)).one()
-            except InvalidRequestError:
-                return dict(id = 0, reason = "no dragon here")
-            if dragon.state == 0:#not active
-                friList = dragon.friList
-                if friList == None:
-                    friList = [fid]
-                else:
-                    friList = json.loads(friList)
-                    try:
-                       myPos = friList.index(uid)
-                       return dict(id=0, reason = "you help yet")
-                    except:
-                        friList.append(uid)
-                dragon.friList = json.dumps(friList)
-                dragon.friNum += 1
-                if dragon.friNum >= needFri:
-                    dragon.state = 1#egg
-                    dragon.friList = "[]"#clear friendList
-                    print "can buy egg"
-                return dict(id=1, leftNum=needFri-dragon.friNum)
-            else:
-                return dict(id=0, reason="active yet")
-        return dict(id=0, reason = "unknown reason")
-    
+    #hour food corn exp popupbound upgrade_cae 
+    global friendGod
+    global friGodReward
+    friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 500, 5], [12*3600, 2000, 50000, 170, 750, 10], [18*3600, 5000, 100000, 250, 1000, 15], [24*3600, 10000, 500000, 350, 1250, 30]]
+    friGodReward = [5, 10, 20, 30, 50]
     @expose('json')
     #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
-        #建造宠物巢穴
-        ground_id = int(ground_id)
-        user_id = int(user_id)
-        demands = [10, 10000, 100000]#lev 10 food 10000 corn 10W
-        #upbound + 100
-        if ground_id / 1000 != 0:
+        curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        #420 421 422 423 424 can't build high level
+        #when visit friend add corn more
+        if ground_id >= 420 and ground_id <= 424:
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter(and_(ground_id >= 420,  ground_id <= 424)).all();
+            if len(buildings) != 0:
+                return dict(id=0, reason="friend god exist in city")
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
+            for b in buildings:
+                if b.ground_id != -1:
+                    return dict(id = 0, reason="building exist here")
+                DBSession.delete(b)
             user = checkopdata(user_id)
-            coinCost = 0
-            foodCost = 0
-            
-            #level OK
-            #check Cost
-            if ground_id == 1000:
-                if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
-                    #remove exist ground = -1 building
-                    building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).all()
-                    for b in building:
-                        if b.ground_id != -1:
-                            return dict(id = 0, reason = "exist building")
-                        else:
-                            DBSession.delete(b)
+            lev = int(ground_id)-420
+            #check demands
+            if lev == 0:
+                if user.lev < 25:
+                    return dict(id=0, reason="level < 25")
+            if user.food >= friendGod[lev][1] and user.corn >= friendGod[lev][2]:
+                user.food -= friendGod[lev][1]
+                user.corn -= friendGod[lev][2]
+                user.populationupbound += friendGod[lev][4]
+                user.exp += friendGod[lev][3]
 
-                    #not exist or exist mutiple 
-                    building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
-                    DBSession.add(building)
-                    building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).one()
-                    
-                    user.food -= demands[1]
-                    user.corn -= demands[2]
-                    #reward
-                    user.populationupbound += 100
-
-                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', lastFeed = 0, attack=0)
-                    DBSession.add(dragon)
-                    #update business read for logsign
-                    read(city_id)
-                    return dict(id=1, result = "build dragon suc")
-            return dict(id = 0, reason = "dragon fail")
-
+                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, productime = curTime, finish = 0)
+                DBSession.add(building)
+                read(city_id)
+            else:
+                return dict(id=0, reason="resource not enough")
+            return dict(id=0, reason="unknown")
 
         i=0
         price=0
@@ -5211,7 +5027,8 @@ class RootController(BaseController):
             if type==0 and mark==0:
                 tu=Plant_Price[p.object_id]
                 
-                u.food=u.food+int(tu[2]*factor*(int(factor2*10))/10)
+                u.food+=int(tu[2]*factor*(int(factor2*10))/10)
+                DBSession.flush()
             elif type==1 and mark==0:
                 tu=stones[p.object_id]
                 u.stone=u.stone+int(tu[2]*factor)
@@ -5260,7 +5077,7 @@ class RootController(BaseController):
                             u.cae = temp_cae
                             read(city_id)
                             replacecache(u.userid,u)#cache
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.cae = temp_cae
                     read(city_id)
                     replacecache(u.userid,u)#cache
@@ -5281,7 +5098,7 @@ class RootController(BaseController):
                             u.cae=temp_cae
                             read(city_id)
                             replacecache(u.userid,u)
-                            return dict(id=0,plant=plant_list)
+                            return dict(id=1,plant=plant_list)
                     u.corn=temp_corn
                     u.cae=temp_cae
                     read(city_id)
@@ -5380,7 +5197,91 @@ class RootController(BaseController):
             else:
                 return dict(id=0)
         except InvalidRequestError:
+            return dict(id=0)
+    @expose('json')
+    def productall(self,user_id,city_id):
+        expadd=0
+        cornadd=0
+        flag=0
+        try:
+            u=checkopdata(user_id)
+            card = DBSession.query(Card).filter_by(uid=user_id).one()
+            temp_cae = u.cae-1
+            if temp_cae>=0 or card.fortunecard==5:
+                if card.fortunecard==5:
+                    temp_cae=temp_cae+1
+                map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=329 and ground_id>=300").params(cid = int(city_id)).all()
+                if ground==None or len(ground)==0:
+                    return dict(id=0)
+                factor=1
+                if u.wealth_god==1 and t-u.wealthgodtime<3600:
+                    if u.wealth_god_lev==1:
+                        factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                if u.wealth_god==2 and t-u.wealthgodtime<21600:
+                    if u.wealth_god_lev==1:
+                       factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                if u.wealth_god==3 and t-u.wealthgodtime<86400:
+                    if u.wealth_god_lev==1:
+                        factor=1.2
+                    elif u.wealth_god_lev==2:
+                        factor=1.4
+                    elif u.wealth_god_lev==3:
+                        factor=1.6
+                    elif u.wealth_god_lev==4:
+                        factor=1.8
+                    elif u.wealth_god_lev==5:
+                        factor=2
+                else:
+                    u.wealth_god=0
+                    u.wealthgodtime=-1
+                for g in ground:
+                    grid_id = g.grid_id
+                    producttime = g.producttime
+                    single_exp = production[g.ground_id-300][1]
+                    single_corn = production[g.ground_id-300][0]
+                    needtime = production[g.ground_id-300][3]
+                    if producttime+needtime<=t or producttime==1:
+                        flag=1
+                        mark=minusstateeli(u,map,grid_id,producttime)
+                        if t-producttime>86400*3 and producttime!=1 and producttime!=0:
+                            expadd = expadd + single_exp
+                        else:
+                            expadd = expadd+single_exp
+                            cornadd = cornadd+int(single_corn*int(factor*10)/10)
+                        g.producttime = t
+                u.exp=u.exp+expadd
+                u.corn = u.corn + cornadd
+                if flag==1:
+                    u.cae = temp_cae
+                read(city_id)
+                replacecache(u.userid,u)
+                if flag==1:
+                    return dict(id=1,expadd=expadd,cornadd=cornadd)
+                else:
+                    return dict(id=0)
+            else:#cae not enough
                 return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
+    #build or upgrade finish both call this funciton
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
@@ -5388,6 +5289,15 @@ class RootController(BaseController):
            lis=getGround_id(p.ground_id)
            u=checkopdata(user_id)#cache
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+           if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    if (ti-p.producttime) >= needTime:
+                        p.finish = 1
+                        return dict(id=1, result = "finish suc")
+                return dict(id=0, reason="need more time or finish yet")
+
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                if p.ground_id==400:
                    u.food_god_lev=1
@@ -5468,6 +5378,17 @@ class RootController(BaseController):
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
             print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    timeLeft = needTime - t
+                    cost = accCost(timeLeft)
+                    if u.cae >= cost:
+                        u.cae -= cost
+                        p.finish = 1
+                        return dict(id=1, result = "firendgod finish suc")
+                return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
                 return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
