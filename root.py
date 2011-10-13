@@ -4754,10 +4754,10 @@ class RootController(BaseController):
                 else:
                     friList = json.loads(friList)
                     try:
-                       myPos = friList.index(uid)
+                       myPos = friList.index(user.otherid)
                        return dict(id=0, reason = "you help yet")
                     except:
-                        friList.append(uid)
+                        friList.append(user.otherid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
                 """
