@@ -4654,6 +4654,7 @@ class RootController(BaseController):
                 building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, productime = curTime, finish = 0)
                 DBSession.add(building)
                 read(city_id)
+                return dict(id=1, result="friendgod suc")
             else:
                 return dict(id=0, reason="resource not enough")
             return dict(id=0, reason="unknown")
