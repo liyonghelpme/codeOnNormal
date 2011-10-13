@@ -4562,7 +4562,7 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         return dict(id=1, pets=dragon)
 
     @expose('json')
@@ -4784,7 +4784,7 @@ class RootController(BaseController):
         #建造宠物巢穴
         ground_id = int(ground_id)
         user_id = int(user_id)
-        demands = [10, 10000, 100000]#lev 10 food 10000 corn 10W
+        demands = [10, 1000, 100000]#lev 10 food 10000 corn 10W
         #upbound + 100
         if ground_id / 1000 != 0:
             user = checkopdata(user_id)
