@@ -10,7 +10,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
-from sqlalchemy.sql import or_, and_
+from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
@@ -4065,7 +4065,7 @@ class RootController(BaseController):
         attacklist=[]
         defencelist=[]
         uid=int(uid)
-        alist=DBSession.query(Battle).filter_by(uid=uid) 
+        alist=DBSession.query(Battle).filter_by(uid=uid).order_by(desc(Battle.left_time))
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         for x in alist:
             if x.finish==0:
@@ -4075,7 +4075,7 @@ class RootController(BaseController):
                 
                 atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 attacklist.append(atemp)
-        dlist=DBSession.query(Battle).filter_by(enemy_id=uid)
+        dlist=DBSession.query(Battle).filter_by(enemy_id=uid).order_by(desc(Battle.left_time))
         for x in dlist:
             if x.finish==0 and t-x.left_time>0 :
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
@@ -4563,7 +4563,7 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         return dict(id=1, pets=dragon)
 
     #命名宠物 修改名字
@@ -4680,13 +4680,23 @@ class RootController(BaseController):
             return dict(id=0, reason="kind out of range")
         except InvalidRequestError:
             return dict(id=0, reason = "no dragon")
-
+    global needFri
+    needFri = 10#total need
+    #用户宠物激活完成
+    @expose('json')
+    def activateComplete(self, uid, gid, cid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
+        if dragon.friNum >= needFri and dragon.state == 0:
+            dragon.state = 1
+            dragon.friList = "[]"#clear friendList
+            return dict(id=1, result="active suc")
+        return dict(id=0, reason="frinum not enough or state != 0")
     #帮助好友， 使用凯撒币激活宠物 进入finish状态 state = 0
     @expose('json')
     def activeDragon(self, uid, fid, gid, cid):#fid = -1 use cea others ask friend
         #select from ope
         caeCost = 1#each cost
-        needFri = 10#total need
         uid = int(uid)
         user = checkopdata(uid)
 
@@ -4704,20 +4714,24 @@ class RootController(BaseController):
                 print str(uid) + 'not dragon ' + str(cid) + ' ' + str(gid) 
                 return dict(id=0, reason="no dragon")
             if dragon.state == 0:#not active 
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 if user.cae >= caeCost:
                     user.cae -= caeCost
                     friList = dragon.friList
                     if friList == None:
-                        friList = [1]
+                        friList = [-1]
                     else:
                         friList = json.loads(friList)
-                        friList.append(1)
+                        friList.append(-1)
                     dragon.friList = json.dumps(friList)
                     dragon.friNum += 1
+                    """
                     if dragon.friNum >= needFri:
                         dragon.state = 1
                         dragon.friList = "[]"#clear friendList
                         print "can buy egg"
+                    """
                     return dict(id=1, leftNum = needFri - dragon.friNum)
                 return dict(id=0, reason="cae not enou")
             else:
@@ -4732,6 +4746,8 @@ class RootController(BaseController):
             except InvalidRequestError:
                 return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 friList = dragon.friList
                 if friList == None:
                     friList = [fid]
@@ -4744,10 +4760,12 @@ class RootController(BaseController):
                         friList.append(uid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
+                """
                 if dragon.friNum >= needFri:
                     dragon.state = 1#egg
                     dragon.friList = "[]"#clear friendList
                     print "can buy egg"
+                """
                 return dict(id=1, leftNum=needFri-dragon.friNum)
             else:
                 return dict(id=0, reason="active yet")
@@ -4759,7 +4777,7 @@ class RootController(BaseController):
         #建造宠物巢穴
         ground_id = int(ground_id)
         user_id = int(user_id)
-        demands = [10, 10000, 100000]#lev 10 food 10000 corn 10W
+        demands = [10, 1000, 100000]#lev 10 food 10000 corn 10W
         #upbound + 100
         if ground_id / 1000 != 0:
             user = checkopdata(user_id)
