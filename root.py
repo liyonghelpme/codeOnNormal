@@ -4789,6 +4789,9 @@ class RootController(BaseController):
             if ground_id == 1000:
                 if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
                     #remove exist ground = -1 building
+                    existDragon = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=ground_id).all()
+                    if len(existDragon) != 0:
+                        return dict(id=0, reason="dragon exist")
                     building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).all()
                     for b in building:
                         if b.ground_id != -1:
