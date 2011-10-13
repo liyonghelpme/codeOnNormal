@@ -3157,7 +3157,8 @@ class RootController(BaseController):
                 attacker.cavalrypower += b.powerca
             allBattle = DBSession.query(Battle).filter(Battle.finish!=0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in allBattle:
-                DBSession.delete(b)
+                if b.finish != 0:
+                    DBSession.delete(b)
             c=upd(p.mapid,u.nobility+1)
             
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
@@ -4534,7 +4535,7 @@ class RootController(BaseController):
     global reward
     global allowFriend
     global eggCost
-    eggCost = [[50000, 100, 5], [100000, 150, 6], [1000000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
+    eggCost = [[50000, 100, 5], [100000, 150, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
