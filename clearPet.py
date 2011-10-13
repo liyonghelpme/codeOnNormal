@@ -4,15 +4,12 @@ import json
 con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='badperson3')
 cursor = con.cursor()
 
-sql = "select pid, friList, lastFeed, state, health  from dragon"
+sql = "select pid, friList, lastFeed, state, health  from dragon where state >= 2"
 cursor.execute(sql)
 print sql
-
-while True:
-    data = cursor.fetchone()
+allData = cursor.fetchall()
+for data in allData:
     print str(data)
-    if data == None:
-        break
     pid = data[0]
     friList = data[1]
     lastFeed = data[2]
@@ -39,7 +36,7 @@ while True:
             #    state = -1 #dead
            # else:
             health = 0
-        sql = "update dragon set health = " + str(health) + ', state = ' + str(state) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\' where pid = ' + str(pid)
+        sql = "update dragon set health = " + str(health) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\' where pid = ' + str(pid)
         print sql
         cursor.execute(sql)
         con.commit()
