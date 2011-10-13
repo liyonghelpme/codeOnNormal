@@ -2181,6 +2181,7 @@ class RootController(BaseController):
     #################访问好友                  
     @expose('json')
     def getfriend(self,userid,otherid,user_kind):#对外接口，用户userid 访问由otherid+user_kind确定的好友 get friends page;operationalData:query->updatewarMap:query;businessRead:query;visitFriend:query->update
+        print "visit friend " + str(userid) + ' ' + str(otherid)
         userid=int(userid)
         friendid=-1
         u=None
@@ -2249,8 +2250,12 @@ class RootController(BaseController):
                 cardlist.append(ca.logincard)
             except:
                 cardlist=[]            
-            addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
-            replacecache(userid,uu)#cache
+            try:
+                addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
+            except:
+                print "no such user" 
+            if u == None or uu == None:
+                return dict(id=0, reason="error no such user") 
             return dict(id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
@@ -4715,7 +4720,7 @@ class RootController(BaseController):
                 return dict(id=0, reason="no dragon")
             if dragon.state == 0:#not active 
                 if dragon.friNum >= needFri:
-                    return dict(id=0, reason="friend enough")
+                    return dict(id=0, reason="friend enough", leftNum = 0)
                 if user.cae >= caeCost:
                     user.cae -= caeCost
                     friList = dragon.friList
@@ -4747,17 +4752,20 @@ class RootController(BaseController):
                 return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
                 if dragon.friNum >= needFri:
-                    return dict(id=0, reason="friend enough")
+                    return dict(id=0, reason="friend enough", leftNum = 0)
                 friList = dragon.friList
                 if friList == None:
                     friList = [fid]
                 else:
                     friList = json.loads(friList)
+                    uotherid = int(user.otherid)
                     try:
-                       myPos = friList.index(uid)
+                      # myPos = friList.index(user.otherid)
+                       myPos = friList.index(uotherid)
                        return dict(id=0, reason = "you help yet")
                     except:
-                        friList.append(uid)
+                        #friList.append(user.otherid)
+                        friList.append(uotherid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
                 """
@@ -4789,6 +4797,9 @@ class RootController(BaseController):
             if ground_id == 1000:
                 if user.lev >= demands[0] and user.food >= demands[1] and user.corn >= demands[2]:
                     #remove exist ground = -1 building
+                    existDragon = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=ground_id).all()
+                    if len(existDragon) != 0:
+                        return dict(id=0, reason="dragon exist")
                     building = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id=grid_id).all()
                     for b in building:
                         if b.ground_id != -1:
