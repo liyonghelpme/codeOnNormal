@@ -10,7 +10,7 @@ from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
-from sqlalchemy.sql import or_, and_
+from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
@@ -130,16 +130,16 @@ class RootController(BaseController):
     #businessbuild：corn,food,labor,resource,update(cae),exp,time，特殊物品，解锁等级
     businessbuild=[[300,20,20,0,0,3,600,None,1],[500,30,5,0,1,7,1800,'a,1',1],[1100,0,10,70,2,11,3600,'a,2;b,3',1],[1200,45,40,0,0,5,3600,None,4],[1800,50,10,100,3,9,10740,'b,2;c,2',4],[3000,70,15,-100,4,14,15120,'c,2;d,3',4],[-5,0,0,0,0,15,5400,None,6],[5000,0,0,120,6,20,14400,'b,2;c,2',6],[7000,0,0,-120,7,25,23400,'c,2;d,3',6],[2000,80,50,0,0,7,19800,None,8],[3300,0,15,150,5,9,35270,'d,2;e,2',8],[4500,0,20,-150,6,11,46800,'e,2;f,3',8],[5000,100,70,0,0,9,8280,None,15],[7000,0,20,170,7,11,22320,'f,2;g,2',15],[13500,0,25,-170,8,13,28800,'g,2;h,3',15],[-8,0,0,0,0,25,20520,None,14],[9000,130,0,200,10,30,25200,'d,2;e,2',14],[11000,0,0,-200,11,35,33120,'e,2;f,3',14],[7200,130,90,0,0,20,21600,None,21],[11000,0,25,210,9,33,28800,'h,2;i,2',21],[19900,0,30,-210,10,45,36720,'i,2;j,3',21],[8000,170,110,0,0,29,30600,None,29],[13000,0,30,230,10,45,34200,'j,2;k,2',29],[21000,0,35,-230,11,61,46800,'k,2;l,3',29],[-11,0,0,0,0,35,25200,None,24],[13000,0,0,250,12,45,30240,'h,2;i,2',24],[17000,0,0,-250,13,60,39600,'i,2;j,3',24],[10000,1000,55,0,0,8,16200,None,7],[20000,0,18,300,7,15,28800,'a,5;i,4',7],[50000,0,27,-300,10,25,41400,'c,5;d,6',7]]#corn,food,labor,resource,update(cae),exp,time
     #godbuild corn,food,升级cae,exp,人口上限populationupbound，时间
-    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[20000,1000,10,100,250,21600],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[50000,1500,20,170,250,43200],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[100000,2000,50,250,250,64800],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400],[500000,2500,100,350,250,86400]]# corn,food,cae,exp,populationupbound
+    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400]]# corn,food,cae,exp,populationupbound
     #decorationbuild：cornorcae，人口上限，解锁等级
-    decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[8000,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3]]#corn(or cae),populationupbound
+    decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[1200,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3]]#corn(or cae),populationupbound
     #农作物list：#corn,exp,food,time，解锁等级
     Plant_Price=[[50,1,20,600,1],[165,3,50,2700,1],[-1,8,120,3600,5],[700,7,150,9360,5],[1440,12,300,22680,7],[-3,25,430,14400,7],[230,5,52,1800,13],[600,9,80,5400,16],[-2,30,280,9000,10],[1210,15,200,11520,20],[3000,25,410,29160,25],[-5,50,650,25200,15]]#corn,food,cae
     beginTime=(2011,1,1,0,0,0,0,0,0)
     #人口招募 招募人口数population,消耗food,exp got,cae（不用） 
     houses=[[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0]]##人口招募 招募人口数population,消耗food,exp got,cae（不用） 
     #士兵：corn,food,labor_num,cae（不要），时间
-    soldie=[[750,90,30,3,7200],[2400,270,90,3,21600],[4800,540,180,3,43200],[1600,180,30,3,7200],[5000,540,90,3,21600],[10000,1080,180,3,43200],[2400,270,30,3,7200],[7500,810,90,3,21600],[15000,1620,180,3,43200],[2000,150,10,6,7200],[6300,450,30,6,21600],[12600,900,60,6,43200],[2600,300,10,6,7200],[7900,900,30,6,21600],[15800,1800,60,6,43200],[3300,450,10,6,7200],[10000,1350,30,6,21600],[20000,2700,60,6,43200],[150,10,2,9,7200],[500,30,6,9,21600],[1000,60,12,9,43200],[310,20,2,9,7200],[990,60,6,9,21600],[1980,120,12,9,43200],[480,30,2,9,7200],[1500,90,6,9,21600],[3000,180,12,9,43200]]#corn,food,labor_num,cae
+    soldie=[[750,90,30,3,7200],[2400,270,90,3,21600],[4800,540,180,3,43200],[1600,180,30,3,7200],[5000,540,90,3,21600],[10000,1080,180,3,43200],[2400,270,30,3,7200],[7500,810,90,3,21600],[15000,1620,180,3,43200],[2000,150,15,6,7200],[6300,450,45,6,21600],[12600,900,90,6,43200],[2600,300,15,6,7200],[7900,900,45,6,21600],[15800,1800,90,6,43200],[3300,450,15,6,7200],[10000,1350,45,6,21600],[20000,2700,90,6,43200],[150,10,2,9,7200],[500,30,6,9,21600],[1000,60,12,9,43200],[310,20,2,9,7200],[990,60,6,9,21600],[1980,120,12,9,43200],[480,30,2,9,7200],[1500,90,6,9,21600],[3000,180,12,9,43200]]#corn,food,labor_num,cae
     #士兵经验
     soldiernum=[5,8,13,9,15,21,16,25,34,10,15,20,30,40,50,60,75,90,3,6,9,5,8,13,9,15,21]#soldier exp
     #商业生产 产量，经验，cae（不要），时间
@@ -596,15 +596,15 @@ class RootController(BaseController):
                 u.taskstring=''
                 replacecache(uid,u)
                 return [-1,u.currenttask]
-            else:
+            else:#level is ok
                 if int(u.currenttask)<0:
                     u.currenttask=str(-int(u.currenttask))
                 ct=int(u.currenttask)
-                if taskbonus[ct+1][2]>u.lev:
+                if taskbonus[ct+1][2]>u.lev:#level not satisfied
                     u.currenttask=str(-int(u.currenttask))
                     replacecache(uid,u)
                     return [-1,u.currenttask]
-                u.currenttask=str(int(u.currenttask)+1)
+                u.currenttask=str(int(u.currenttask)+1)#level satisfy move to next level
                 u.taskstring='0'
                 replacecache(uid,u)
                 return [taskbonus[ct+1][0],u.currenttask]
@@ -2974,7 +2974,7 @@ class RootController(BaseController):
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
                 task=-1
             else:
-                task=taskbonus[int(user.currenttask)][0]  
+                task=taskbonus[int(user.currenttask)][0]#id for client data base store current task  
             wartask=-1 
             if user.warcurrenttask=='' or user.warcurrenttask==None or user.warcurrenttask=='-1' or int(user.warcurrenttask)<0:
                 wartask=-1
@@ -3103,7 +3103,6 @@ class RootController(BaseController):
             except InvalidRequestError:
                 x=0
             #should not do internet connection which will block
-            """
             conn = httplib.HTTPConnection(SERVER_NAME)
             #user_id is a var
             url_send = "/a/misc/wonderempire_event?uid="+papayaid+"&event=1"
@@ -3114,7 +3113,6 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            """
             return dict(ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
     #check won in map check occupation
     @expose('json')
@@ -3256,6 +3254,7 @@ class RootController(BaseController):
         print "speed up " + str(uid) + ' ' + str(enemy_id)
         uid=int(uid)
         enemy_id=int(enemy_id)
+        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         if uid == enemy_id:
             return dict(id=0, reason='self attack self')
         try:
@@ -3855,7 +3854,7 @@ class RootController(BaseController):
                 attReward = getresource(lost[0], attack, 1)
                 defReward = getresource(lost[1], defence, 2)
 
-            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
+            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(returnIn)+','+str(returnCa)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)
             defStr += str(lost[1])+','+str(defFullPow)+','+str(attFullPow)+','+defReward+','+attack.otherid+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+attack.empirename+','+str(attack.nobility*3+attack.subno)+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+str(defGod)+','+str(attGod)+','+str(defence.defencepower)
 
             if attack.nbattleresult == '' or attack.nbattleresult == None:
@@ -4065,7 +4064,7 @@ class RootController(BaseController):
         attacklist=[]
         defencelist=[]
         uid=int(uid)
-        alist=DBSession.query(Battle).filter_by(uid=uid) 
+        alist=DBSession.query(Battle).filter_by(uid=uid).order_by(desc(Battle.left_time))
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         for x in alist:
             if x.finish==0:
@@ -4075,7 +4074,7 @@ class RootController(BaseController):
                 
                 atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 attacklist.append(atemp)
-        dlist=DBSession.query(Battle).filter_by(enemy_id=uid)
+        dlist=DBSession.query(Battle).filter_by(enemy_id=uid).order_by(desc(Battle.left_time))
         for x in dlist:
             if x.finish==0 and t-x.left_time>0 :
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
@@ -4688,13 +4687,23 @@ class RootController(BaseController):
             return dict(id=0, reason="kind out of range")
         except InvalidRequestError:
             return dict(id=0, reason = "no dragon")
-
+    global needFri
+    needFri = 10#total need
+    #用户宠物激活完成
+    @expose('json')
+    def activateComplete(self, uid, gid, cid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
+        if dragon.friNum >= needFri and dragon.state == 0:
+            dragon.state = 1
+            dragon.friList = "[]"#clear friendList
+            return dict(id=1, result="active suc")
+        return dict(id=0, reason="frinum not enough or state != 0")
     #帮助好友， 使用凯撒币激活宠物 进入finish状态 state = 0
     @expose('json')
     def activeDragon(self, uid, fid, gid, cid):#fid = -1 use cea others ask friend
         #select from ope
         caeCost = 1#each cost
-        needFri = 10#total need
         uid = int(uid)
         user = checkopdata(uid)
 
@@ -4712,20 +4721,24 @@ class RootController(BaseController):
                 print str(uid) + 'not dragon ' + str(cid) + ' ' + str(gid) 
                 return dict(id=0, reason="no dragon")
             if dragon.state == 0:#not active 
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 if user.cae >= caeCost:
                     user.cae -= caeCost
                     friList = dragon.friList
                     if friList == None:
-                        friList = [1]
+                        friList = [-1]
                     else:
                         friList = json.loads(friList)
-                        friList.append(1)
+                        friList.append(-1)
                     dragon.friList = json.dumps(friList)
                     dragon.friNum += 1
+                    """
                     if dragon.friNum >= needFri:
                         dragon.state = 1
                         dragon.friList = "[]"#clear friendList
                         print "can buy egg"
+                    """
                     return dict(id=1, leftNum = needFri - dragon.friNum)
                 return dict(id=0, reason="cae not enou")
             else:
@@ -4740,6 +4753,8 @@ class RootController(BaseController):
             except InvalidRequestError:
                 return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 friList = dragon.friList
                 if friList == None:
                     friList = [fid]
@@ -4752,10 +4767,12 @@ class RootController(BaseController):
                         friList.append(uid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
+                """
                 if dragon.friNum >= needFri:
                     dragon.state = 1#egg
                     dragon.friList = "[]"#clear friendList
                     print "can buy egg"
+                """
                 return dict(id=1, leftNum=needFri-dragon.friNum)
             else:
                 return dict(id=0, reason="active yet")
@@ -5902,12 +5919,15 @@ class RootController(BaseController):
                if int(sid)>=9 and int(sid)<=11:
                    u.cavalry1_num=u.cavalry1_num+soldie[int(sid)][2]
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*4
+                   print str(u.userid) + ' cav1 ' + str(soldie[int(sid)][2]*4)
                elif int(sid)>=12 and int(sid)<=14:
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*5
                    u.cavalry2_num=u.cavalry2_num+soldie[int(sid)][2]
+                   print str(u.userid) + ' cav2 ' + str(soldie[int(sid)][2]*5)
                elif int(sid)>=15 and int(sid)<=17:
                    u.cavalrypower=u.cavalrypower+soldie[int(sid)][2]*6
                    u.cavalry3_num=u.cavalry3_num+soldie[int(sid)][2]
+                   print str(u.userid) + ' cav3 ' + str(soldie[int(sid)][2]*6)
            if mark==0 and int(sid)>=18 :
                if int(sid)>=18 and int(sid)<=20:
                    u.scout1_num=u.scout1_num+soldie[int(sid)][2]

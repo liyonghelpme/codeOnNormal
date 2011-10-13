@@ -42,6 +42,7 @@ while True:
         sql = "update dragon set health = " + str(health) + ', state = ' + str(state) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\' where pid = ' + str(pid)
         print sql
         cursor.execute(sql)
+        con.commit()
 
 
             
