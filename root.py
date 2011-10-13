@@ -4680,13 +4680,23 @@ class RootController(BaseController):
             return dict(id=0, reason="kind out of range")
         except InvalidRequestError:
             return dict(id=0, reason = "no dragon")
-
+    global needFri
+    needFri = 10#total need
+    #用户宠物激活完成
+    @expose('json')
+    def activateComplete(self, uid, gid, cid):
+        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
+        dragon = DBSession.query(Dragon).filter(and_(Dragon.uid == uid, Dragon.bid == building.bid)).one()
+        if dragon.friNum >= needFri and dragon.state == 0:
+            dragon.state = 1
+            dragon.friList = "[]"#clear friendList
+            return dict(id=1, result="active suc")
+        return dict(id=0, reason="frinum not enough or state != 0")
     #帮助好友， 使用凯撒币激活宠物 进入finish状态 state = 0
     @expose('json')
     def activeDragon(self, uid, fid, gid, cid):#fid = -1 use cea others ask friend
         #select from ope
         caeCost = 1#each cost
-        needFri = 10#total need
         uid = int(uid)
         user = checkopdata(uid)
 
@@ -4704,6 +4714,8 @@ class RootController(BaseController):
                 print str(uid) + 'not dragon ' + str(cid) + ' ' + str(gid) 
                 return dict(id=0, reason="no dragon")
             if dragon.state == 0:#not active 
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 if user.cae >= caeCost:
                     user.cae -= caeCost
                     friList = dragon.friList
@@ -4732,6 +4744,8 @@ class RootController(BaseController):
             except InvalidRequestError:
                 return dict(id = 0, reason = "no dragon here")
             if dragon.state == 0:#not active
+                if dragon.friNum >= needFri:
+                    return dict(id=0, reason="friend enough")
                 friList = dragon.friList
                 if friList == None:
                     friList = [fid]
