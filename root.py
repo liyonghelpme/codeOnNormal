@@ -4415,7 +4415,9 @@ class RootController(BaseController):
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
 
             if ground_id >= 420 and ground_id <= 424:
-                lev = ground_id - 420+1#next level
+                lev = ground_id - 420#next level
+                if (p.ground_id+1) != ground_id:
+                    return dict(id = 0, reason = "not friend god or lev > tar")
                 if lev <= 4:
                     if int(type) == 0:
                         if u.cae >= friendGod[lev][3]:
@@ -4475,7 +4477,7 @@ class RootController(BaseController):
                         u.exp=u.exp+lis[5]
                     elif p.ground_id>=400 and p.ground_id<420:
                         u.exp=u.exp+lis[3]
-                    elif p.ground_id>=420 and p.ground_id<=424:
+                    #elif p.ground_id>=420 and p.ground_id<=424:
                         
                     if ground_id>=400 and ground_id<=499:
                         if (ground_id-400)%4==0:
@@ -5484,7 +5486,7 @@ class RootController(BaseController):
                     if u.cae >= cost:
                         u.cae -= cost
                         p.finish = 1
-                        return dict(id=1, result = "firendgod finish suc")
+                        return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
                 return dict(id=0, reason = "castal")
