@@ -4611,7 +4611,7 @@ class RootController(BaseController):
                 user.exp += reward[state][1]
             #update attack
             incAtt = dragon.health*eggCost[dragon.kind][2]
-            attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+            attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
             return dict(id=1, result="self feed suc", state= dragon.state)
@@ -4648,7 +4648,7 @@ class RootController(BaseController):
                     user.exp += reward[state][1]
                 #update attack
                 incAtt = dragon.health*eggCost[dragon.kind][2]
-                attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+                attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
                 curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
