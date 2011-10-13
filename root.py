@@ -4726,10 +4726,12 @@ class RootController(BaseController):
                         friList.append(-1)
                     dragon.friList = json.dumps(friList)
                     dragon.friNum += 1
+                    """
                     if dragon.friNum >= needFri:
                         dragon.state = 1
                         dragon.friList = "[]"#clear friendList
                         print "can buy egg"
+                    """
                     return dict(id=1, leftNum = needFri - dragon.friNum)
                 return dict(id=0, reason="cae not enou")
             else:
@@ -4758,10 +4760,12 @@ class RootController(BaseController):
                         friList.append(uid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
+                """
                 if dragon.friNum >= needFri:
                     dragon.state = 1#egg
                     dragon.friList = "[]"#clear friendList
                     print "can buy egg"
+                """
                 return dict(id=1, leftNum=needFri-dragon.friNum)
             else:
                 return dict(id=0, reason="active yet")
