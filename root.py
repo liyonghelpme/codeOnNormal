@@ -4708,10 +4708,10 @@ class RootController(BaseController):
                     user.cae -= caeCost
                     friList = dragon.friList
                     if friList == None:
-                        friList = [1]
+                        friList = [-1]
                     else:
                         friList = json.loads(friList)
-                        friList.append(1)
+                        friList.append(-1)
                     dragon.friList = json.dumps(friList)
                     dragon.friNum += 1
                     if dragon.friNum >= needFri:
