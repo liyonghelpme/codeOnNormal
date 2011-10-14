@@ -2228,9 +2228,9 @@ class RootController(BaseController):
                 if len(buildings) > 0:
                     b = buildings[0];
                     if b.object_id >=0 and b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
-		                lev = b.ground_id-420;
-		                bonus += friGodReward[lev]
-		                print "friend God help"
+                        lev = b.ground_id-420;
+                        bonus += friGodReward[lev]
+                        print "friend God help"
                     else:
                         b.object_id = -1
                 
