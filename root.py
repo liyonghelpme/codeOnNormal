@@ -2220,15 +2220,17 @@ class RootController(BaseController):
                 print "not visited yet"
                 bonus=100+10*(dv.visitnum)
                 print "bonus " + str(bonus)
-                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1 and object_id > -1").all()
+                mycity = DBSession.query(warMap).filter_by(userid = userid).one()
+                buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=mycity.city_id).all() 
+                print "friend god " + str(len(buildings))
                 workTime = [3600, 21600, 86400]
                 #only one friend god
                 if len(buildings) > 0:
                     b = buildings[0];
-                    if b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
-		        lev = b.ground_id-420;
-		        bonus += friGodReward[lev]
-		        print "friend God help"
+                    if b.object_id >=0 and b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
+		                lev = b.ground_id-420;
+		                bonus += friGodReward[lev]
+		                print "friend God help"
                     else:
                         b.object_id = -1
                 
@@ -4258,8 +4260,8 @@ class RootController(BaseController):
         if godtype == 4: #friendGod
             if caetype >= 0 and caetype < len(caeCost):
                 buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=warmap.city_id).all()
-                buildings = list(buildings)
-                print buildings
+                #buildings = list(buildings)
+                #print buildings
                 if len(buildings) > 0:
                    if u.cae >= caeCost[caetype]:
                         u.cae -= caeCost[caetype]
