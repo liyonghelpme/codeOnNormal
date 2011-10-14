@@ -4673,6 +4673,7 @@ class RootController(BaseController):
                 if eggCost[kind][0] > 0:
                     if user.corn >= eggCost[kind][0]:
                         user.corn -= eggCost[kind][0]
+                        user.exp += 30
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
@@ -4681,7 +4682,8 @@ class RootController(BaseController):
                     return dict(id=0, reason="need corn")
                 else:
                     if user.cae >= abs(eggCost[kind][0]):
-                        user.cae -= eggCost[kind][0]
+                        user.cae += eggCost[kind][0]#neg for caesar
+                        user.exp += 30
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
