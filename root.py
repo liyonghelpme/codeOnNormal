@@ -2205,8 +2205,8 @@ class RootController(BaseController):
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
             friendid=u.userid
 
-            city=DBSession.query(warMap).filter_by(userid=u.userid).one()
-            readstr = getCity(city.city_id)
+            #city=DBSession.query(warMap).filter_by(userid=u.userid).one()
+            readstr = getCity(uw.city_id)
 
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
@@ -2236,7 +2236,7 @@ class RootController(BaseController):
                 sub=0
                 
             
-            return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=uw.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
             #newvisit=visitFriend(userid=userid,friendid=friendid)
             #DBSession.add(newvisit)
@@ -3266,7 +3266,7 @@ class RootController(BaseController):
             return dict(id=0, reason='self attack self')
         try:
             f=checkopdata(enemy_id)
-            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish = 0).one()
+            ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
             hour = 3600
             cae = 0
@@ -4611,7 +4611,7 @@ class RootController(BaseController):
                 user.exp += reward[state][1]
             #update attack
             incAtt = dragon.health*eggCost[dragon.kind][2]
-            attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+            attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
             return dict(id=1, result="self feed suc", state= dragon.state)
@@ -4648,7 +4648,7 @@ class RootController(BaseController):
                     user.exp += reward[state][1]
                 #update attack
                 incAtt = dragon.health*eggCost[dragon.kind][2]
-                attack = (dragon.attack - eggCost[dragon.kind][1]) + incAtt
+                attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
                 curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -4673,6 +4673,7 @@ class RootController(BaseController):
                 if eggCost[kind][0] > 0:
                     if user.corn >= eggCost[kind][0]:
                         user.corn -= eggCost[kind][0]
+                        user.exp += 30
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
@@ -4682,7 +4683,8 @@ class RootController(BaseController):
                     return dict(id=0, reason="need corn")
                 else:
                     if user.cae >= abs(eggCost[kind][0]):
-                        user.cae -= eggCost[kind][0]
+                        user.cae += eggCost[kind][0]#neg for caesar
+                        user.exp += 30
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
