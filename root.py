@@ -2205,12 +2205,12 @@ class RootController(BaseController):
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
             friendid=u.userid
 
-            city=DBSession.query(warMap).filter_by(userid=u.userid).one()
-            if city.city_id == 2763:#caesars building
-                readstr = DBSession.query(businessRead).filter_by(city_id = city.city_id).one()
+            #city=DBSession.query(warMap).filter_by(userid=u.userid).one()
+            if uw.city_id == 2763:#caesars building
+                readstr = DBSession.query(businessRead).filter_by(city_id = uw.city_id).one()
                 readstr = readstr.layout
             else:
-                readstr = getCity(city.city_id)
+                readstr = getCity(uw.city_id)
 
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
@@ -2240,7 +2240,7 @@ class RootController(BaseController):
                 sub=0
                 
             
-            return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=uw.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
             #newvisit=visitFriend(userid=userid,friendid=friendid)
             #DBSession.add(newvisit)
@@ -4682,6 +4682,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = eggCost[kind][1] + dragon.health*eggCost[kind][2]
+                        dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc corn")
                     return dict(id=0, reason="need corn")
                 else:
@@ -4692,6 +4693,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = eggCost[kind][1]+dragon.health*eggCost[kind][2]
+                        dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc cae")
                     return dict(id=0, reason="need cae")
             return dict(id=0, reason="kind out of range")
@@ -4772,11 +4774,9 @@ class RootController(BaseController):
                     friList = json.loads(friList)
                     uotherid = int(user.otherid)
                     try:
-                      # myPos = friList.index(user.otherid)
                        myPos = friList.index(uotherid)
                        return dict(id=0, reason = "you help yet")
                     except:
-                        #friList.append(user.otherid)
                         friList.append(uotherid)
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
