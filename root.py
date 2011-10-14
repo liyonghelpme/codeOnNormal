@@ -2206,7 +2206,11 @@ class RootController(BaseController):
             friendid=u.userid
 
             city=DBSession.query(warMap).filter_by(userid=u.userid).one()
-            readstr = getCity(city.city_id)
+            if city.city_id == 2763:#caesars building
+                readstr = DBSession.query(businessRead).filter_by(city_id = city.city_id).one()
+                readstr = readstr.layout
+            else:
+                readstr = getCity(city.city_id)
 
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
