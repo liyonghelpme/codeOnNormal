@@ -2239,9 +2239,9 @@ class RootController(BaseController):
         dv=None
         cardlist=[]
         visit=None
+        bonus=0
         try:
             dv=DBSession.query(Datevisit).filter_by(uid=int(userid)).one()
-            bonus=0
             uu=checkopdata(userid)#cache
             u=DBSession.query(operationalData).filter_by(otherid=otherid).filter_by(user_kind=int(user_kind)).one()#7.29,otherid 
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
@@ -2260,7 +2260,7 @@ class RootController(BaseController):
                 cardlist.append(ca.warcard)
             except:
                 cardlist=[]
-            if visit.visited==0:
+            if visit.visited==0:#not visited
                 bonus=100+10*(dv.visitnum)
                 buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1").all()
                 #only one friend god
@@ -2288,11 +2288,10 @@ class RootController(BaseController):
             
             return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
-            #newvisit=visitFriend(userid=userid,friendid=friendid)
-            #DBSession.add(newvisit)
+            print "error visit " + str(uu.userid) + ' ' + str(otherid)
             if visit!=None:
                 visit.visited=1
-            uu.corn=uu.corn+100+10*(dv.visitnum)
+            uu.corn=uu.corn+bonus#
             dv.visitnum=dv.visitnum+1
             uu.visitnum=dv.visitnum+1
             try:
