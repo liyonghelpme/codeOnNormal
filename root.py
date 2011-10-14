@@ -2195,9 +2195,9 @@ class RootController(BaseController):
         dv=None
         cardlist=[]
         visit=None
+        bonus=0
         try:
             dv=DBSession.query(Datevisit).filter_by(uid=int(userid)).one()
-            bonus=0
             uu=checkopdata(userid)#cache
             u=DBSession.query(operationalData).filter_by(otherid=otherid).filter_by(user_kind=int(user_kind)).one()#7.29,otherid 
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
@@ -2216,17 +2216,25 @@ class RootController(BaseController):
                 cardlist.append(ca.warcard)
             except:
                 cardlist=[]
-            if visit.visited==0:
-                print "find friend"
+            if visit.visited==0:#not visited
+                print "not visited yet"
                 bonus=100+10*(dv.visitnum)
-                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1").all()
+                print "bonus " + str(bonus)
+                buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1 and object_id > -1").all()
+                workTime = [3600, 21600, 86400]
                 #only one friend god
                 if len(buildings) > 0:
                     b = buildings[0];
-                    lev = b.ground_id-420;
-                    bonus += friGodReward[lev]
+                    if b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
+		        lev = b.ground_id-420;
+		        bonus += friGodReward[lev]
+		        print "friend God help"
+                    else:
+                        b.object_id = -1
+                
+                print "bonus " + str(bonus)
                 #增加访问奖励
-                uu.corn=uu.corn+100+10*(dv.visitnum)
+                uu.corn=uu.corn+bonus#bonus
                 dv.visitnum=dv.visitnum+1
                 uu.visitnum=dv.visitnum
                 
@@ -2244,11 +2252,10 @@ class RootController(BaseController):
             
             return dict(id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=city.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
-            #newvisit=visitFriend(userid=userid,friendid=friendid)
-            #DBSession.add(newvisit)
+            print "error visit " + str(uu.userid) + ' ' + str(otherid)
             if visit!=None:
                 visit.visited=1
-            uu.corn=uu.corn+100+10*(dv.visitnum)
+            uu.corn=uu.corn+bonus#
             dv.visitnum=dv.visitnum+1
             uu.visitnum=dv.visitnum+1
             try:
@@ -4241,13 +4248,27 @@ class RootController(BaseController):
     @expose('json')
     def godbless(self,uid,godtype,caetype):#对外接口，施加神迹
         uid=int(uid)
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
         u=checkopdata(uid)#cache
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         godtype=int(godtype)
         caetype=int(caetype)
         caeCost = [3, 15, 30]
         mark=0
+        warmap = DBSession.query(warMap).filter_by(userid = uid).one()
+        if godtype == 4: #friendGod
+            if caetype >= 0 and caetype < len(caeCost):
+                buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=warmap.city_id).all()
+                buildings = list(buildings)
+                print buildings
+                if len(buildings) > 0:
+                   if u.cae >= caeCost[caetype]:
+                        u.cae -= caeCost[caetype]
+                        b = buildings[0]
+                        b.producttime = t
+                        b.object_id = caetype
+                        return dict(id=1, result = "friend god bless "+ str(caetype))
+            return dict(id=0, reason="cae not enough or no god") 
+
         if caetype==0:
             if u.cae-3>=0:
                 cb=u.cae
@@ -4341,20 +4362,23 @@ class RootController(BaseController):
                 lev = ground_id - 420#next level
                 if (p.ground_id+1) != ground_id:
                     return dict(id = 0, reason = "not friend god or lev > tar")
+                #0 time 1 food 2 corn 3 exp 4 population 5 cae
                 if lev <= 4:
                     if int(type) == 0:
-                        if u.cae >= friendGod[lev][3]:
-                            u.cae -= friendGod[lev][3]
-                            u.populationupbound += friendGod[lev][5]
+                        if u.cae >= friendGod[lev][5]:
+                            u.cae -= friendGod[lev][5]
+                            u.populationupbound += friendGod[lev][4]
+                            u.exp += friendGod[lev][3]
                             p.ground_id += 1
                             p.finish = 0
                             p.producttime = ti 
-                            return dict(id=1, result="update by cae", caeCost = friendGod[lev][3])
+                            return dict(id=1, result="update by cae", caeCost = friendGod[lev][5])
                     else:
                         if u.food >= friendGod[lev][1] and u.corn >= friendGod[lev][2]:
                             u.food -= friendGod[lev][1]
                             u.corn -= friendGod[lev][2]
-                            u.populationupbound += friendGod[lev][5]
+                            u.exp += friendGod[lev][3]
+                            u.populationupbound += friendGod[lev][4]
                             p.ground_id += 1
                             p.finish = 0
                             p.producttime = ti
@@ -4580,7 +4604,7 @@ class RootController(BaseController):
                 building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, producttime = curTime, finish = 0)
                 DBSession.add(building)
                 read(city_id)
-                return dict(id=1, result="friend god suc")
+                return dict(id=1, result="friendgod suc")
             else:
                 return dict(id=0, reason="resource not enough")
             return dict(id=0, reason="unknown")
@@ -5395,6 +5419,7 @@ class RootController(BaseController):
                     if u.cae >= cost:
                         u.cae -= cost
                         p.finish = 1
+                        DBSession.flush()
                         return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
