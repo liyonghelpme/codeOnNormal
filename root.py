@@ -7,8 +7,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -4247,9 +4247,57 @@ class RootController(BaseController):
             return dict(sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         except InvalidRequestError:
             return dict(u=u.userid,v=v.uid,map=mapgrid)
-            
-           
+    # city:a,b;c,d 
+    # no check
+    @expose('json')
+    def move(self, movestring):
+        strs = movestring.split(':')
+        city = int(strs[0])
 
+        strs = strs[1].split(';')
+        src = []
+        tar = []
+        for s in strs:
+            s = s.split(',')
+            src.append(int(s[0]))
+            tar.append(int(s[1]))
+        
+        src2 = sorted(src)
+        tar2 = sorted(tar)
+        pre = -1
+        for s in src2:
+            if s == pre:
+                return dict(id=0, reason="src collision "+str(pre)+' '+str(s))
+            pre = s
+        pre = -1
+        for t in tar2:
+            if t == pre:
+                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t))
+        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
+        allbuilding = list(allbuilding)
+        j = 0
+        for b in allbuilding:
+            try:
+                src2.index(b)
+                allbuilding.remove(b)
+            except:
+                j += 1
+        j = 0
+        for b in tar2:
+            try:
+                allbuilding.index(b)
+                return dict(id=0, reason = "collision " + str(b))
+            except:
+                j += 1
+        i = 0
+        for s in src:
+            t = tar[i]
+            building = DBSession.query(businessWrite).filter_by(city_id=city).filter_by(grid_id=s).one()
+            building.grid_id = t
+            i += 1
+        DBSession.flush()
+        return dict(id=1, result="move suc")
+    """    
     @expose('json')
     def move(self,movestring):#对外接口，经营页面移动建筑物
         src=[]
@@ -4299,6 +4347,7 @@ class RootController(BaseController):
                src[k].grid_id=former
                k=k-1 
             return dict(k=k,id=0,city_id=city_id,former=former,latter=latter,i=i)
+    """
     @expose('json')
     def godbless(self,uid,godtype,caetype):#对外接口，施加神迹
         uid=int(uid)
