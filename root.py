@@ -3266,7 +3266,7 @@ class RootController(BaseController):
             return dict(id=0, reason='self attack self')
         try:
             f=checkopdata(enemy_id)
-            ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish == 0).one()
+            ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
             hour = 3600
             cae = 0
