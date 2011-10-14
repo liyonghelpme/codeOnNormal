@@ -4275,13 +4275,12 @@ class RootController(BaseController):
                 return dict(id=0, reason="tar collision "+str(pre)+' '+str(t))
         allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
         allbuilding = list(allbuilding)
-        j = 0
         for b in allbuilding:
             try:
                 src2.index(b)
                 allbuilding.remove(b)
             except:
-                j += 1
+                return dict(id = 0, reason="no move build "+str(b))
         j = 0
         for b in tar2:
             try:
