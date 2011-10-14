@@ -2217,6 +2217,7 @@ class RootController(BaseController):
             except:
                 cardlist=[]
             if visit.visited==0:
+                print "find friend"
                 bonus=100+10*(dv.visitnum)
                 buildings = DBSession.query(businessWrite).filter_by(city_id=uw.city_id).filter("ground_id >= 420 and ground_id <= 424 and finish=1").all()
                 #only one friend god
@@ -2269,12 +2270,13 @@ class RootController(BaseController):
                 i = 0
                 while i <= lev:
                     u.populationupbound -= popUp[i]
+                    i += 1
                 #h f c exp
                 u.food += friendGod[lev][1]/4
                 u.corn += friendGod[lev][2]/4
                     #todo reduce corn and food 
                 DBSession.delete(p)
-                return dict(id=1, result="sell friendGod suc")
+                return dict(id=1, result="sell friendGod suc", grid=grid_id)
 
             lis=getGround_id(p.ground_id)
             if lis==None:
@@ -4337,6 +4339,8 @@ class RootController(BaseController):
 
             if ground_id >= 420 and ground_id <= 424:
                 lev = ground_id - 420#next level
+                if (p.ground_id+1) != ground_id:
+                    return dict(id = 0, reason = "not friend god or lev > tar")
                 if lev <= 4:
                     if int(type) == 0:
                         if u.cae >= friendGod[lev][3]:
@@ -4345,7 +4349,7 @@ class RootController(BaseController):
                             p.ground_id += 1
                             p.finish = 0
                             p.producttime = ti 
-                            return dict(id=1, result="update by cae")
+                            return dict(id=1, result="update by cae", caeCost = friendGod[lev][3])
                     else:
                         if u.food >= friendGod[lev][1] and u.corn >= friendGod[lev][2]:
                             u.food -= friendGod[lev][1]
@@ -4546,11 +4550,14 @@ class RootController(BaseController):
     @expose('json')
     #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
+        print "build " + str(ground_id)
         curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
         #420 421 422 423 424 can't build high level
         #when visit friend add corn more
+        ground_id = int(ground_id)
         if ground_id >= 420 and ground_id <= 424:
-            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter(and_(ground_id >= 420,  ground_id <= 424)).all();
+            buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and  ground_id <= 424").params(cid=city_id).all();
+            print buildings
             if len(buildings) != 0:
                 return dict(id=0, reason="friend god exist in city")
             buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
@@ -4570,9 +4577,10 @@ class RootController(BaseController):
                 user.populationupbound += friendGod[lev][4]
                 user.exp += friendGod[lev][3]
 
-                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, productime = curTime, finish = 0)
+                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, producttime = curTime, finish = 0)
                 DBSession.add(building)
                 read(city_id)
+                return dict(id=1, result="friend god suc")
             else:
                 return dict(id=0, reason="resource not enough")
             return dict(id=0, reason="unknown")
@@ -5387,7 +5395,7 @@ class RootController(BaseController):
                     if u.cae >= cost:
                         u.cae -= cost
                         p.finish = 1
-                        return dict(id=1, result = "firendgod finish suc")
+                        return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
                 return dict(id=0, reason = "castal")
