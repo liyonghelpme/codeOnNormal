@@ -2242,7 +2242,6 @@ class RootController(BaseController):
         try:
             dv=DBSession.query(Datevisit).filter_by(uid=int(userid)).one()
             bonus=0
-            #uu=DBSession.query(operationalData).filter_by(userid=userid).one()
             uu=checkopdata(userid)#cache
             u=DBSession.query(operationalData).filter_by(otherid=otherid).filter_by(user_kind=int(user_kind)).one()#7.29,otherid 
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
@@ -2250,11 +2249,7 @@ class RootController(BaseController):
             city=DBSession.query(warMap).filter_by(userid=u.userid).one()
             read=DBSession.query(businessRead).filter_by(city_id=city.city_id).one()
             readstr=read.layout
-            #lis=present(u)
-            #lis2=present(uu)
-            #####卡片
 
-            #visit=DBSession.query(visitFriend).filter_by(userid=userid).filter_by(friendid=friendid).one()
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
@@ -2273,8 +2268,9 @@ class RootController(BaseController):
                     b = buildings[0];
                     lev = b.ground_id-420;
                     bonus += friGodReward[lev]
+                    print "friend God help"
                 #增加访问奖励
-                uu.corn=uu.corn+100+10*(dv.visitnum)
+                uu.corn=uu.corn+bonus#bonus
                 dv.visitnum=dv.visitnum+1
                 uu.visitnum=dv.visitnum
                 
