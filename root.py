@@ -2603,6 +2603,9 @@ class RootController(BaseController):
             cid=int(city_id)
             cset=DBSession.query(businessWrite).filter_by(city_id=cid).all()
             for c in cset:
+                if c.ground_id == -1:
+                    DBSession.delete(c)
+                    continue
                 if i==0:
                     s=s+str(c.ground_id)+','+str(c.grid_id)+','+str(c.object_id)+','+str(c.producttime)+','+str(c.finish)
                     i=1
