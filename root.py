@@ -4300,8 +4300,9 @@ class RootController(BaseController):
         """
         allSrc = []#bid
         for s in src:
-            building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).one()
-            allSrc.append(building[0])
+            building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).all()
+            if len(building) > 0:
+                allSrc.append(building[0][0])
         #move by bid
         i = 0
         DBSession.begin_nested()
