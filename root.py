@@ -2494,16 +2494,8 @@ class RootController(BaseController):
                     u.populationupbound=u.populationupbound-decorationbuild[p.ground_id-500][1]
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                #if u.population>u.populationupbound:
-                #    u.population=u.populationupbound      
                 DBSession.delete(p)
                 DBSession.flush()
-                #p.ground_id=-1
-                #p.producttime=0
-                #p.object_id=-1
-                #p.finish=0
-                read(city_id)
-                replacecache(user_id,u)#cache
                 return  dict(id=1)
         except InvalidRequestError:
             return dict(id=0)   
