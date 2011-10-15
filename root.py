@@ -3472,18 +3472,29 @@ class RootController(BaseController):
         u=checkopdata(uid)
         type=int(type)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        priceForProtect = [1, 3, 5]
+        price = [4999, 14999, 2]
         if u.protecttype != -1:
             return dict(id=0)
-        if type < 0 or type >= len(priceForProtect):
-            return dict(id=0)
-        if u.cae-priceForProtect[type]>=0:
-            u.cae=u.cae-priceForProtect[type]
-            u.protecttype=type
-            u.protecttime=ti
-        else:
-            return dict(id=0)
-        return dict(id=1)  
+        if type < 0 or type >= 3:
+            return dict(id=0, reason = "no such protect")
+        suc = False
+        if type == 0:
+            if u.corn >= 4999:
+                u.corn -= 4999
+                suc = True
+        elif type == 1:
+            if u.corn >= 14999:
+                u.corn -= 14999
+                suc = True
+        elif type == 2:
+            if u.cae >= 2:
+                u.cae -= 2
+                suc = True
+        if suc:
+            u.protecttype = type
+            u.protecttime = ti
+            return dict(id=1, result = 'protect type '+str(type))
+        return dict(id=0, reason = 'unknown')  
     @expose('json')
     def battlerank(self,type,off,num,uid):
         rank1=[]
