@@ -4265,48 +4265,6 @@ class RootController(BaseController):
         if len(uni) != 0:
             print "tar union with other"
             return dict(id=0, reason="tar union with others")
-        """        
-        src2 = sorted(src)
-        tar2 = sorted(tar)
-        #print "src " + str(src2)
-        #print "tar " + str(tar2)
-        #check if src in same grid_id
-
-        pre = -1
-        for s in src2:
-            if s == pre:
-                print "src collision " + str(pre) + ' ' + str(s)
-                return dict(id=0, reason="src collision "+str(pre)+' '+str(s))
-            pre = s
-        pre = -1
-        #check if tar in same grid_id
-        for t in tar2:
-            if t == pre:
-                print "tar collision " + str(pre) +' ' + str(t)
-                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t)) 
-        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
-        temp = []
-        for b in allbuilding:
-            temp.append(b[0])
-        #print temp
-        #remove src from all buildings
-        for b in src2:
-            try:
-                temp.index(b)
-                temp.remove(b)
-            except:
-                print "src not exist " + str(b)
-                return dict(id = 0, reason="no move build "+str(b))
-        j = 0
-        #check tar collision with src
-        for b in tar2:
-            try:
-                temp.index(b)
-                print "tar collision with left " + str(b)
-                return dict(id=0, reason = "collision " + str(b))
-            except:
-                j += 1
-        """
         allSrc = []#bid
         for s in src:
             building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).one()
