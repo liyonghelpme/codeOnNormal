@@ -2889,7 +2889,6 @@ class RootController(BaseController):
             fo=user.food
             tasklist=[]
             try:
-                colonial = [300, 450]
                 vict = DBSession.query(Victories).filter_by(userid = user.userid).one()
                 dif = logintime / 86400 - user.logintime/86400
                 if dif >= 1:
