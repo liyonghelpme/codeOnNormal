@@ -8,6 +8,7 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
+import MySQLdb
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
@@ -4218,6 +4219,7 @@ class RootController(BaseController):
     # no check
     @expose('json')
     def move(self, movestring):
+        print "move " + movestring
         strs = movestring.split(':')
         city = int(strs[0])
 
@@ -4228,37 +4230,85 @@ class RootController(BaseController):
             s = s.split(',')
             src.append(int(s[0]))
             tar.append(int(s[1]))
-        
+        src2 = set(src)
+        tar2 = set(tar)
+        if len(src) != len(src2):
+            print "src repeat"
+            return dict(id=0, reason="src repeat")
+        if len(tar) != len(tar2):
+            print "tar repeat"
+            return dict(id=0, reason="tar repeat")
+        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
+        temp = []
+        for b in allbuilding:
+            temp.append(b[0])
+        allbuilding = set(temp)
+        dif = allbuilding - src2
+        remainLen = len(allbuilding) - len(src2)
+        difLen = len(dif)
+        #print allbuilding
+        #print src2
+        #print dif
+        if difLen != remainLen:
+            print "src not exist in all"
+            return dict(id=0, reason = "src not exist")
+        uni = dif & tar2
+        if len(uni) != 0:
+            print "tar union with other"
+            return dict(id=0, reason="tar union with others")
+        """        
         src2 = sorted(src)
         tar2 = sorted(tar)
+        #print "src " + str(src2)
+        #print "tar " + str(tar2)
+        #check if src in same grid_id
+
         pre = -1
         for s in src2:
             if s == pre:
+                print "src collision " + str(pre) + ' ' + str(s)
                 return dict(id=0, reason="src collision "+str(pre)+' '+str(s))
             pre = s
         pre = -1
+        #check if tar in same grid_id
         for t in tar2:
             if t == pre:
-                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t))
+                print "tar collision " + str(pre) +' ' + str(t)
+                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t)) 
         allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
-        allbuilding = list(allbuilding)
+        temp = []
         for b in allbuilding:
+            temp.append(b[0])
+        #print temp
+        #remove src from all buildings
+        for b in src2:
             try:
-                src2.index(b)
-                allbuilding.remove(b)
+                temp.index(b)
+                temp.remove(b)
             except:
+                print "src not exist " + str(b)
                 return dict(id = 0, reason="no move build "+str(b))
         j = 0
+        #check tar collision with src
         for b in tar2:
             try:
-                allbuilding.index(b)
+                temp.index(b)
+                print "tar collision with left " + str(b)
                 return dict(id=0, reason = "collision " + str(b))
             except:
                 j += 1
+        """
+        allSrc = []#bid
+        for s in src:
+            building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).one()
+            allSrc.append(building[0])
+        #move by bid
         i = 0
+        DBSession.begin_nested()
         for s in src:
             t = tar[i]
-            building = DBSession.query(businessWrite).filter_by(city_id=city).filter_by(grid_id=s).one()
+            #print "move "+str(s) + 'to ' + str(t)
+            building = DBSession.query(businessWrite).filter_by(city_id=city).filter_by(bid=allSrc[i]).one()
             building.grid_id = t
             i += 1
         DBSession.flush()
