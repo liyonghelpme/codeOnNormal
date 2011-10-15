@@ -4539,7 +4539,7 @@ class RootController(BaseController):
     global reward
     global allowFriend
     global eggCost
-    eggCost = [[50000, 100, 5], [100000, 150, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
+    eggCost = [[50000, 100, 5], [100000, 250, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 800, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
