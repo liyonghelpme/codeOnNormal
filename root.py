@@ -4214,58 +4214,104 @@ class RootController(BaseController):
             return dict(sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         except InvalidRequestError:
             return dict(u=u.userid,v=v.uid,map=mapgrid)
-            
-           
-
+    # city:a,b;c,d 
+    # no check
     @expose('json')
-    def move(self,movestring):#对外接口，经营页面移动建筑物
-        src=[]
-        dst=[]
-        strset2=''
-        try:
-            strset=movestring.split(':')
-            city_id=strset[0]
-            move=strset[1]
-            strset2=move.split(';')
-            
-            
-            i=0
-            for s in strset2 :
-                strset3=s.split(',')
-                former=int(strset3[0])
-                latter=int(strset3[1])
-              
-                p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=former).one()
-                p.grid_id=-1-p.grid_id
-                src.append(p)
-                try:
-                    p1=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=latter).one()
-                    if p1.ground_id==-1:
-                        DBSession.delete(p1)
-                     
-                    dst.append(p1.grid_id)
-               
-                except InvalidRequestError:
-                    dst.append(latter)
-                i=i+1
-            k=0
-            while k<i:
-                try:
-                    p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=latter).one()
-                except:
-                    src[k].grid_id=dst[k]
-                k=k+1    
-            read(city_id)
-            return dict(id=1)
-        except:
-            k=len(src)-1
-            former=-1
-            while k>=0 :
-               strset3=strset2[k].split(',')
-               former=int(strset3[0])
-               src[k].grid_id=former
-               k=k-1 
-            return dict(k=k,id=0,city_id=city_id,former=former,latter=latter,i=i)
+    def move(self, movestring):
+        print "move " + movestring
+        strs = movestring.split(':')
+        city = int(strs[0])
+
+        strs = strs[1].split(';')
+        src = []
+        tar = []
+        for s in strs:
+            s = s.split(',')
+            src.append(int(s[0]))
+            tar.append(int(s[1]))
+        src2 = set(src)
+        tar2 = set(tar)
+        if len(src) != len(src2):
+            print "src repeat"
+            return dict(id=0, reason="src repeat")
+        if len(tar) != len(tar2):
+            print "tar repeat"
+            return dict(id=0, reason="tar repeat")
+        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
+        temp = []
+        for b in allbuilding:
+            temp.append(b[0])
+        allbuilding = set(temp)
+        dif = allbuilding - src2
+        remainLen = len(allbuilding) - len(src2)
+        difLen = len(dif)
+        #print allbuilding
+        #print src2
+        #print dif
+        if difLen != remainLen:
+            print "src not exist in all"
+            return dict(id=0, reason = "src not exist")
+        uni = dif & tar2
+        if len(uni) != 0:
+            print "tar union with other"
+            return dict(id=0, reason="tar union with others")
+        """        
+        src2 = sorted(src)
+        tar2 = sorted(tar)
+        #print "src " + str(src2)
+        #print "tar " + str(tar2)
+        #check if src in same grid_id
+
+        pre = -1
+        for s in src2:
+            if s == pre:
+                print "src collision " + str(pre) + ' ' + str(s)
+                return dict(id=0, reason="src collision "+str(pre)+' '+str(s))
+            pre = s
+        pre = -1
+        #check if tar in same grid_id
+        for t in tar2:
+            if t == pre:
+                print "tar collision " + str(pre) +' ' + str(t)
+                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t)) 
+        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
+        temp = []
+        for b in allbuilding:
+            temp.append(b[0])
+        #print temp
+        #remove src from all buildings
+        for b in src2:
+            try:
+                temp.index(b)
+                temp.remove(b)
+            except:
+                print "src not exist " + str(b)
+                return dict(id = 0, reason="no move build "+str(b))
+        j = 0
+        #check tar collision with src
+        for b in tar2:
+            try:
+                temp.index(b)
+                print "tar collision with left " + str(b)
+                return dict(id=0, reason = "collision " + str(b))
+            except:
+                j += 1
+        """
+        allSrc = []#bid
+        for s in src:
+            building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).one()
+            allSrc.append(building[0])
+        #move by bid
+        i = 0
+        DBSession.begin_nested()
+        for s in src:
+            t = tar[i]
+            #print "move "+str(s) + 'to ' + str(t)
+            building = DBSession.query(businessWrite).filter_by(city_id=city).filter_by(bid=allSrc[i]).one()
+            building.grid_id = t
+            i += 1
+        DBSession.flush()
+        return dict(id=1, result="move suc")
     @expose('json')
     def godbless(self,uid,godtype,caetype):#对外接口，施加神迹
         uid=int(uid)
