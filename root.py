@@ -2241,6 +2241,7 @@ class RootController(BaseController):
                         print "friend God help"
                     else:
                         b.object_id = -1
+                        b.producttime = 0
                 
                 print "bonus " + str(bonus)
                 #增加访问奖励
@@ -2285,16 +2286,17 @@ class RootController(BaseController):
         try:
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
+            
             if p.ground_id >= 420 and p.ground_id <= 424:
                 lev = p.ground_id - 420
-                popUp = [250, 500, 750, 1000]#same data should not appeared in two place
                 i = 0
                 while i <= lev:
-                    u.populationupbound -= popUp[i]
+                    u.populationupbound -= friendGod[i][4]
                     i += 1
                 #h f c exp
-                u.food += friendGod[lev][1]/4
-                u.corn += friendGod[lev][2]/4
+                #u.food += friendGod[lev][1]/4
+                cornAdd = [2500, 5000, 10000, 20000, 40000]
+                u.corn += cornAdd[lev]
                     #todo reduce corn and food 
                 DBSession.delete(p)
                 return dict(id=1, result="sell friendGod suc", grid=grid_id)
@@ -4293,6 +4295,7 @@ class RootController(BaseController):
             if caetype >= 0 and caetype < len(caeCost):
                 buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=warmap.city_id).all()
                 #buildings = list(buildings)
+                print "friend god help now " + str(caetype)
                 #print buildings
                 if len(buildings) > 0:
                    if u.cae >= caeCost[caetype]:
@@ -4300,6 +4303,7 @@ class RootController(BaseController):
                         b = buildings[0]
                         b.producttime = t
                         b.object_id = caetype
+                        print "friend god bless suc"
                         return dict(id=1, result = "friend god bless "+ str(caetype))
             return dict(id=0, reason="cae not enough or no god") 
 
@@ -4603,7 +4607,7 @@ class RootController(BaseController):
     #hour food corn exp popupbound upgrade_cae 
     global friendGod
     global friGodReward
-    friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 500, 5], [12*3600, 2000, 50000, 170, 750, 10], [18*3600, 5000, 100000, 250, 1000, 15], [24*3600, 10000, 500000, 350, 1250, 30]]
+    friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 250, 5], [12*3600, 2000, 50000, 170, 250, 10], [18*3600, 5000, 100000, 250, 250, 15], [24*3600, 10000, 500000, 350, 250, 30]]
     friGodReward = [5, 10, 20, 30, 50]
     global initH
     global addHealth
@@ -5671,6 +5675,7 @@ class RootController(BaseController):
                     needTime = friendGod[lev][0]
                     if (ti-p.producttime) >= needTime:
                         p.finish = 1
+                        p.producttime = 0
                         return dict(id=1, result = "finish suc")
                 return dict(id=0, reason="need more time or finish yet")
 
@@ -5763,6 +5768,7 @@ class RootController(BaseController):
                     if u.cae >= cost:
                         u.cae -= cost
                         p.finish = 1
+                        p.producttime = 0
                         DBSession.flush()
                         return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
