@@ -2236,9 +2236,9 @@ class RootController(BaseController):
                 if len(buildings) > 0:
                     b = buildings[0];
                     if b.object_id >=0 and b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
-		                lev = b.ground_id-420;
-		                bonus += friGodReward[lev]
-		                print "friend God help"
+                        lev = b.ground_id-420;
+                        bonus += friGodReward[lev]
+                        print "friend God help"
                     else:
                         b.object_id = -1
                 
@@ -2873,7 +2873,6 @@ class RootController(BaseController):
         wargodtime=-1
         wealthgodtime=-1
         popgodtime=-1
-        wealthgodtim=-1
         foodlost=0
         src=papayaid+'-'+md5string
         md51=hashlib.md5(src).hexdigest()
@@ -4878,6 +4877,7 @@ class RootController(BaseController):
         print "build " + str(ground_id)
         curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
         user_id = int(user_id)
+        user = checkopdata(user_id)
         #420 421 422 423 424 can't build high level
         #when visit friend add corn more
         ground_id = int(ground_id)
@@ -4915,7 +4915,6 @@ class RootController(BaseController):
         #upbound + 100
         if ground_id / 1000 != 0:
             print "build dragon " + str(user_id)
-            user = checkopdata(user_id)
             coinCost = 0
             foodCost = 0
             
