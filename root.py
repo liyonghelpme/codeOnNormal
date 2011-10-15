@@ -4583,7 +4583,7 @@ class RootController(BaseController):
         ground_id = int(ground_id)
         if ground_id >= 420 and ground_id <= 424:
             buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and  ground_id <= 424").params(cid=city_id).all();
-            print buildings
+            #print buildings
             if len(buildings) != 0:
                 return dict(id=0, reason="friend god exist in city")
             buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
