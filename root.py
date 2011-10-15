@@ -2888,8 +2888,17 @@ class RootController(BaseController):
             exp=user.exp
             fo=user.food
             tasklist=[]
-            
-
+            try:
+                vict = DBSession.query(Victories).filter_by(userid = user.userid).one()
+                dif = logintime / 86400 - user.logintime/86400
+                if dif >= 1:
+                    nob = user.nobility
+                    perReward = 300 + nob*50
+                    if vict.won > 0:
+                        user.corn += vict.won * perReward
+                        print "user colonial reward = " + str(vict.won * perReward)
+            except:
+                print "colonial reward fail"
             user.logintime=logintime
             lisa=[]
             try:
@@ -4141,8 +4150,10 @@ class RootController(BaseController):
         mapgrid=None
         wartask=None
         userprotect=-1
+        u=checkopdata(userid)#cache
+            
         try:
-            u=checkopdata(userid)#cache
+
             if u.nobility<0:
                 mapgrid=newwarmap(u)
                 #wartask=wartasknew(u.userid)
