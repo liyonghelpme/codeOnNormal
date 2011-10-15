@@ -2177,7 +2177,41 @@ class RootController(BaseController):
             return dict(id=1,mark=mark)
         else:
             return dict(id=0)  
-    #################
+        """
+        s=s+str(c.ground_id)+','+str(c.grid_id)+','+str(c.object_id)+','+str(c.producttime)+','+str(c.finish)
+        """
+    def fetchMemCity(self, uid, cid):
+        cur=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        friendCity = mc.get(str(uid))
+        if not friendCity:#fetch city_from memory
+            buildings = DBSession.query(businessWrite).filter_by(city_id = cid).filter_by(ground_id != -1).all()
+            res = ''
+            i = 0
+            for b in buildings:
+                res += str(b.ground_id)+','+str(b.grid_id)+','+str(b.object_id)+','+str(b.producttime)+','+str(b.finish)
+                i += 1
+                if i < len(friendCity):
+                    res += ';'
+            data = (cur, res)
+            mc.set(str(u.userid), data)
+        else: #check time too long 
+            time = friendCity[0]
+            if cur - time > 500:#update user data
+                buildings = DBSession.query(businessWrite).filter_by(city_id = cid).filter_by(ground_id != -1).all()
+                res = ''
+                i = 0
+                for b in buildings:
+                    res += str(b.ground_id)+','+str(b.grid_id)+','+str(b.object_id)+','+str(b.producttime)+','+str(b.finish)
+                    i += 1
+                    if i < len(friendCity):
+                        res += ';'
+                data = (cur, res)
+                mc.set(str(u.userid), data)
+        friendCity = mc.get(str(uid))
+        friendCity = friendCity[1]
+        return friendCity
+            
+    ################o#
     #################访问好友                  
     @expose('json')
     def getfriend(self,userid,otherid,user_kind):#对外接口，用户userid 访问由otherid+user_kind确定的好友 get friends page;operationalData:query->updatewarMap:query;businessRead:query;visitFriend:query->update
@@ -2205,12 +2239,12 @@ class RootController(BaseController):
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
             friendid=u.userid
 
-            #city=DBSession.query(warMap).filter_by(userid=u.userid).one()
             if uw.city_id == 2763:#caesars building
                 readstr = DBSession.query(businessRead).filter_by(city_id = uw.city_id).one()
                 readstr = readstr.layout
             else:
-                readstr = getCity(uw.city_id)
+                readstr = fetchMemCity(uw.userid, uw.city_id)
+
 
             visit=DBSession.query(Papayafriend).filter_by(uid=userid).filter_by(papayaid=otherid).one()
             try:
@@ -2601,7 +2635,7 @@ class RootController(BaseController):
         try:
             i=0
             cid=int(city_id)
-            cset=DBSession.query(businessWrite).filter_by(city_id=cid).all()
+            cset=DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(ground_id != -1).all()
             for c in cset:
                 if i==0:
                     s=s+str(c.ground_id)+','+str(c.grid_id)+','+str(c.object_id)+','+str(c.producttime)+','+str(c.finish)
