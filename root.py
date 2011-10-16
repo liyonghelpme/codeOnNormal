@@ -8,12 +8,13 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
+#from stchong.model import PetAtt
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -4628,14 +4629,12 @@ class RootController(BaseController):
     global addHealth
     global growUp
     global reward
-    global allowFriend
     global eggCost
     eggCost = [[50000, 100, 5], [100000, 250, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 800, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
     reward = [[4500, 30], [9000, 40], [15000, 100], [0, 0]]
-    allowFriend = 3
 
     @expose('json')
     def getBids(self, uid, cid):
@@ -4661,26 +4660,53 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
         dragon.name = name        
         return dict(id=1)
+    """
+    @expose('json')
+    def changeAttr(self, uid, pid, attr):#find if exist then visit petAtt table
+        uid = int(uid)
+        pid = int(pid)
+        attr = int(attr)
+        pet = DBSession.query(Dragon).filter_by(pid = pid).one()
+        user = DBSession.query(operationalData).filter_by(userid = uid).one()
+        if pet.uid != uid:
+            return dict(id=0, reason="not your pet")
+        #0 solid 1 fire 2 ice
+        if attr <= 0:
+            return dict(id=0, reason='attr not  > 0')
+        if user.cae >= 20:
+            user.cae -= 20
+            petAtt = DBSession.query(PetAtt).filter_by(pid = pid).all()
+            if len(petAtt) == 0:
+                petAtt = PetAtt(pid=pid, att = attr)
+                DBSession.add(petAtt)
+            else:
+                petAtt[0].att = attr
+            return dict(id=1, result='change attr suc')
+        return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
-
+    """
     @expose('json')
     def changeKind(self, uid, pid, kind):
         uid = int(uid)
         pid = int(pid)
+        kind = int(kind)
         pet = DBSession.query(Dragon).filter_by(pid = pid).one()
         user = DBSession.query(operationalData).filter_by(userid = uid).one()
         if pet.uid != uid:
             return dict(id=0, reason="not your pet")
         if pet.state == 2:#0 not active 1 not buy 2
+            print "is egg " + str(kind)
             if kind >= 0 and kind < len(eggCost):
+                print "kind right"
                 cost = eggCost[kind]
                 if cost[0] > 0:#money
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
                     if user.corn >= cost[0] and user.food >= cost[1]:
                         user.corn -= cost[0]
-                        user.food -= cost[1]
                         pet.kind = kind
                         return dict(id=1, result="change by corn")
                 else:
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
                     caeCost = abs(cost[0])
                     if user.cae >= caeCost:
                         user.cae -= caeCost
@@ -4716,7 +4742,8 @@ class RootController(BaseController):
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
             #update attack
-            incAtt = dragon.health*eggCost[dragon.kind][2]
+            rkind = dragon.kind % 1000
+            incAtt = dragon.health*eggCost[rkind][2]
             attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
@@ -4724,6 +4751,12 @@ class RootController(BaseController):
         else:
             friList = dragon.friList
             friList = json.loads(friList)
+            if dragon.state >= 4:
+                allowFriend = 7
+            elif dragon.state == 3:
+                allowFriend = 5
+            else:
+                allowFriend = 3
             if len(friList) > allowFriend:
                 print "friend help enough"
                 return dict(id = 0, reason = "enough friend helped")
@@ -4753,7 +4786,8 @@ class RootController(BaseController):
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
                 #update attack
-                incAtt = dragon.health*eggCost[dragon.kind][2]
+                rkind = dragon.kind % 1000
+                incAtt = dragon.health*eggCost[rkind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
