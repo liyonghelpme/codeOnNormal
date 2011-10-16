@@ -3249,7 +3249,7 @@ class RootController(BaseController):
             x=defenceplist[nobility][1]
             cb=u.cae
             if type==0:
-                cae=int((defencenum+10-1)/10)
+                cae=int((defencenum+100-1)/100)
                 if u.cae-cae>=0:
                     u.defencepower=u.defencepower+defencenum
                     u.cae=u.cae-cae
@@ -3261,11 +3261,7 @@ class RootController(BaseController):
                     return dict(id=0)
             else:
                 corn=100*defencenum
-                food=50*defencenum
-                #corn=150*defenceplist[nobility][0]
-                #food=10*defenceplist[nobility][2]
-                #stone=5*defenceplist[nobility][3]
-                #wood=5*defenceplist[nobility][4]
+                food=5*defencenum
                 if u.corn-corn>=0 and u.food-food>=0:
                     u.corn=u.corn-corn
                     u.food=u.food-food
