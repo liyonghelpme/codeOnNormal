@@ -2287,6 +2287,8 @@ class RootController(BaseController):
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             
+            if p.ground_id >=1000 and p.ground_id < 1100:
+                return dict(id=0, reason='dragon can not be sold')
             if p.ground_id >= 420 and p.ground_id <= 424:
                 lev = p.ground_id - 420
                 i = 0
@@ -5675,6 +5677,7 @@ class RootController(BaseController):
                     lev = p.ground_id - 420
                     needTime = friendGod[lev][0]
                     if (ti-p.producttime) >= needTime:
+                        p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
                         return dict(id=1, result = "finish suc")
