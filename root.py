@@ -2995,7 +2995,7 @@ class RootController(BaseController):
                 user.wealthgodtime=0 
                 wealthgodtime=0 
 
-            if user.wealth_go == 0:
+            if user.wealth_god == 0:
                 wealthgodtime = -1
             task=-1
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
