@@ -2947,6 +2947,10 @@ class RootController(BaseController):
                 user.war_god=0
                 user.wargodtime=0
                 wargodtime=0
+
+            if user.war_god == 0:
+                wargodtime = -1
+
             if user.person_god==1:
                 popgodtime=3600-(logintime-user.popgodtime)
             elif user.person_god==2:
@@ -2959,6 +2963,10 @@ class RootController(BaseController):
                 user.pop_god=0
                 user.popgodtime=0 
                 popgodtime=0
+
+            if user.person_god == 0:
+                popgodtime = -1
+
             if user.food_god==1:
                 foodgodtime=3600-(logintime-user.foodgodtime)
             elif user.food_god==2:
@@ -2971,6 +2979,9 @@ class RootController(BaseController):
                 user.food_god=0
                 user.foodgodtime=0 
                 foodgodtime=0
+            if user.food_god == 0:
+                foodgodtime = -1
+
             if user.wealth_god==1:
                 wealthgodtime=3600-(logintime-user.wealthgodtime)
             elif user.wealth_god==2:
@@ -2983,6 +2994,9 @@ class RootController(BaseController):
                 user.wealth_god=0
                 user.wealthgodtime=0 
                 wealthgodtime=0 
+
+            if user.wealth_go == 0:
+                wealthgodtime = -1
             task=-1
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
                 task=-1
