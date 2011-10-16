@@ -14,7 +14,7 @@ from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
-from stchong.model import PetAtt
+#from stchong.model import PetAtt
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -4648,6 +4648,7 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
         dragon.name = name        
         return dict(id=1)
+    """
     @expose('json')
     def changeAttr(self, uid, pid, attr):#find if exist then visit petAtt table
         uid = int(uid)
@@ -4671,7 +4672,7 @@ class RootController(BaseController):
             return dict(id=1, result='change attr suc')
         return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
-
+    """
     @expose('json')
     def changeKind(self, uid, pid, kind):
         uid = int(uid)
@@ -4690,7 +4691,6 @@ class RootController(BaseController):
                     print "cost " + str(cost[0]) + ' ' + str(cost[1])
                     if user.corn >= cost[0] and user.food >= cost[1]:
                         user.corn -= cost[0]
-                        user.food -= cost[1]
                         pet.kind = kind
                         return dict(id=1, result="change by corn")
                 else:
