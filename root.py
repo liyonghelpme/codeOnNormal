@@ -8,12 +8,13 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
+from stchong.model import Message
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -193,6 +194,36 @@ class RootController(BaseController):
             return True
         else:
             return False
+    @expose('json')
+    def sendMsg(self, uid, fid, msg):
+        uid = int(uid)
+        fid = int(fid)
+        cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+        msg = Message(uid=uid, fid=fid, mess = msg, read = 0, time=cur)
+        DBSession.add(msg)
+        return dict(id=1, result="send msg suc")
+
+    @expose('json')
+    def fetchMsg(self, uid, start, end):
+        uid = int(uid)
+        start = int(start)
+        end = int(end)
+        nums = DBSession.query(Message).filter_by(fid=uid).filter_by(read=0).count()
+        print "msg num " + str(uid) +' '+str(nums)
+        if start > nums:
+            return dict(id=0, leftNum = 0, reason = "no more unread msg")
+        if start < 0:
+            start = 0
+        if end > nums:
+            end = nums
+
+        if end == -1:
+            end = nums
+            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).filter_by(read=0).order_by(desc(Message.time)).slice(start, nums).all()
+        else:
+            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).filter_by(read=0).order_by(desc(Message.time)).slice(start, end).all()
+        return dict(id=1, leftNum = nums-end, msg = msgs)
+
     @expose('json')
     def completepay(self,uid,tid,papapas,signature):
         u=checkopdata(uid)
