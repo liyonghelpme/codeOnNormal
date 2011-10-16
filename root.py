@@ -4663,7 +4663,7 @@ class RootController(BaseController):
             except:
                 attribute = PetAtt(pid=d.pid, att=0)
                 DBSession.add(attribute)
-            ld.append(attribute[0])
+            ld.append(attribute.att)
             allPets.append(ld)
         return dict(id=1, pets=allPets)
     """
