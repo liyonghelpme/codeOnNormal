@@ -4655,7 +4655,7 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).filter(PetAtt.pid == Dragon.pid).all()#index bid
         return dict(id=1, pets=dragon)
 
     @expose('json')
