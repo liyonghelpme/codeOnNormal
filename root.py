@@ -4725,7 +4725,8 @@ class RootController(BaseController):
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
             #update attack
-            incAtt = dragon.health*eggCost[dragon.kind][2]
+            rkind = dragon.kind % 1000
+            incAtt = dragon.health*eggCost[rkind][2]
             attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
@@ -4768,7 +4769,8 @@ class RootController(BaseController):
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
                 #update attack
-                incAtt = dragon.health*eggCost[dragon.kind][2]
+                rkind = dragon.kind % 1000
+                incAtt = dragon.health*eggCost[rkind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
