@@ -218,10 +218,11 @@ class RootController(BaseController):
             end = nums
 
         if end == -1:
-            end = nums
-            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).filter_by(read=0).order_by(desc(Message.time)).slice(start, nums).all()
+            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
         else:
-            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).filter_by(read=0).order_by(desc(Message.time)).slice(start, end).all()
+            msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
+        for m in msgs:
+            m.read = 1
         return dict(id=1, leftNum = nums-end, msg = msgs)
 
     @expose('json')
