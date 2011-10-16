@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exceptions import InvalidRequestError
+from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -4742,7 +4742,7 @@ class RootController(BaseController):
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
             #update attack
-            rkind = dragon.kind % 1000
+            rkind = dragon.kind
             incAtt = dragon.health*eggCost[rkind][2]
             attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
@@ -4786,7 +4786,7 @@ class RootController(BaseController):
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
                 #update attack
-                rkind = dragon.kind % 1000
+                rkind = dragon.kind
                 incAtt = dragon.health*eggCost[rkind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
