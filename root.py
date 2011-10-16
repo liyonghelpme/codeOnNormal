@@ -2866,7 +2866,7 @@ class RootController(BaseController):
         wargodtime=-1
         wealthgodtime=-1
         popgodtime=-1
-        wealthgodtim=-1
+        wealthgodtime=-1
         foodlost=0
         src=papayaid+'-'+md5string
         md51=hashlib.md5(src).hexdigest()
