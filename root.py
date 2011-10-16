@@ -14,6 +14,7 @@ from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
+from stchong.model import PetAtt
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -4648,7 +4649,7 @@ class RootController(BaseController):
         dragon.name = name        
         return dict(id=1)
     @expose('json')
-    def changeAttr(self, uid, pid, attr):#000 attr 000 kind
+    def changeAttr(self, uid, pid, attr):#find if exist then visit petAtt table
         uid = int(uid)
         pid = int(pid)
         attr = int(attr)
@@ -4659,10 +4660,14 @@ class RootController(BaseController):
         #0 solid 1 fire 2 ice
         if attr <= 0:
             return dict(id=0, reason='attr not  > 0')
-        curkind = pet.kind % 1000
         if user.cae >= 20:
             user.cae -= 20
-            pet.kind = curkind + attr*1000
+            petAtt = DBSession.query(PetAtt).filter_by(pid = pid).all()
+            if len(petAtt) == 0:
+                petAtt = PetAtt(pid=pid, att = attr)
+                DBSession.add(petAtt)
+            else:
+                petAtt[0].att = attr
             return dict(id=1, result='change attr suc')
         return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
