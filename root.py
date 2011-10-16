@@ -4616,14 +4616,12 @@ class RootController(BaseController):
     global addHealth
     global growUp
     global reward
-    global allowFriend
     global eggCost
     eggCost = [[50000, 100, 5], [100000, 250, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 800, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
     reward = [[4500, 30], [9000, 40], [15000, 100], [0, 0]]
-    allowFriend = 3
 
     @expose('json')
     def getBids(self, uid, cid):
@@ -4649,6 +4647,24 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
         dragon.name = name        
         return dict(id=1)
+    @expose('json')
+    def changeAttr(self, uid, pid, attr):#000 attr 000 kind
+        uid = int(uid)
+        pid = int(pid)
+        attr = int(attr)
+        pet = DBSession.query(Dragon).filter_by(pid = pid).one()
+        user = DBSession.query(operationalData).filter_by(userid = uid).one()
+        if pet.uid != uid:
+            return dict(id=0, reason="not your pet")
+        #0 solid 1 fire 2 ice
+        if attr <= 0:
+            return dict(id=0, reason='attr not  > 0')
+        curkind = pet.kind % 1000
+        if user.cae >= 20:
+            user.cae -= 20
+            pet.kind = curkind + attr*1000
+            return dict(id=1, result='change attr suc')
+        return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
 
     @expose('json')
@@ -4717,6 +4733,12 @@ class RootController(BaseController):
         else:
             friList = dragon.friList
             friList = json.loads(friList)
+            if dragon.state >= 4:
+                allowFriend = 7
+            elif dragon.state == 3:
+                allowFriend = 5
+            else:
+                allowFriend = 3
             if len(friList) > allowFriend:
                 print "friend help enough"
                 return dict(id = 0, reason = "enough friend helped")
