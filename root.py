@@ -4654,20 +4654,19 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         allPets = []
         for d in dragon:
-            d = list(d)
+            ld = list(d)
             try:
                 attribute = DBSession.query(PetAtt.att).filter_by(pid=d[0]).one()
             except:
                 attribute = PetAtt(pid=d.pid, att=0)
                 DBSession.add(attribute)
-            d.append(attribute[0])
-            allPets.append(d)
+            ld.append(attribute[0])
+            allPets.append(ld)
         return dict(id=1, pets=allPets)
     """
->>>>>>> d07a479fc9d337d3b6b6e555e91490b1c474f271
     @expose('json')
     def getFriPets(self, uid, otherid, cid):
         try:
