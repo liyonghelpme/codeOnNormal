@@ -5771,6 +5771,7 @@ class RootController(BaseController):
                     cost = accCost(timeLeft)
                     if u.cae >= cost:
                         u.cae -= cost
+                        p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
                         DBSession.flush()
