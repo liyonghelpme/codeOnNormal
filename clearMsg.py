@@ -8,8 +8,8 @@ cursor = con.cursor()
 beginTime = [2011, 1, 1, 0, 0, 0, 0, 0, 0]
 curNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
 
-thDays = 10
-unReadNum = 80
+thDays = 3*24*3600
+unReadNum = 100
 
 #remove read
 sql = 'delete from message where `read` = 1 and ('+str(curNow)+ '  - time) > '+ str(thDays)
@@ -27,5 +27,4 @@ for d in data:
     print "remove " + str(remove)
     sql = 'delete from message where fid = ' + str(d[0]) + ' order by time limit ' + str(remove)
     cursor.execute(sql)
-    print sql
 con.commit()
