@@ -4636,27 +4636,6 @@ class RootController(BaseController):
     growUp = [51, 100, 250, 99999999]
     reward = [[4500, 30], [9000, 40], [15000, 100], [0, 0]]
     allowFriend = 3
-    @expose('json')
-    def relive(self, uid, cid, gid):
-        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
-        #-1 dead 0 not active 1 egg 2 child 3 adult 4 old when health < 0 dead update
-        if dragon.state != -1:#dead = -1 0 not active
-            return dict(id=0, reason="not dead yet")
-        user = checkopdata(uid)
-        if user.cae <= 10:
-            return dict(id = 0, reason="cae not enough")
-        user.cae -= 10
-        #dead = 0
-        dragon.kind += 1
-        if dragon.kind >= len(eggCost):
-            dragon.kind = len(eggCost)-1
-        dragon.state = 2#egg = 2
-        dragon.health = 9
-        dragon.friList = '[]'
-        dragon.lastFeed = 0
-        dragon.attack = eggCost[dragon.kind][1]+dragon.health*eggCost[dragon.kind][2] 
-        return dict(id=1, result = "relive suc")
 
     @expose('json')
     def getBids(self, uid, cid):
@@ -4684,6 +4663,30 @@ class RootController(BaseController):
         return dict(id=1)
     #喂养宠物 self feed friend feed 
 
+    @expose('json')
+    def changeKind(self, uid, pid, kind):
+        uid = int(uid)
+        pid = int(pid)
+        pet = DBSession.query(Dragon).filter_by(pid = pid).one()
+        user = DBSession.query(operationalData).filter_by(userid = uid).one()
+        if pet.uid != uid:
+            return dict(id=0, reason="not your pet")
+        if pet.state == 2:#0 not active 1 not buy 2
+            if kind >= 0 and kind < len(eggCost):
+                cost = eggCost[kind]
+                if cost[0] > 0:#money
+                    if user.corn >= cost[0] and user.food >= cost[1]:
+                        user.corn -= cost[0]
+                        user.food -= cost[1]
+                        pet.kind = kind
+                        return dict(id=1, result="change by corn")
+                else:
+                    caeCost = abs(cost[0])
+                    if user.cae >= caeCost:
+                        user.cae -= caeCost
+                        pet.kind = kind
+                        return dict(id=1, result="change by cae")
+        return dict(id=0, reason="resource not enough, not egg, kind not right")
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
         uid = int(uid)
