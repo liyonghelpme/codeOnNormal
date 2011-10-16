@@ -4779,7 +4779,7 @@ class RootController(BaseController):
             user.food -= needFood;
             dragon.lastFeed |= 1
             #update health
-            if dragon.health < needHealth[state]        
+            if dragon.health <= needHealth[state]        
                 dragon.health += addHealth[state]
             """
             if dragon.health >= growUp[state] and dragon.state < 5:
@@ -4825,7 +4825,7 @@ class RootController(BaseController):
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
                 #update health
-                if dragon.health < needHealth[state]        
+                if dragon.health <= needHealth[state]        
                     dragon.health += 1
                 """
                 if dragon.health >= growUp[state] and dragon.state < 5:
