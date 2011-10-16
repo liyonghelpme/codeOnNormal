@@ -4436,7 +4436,7 @@ class RootController(BaseController):
                             p.finish = 0
                             p.producttime = ti
                             return dict(id=1, result="update by food")
-            return dict(id=0, reason="lev or resource not correct")
+                return dict(id=0, reason="lev or resource not correct")
 
             lis=getGround_id(int(ground_id))
             if lis==None:
