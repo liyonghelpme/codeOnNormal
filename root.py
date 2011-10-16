@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -1934,8 +1934,10 @@ class RootController(BaseController):
             return milbuild[ground_id-200]
         elif ground_id>=300 and ground_id<=399:#business
             return businessbuild[ground_id-300]
-        elif ground_id>=400 and ground_id<=499:#god
+        elif ground_id>=400 and ground_id<420:#god
             return godbuild[ground_id-400]
+        elif ground_id>=420 and ground_id<=424:
+            return friendGod[ground_id-420]
         elif ground_id>=500 and ground_id<=699:#decoration
             return decorationbuild[ground_id-500]
         else:
@@ -2197,9 +2199,9 @@ class RootController(BaseController):
         dv=None
         cardlist=[]
         visit=None
+        bonus=0
         try:
             dv=DBSession.query(Datevisit).filter_by(uid=int(userid)).one()
-            bonus=0
             uu=checkopdata(userid)#cache
             u=DBSession.query(operationalData).filter_by(otherid=otherid).filter_by(user_kind=int(user_kind)).one()#7.29,otherid 
             uw=DBSession.query(warMap).filter_by(userid=u.userid).one()
@@ -2222,9 +2224,28 @@ class RootController(BaseController):
                 cardlist.append(ca.warcard)
             except:
                 cardlist=[]
-            if visit.visited==0:
+            if visit.visited==0:#not visited
+                print "not visited yet"
                 bonus=100+10*(dv.visitnum)
-                uu.corn=uu.corn+100+10*(dv.visitnum)
+                print "bonus " + str(bonus)
+                mycity = DBSession.query(warMap).filter_by(userid = userid).one()
+                buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=mycity.city_id).all() 
+                print "friend god " + str(len(buildings))
+                workTime = [3600, 21600, 86400]
+                #only one friend god
+                if len(buildings) > 0:
+                    b = buildings[0];
+                    if b.object_id >=0 and b.object_id < len(workTime) and workTime[b.object_id] > (t-b.producttime):
+                        lev = b.ground_id-420;
+                        bonus += friGodReward[lev]
+                        print "friend God help"
+                    else:
+                        b.object_id = -1
+                        b.producttime = 0
+                
+                print "bonus " + str(bonus)
+                #增加访问奖励
+                uu.corn=uu.corn+bonus#bonus
                 dv.visitnum=dv.visitnum+1
                 uu.visitnum=dv.visitnum
                 
@@ -2242,11 +2263,10 @@ class RootController(BaseController):
             
             return dict(money = u.corn, id=otherid, sub=sub,cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,allyupbound=u.allyupbound,frienduserid=u.userid,city_id=uw.city_id,visited=i,corn=bonus,stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
         except InvalidRequestError:
-            #newvisit=visitFriend(userid=userid,friendid=friendid)
-            #DBSession.add(newvisit)
+            print "error visit " + str(uu.userid) + ' ' + str(otherid)
             if visit!=None:
                 visit.visited=1
-            uu.corn=uu.corn+100+10*(dv.visitnum)
+            uu.corn=uu.corn+bonus#
             dv.visitnum=dv.visitnum+1
             uu.visitnum=dv.visitnum+1
             try:
@@ -2264,11 +2284,25 @@ class RootController(BaseController):
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-            if p.ground_id >= 1000 and p.ground_id < 1100:
-                return dict(id = 0, reason="pet house can't be sold")
+            
+            if p.ground_id >=1000 and p.ground_id < 1100:
+                return dict(id=0, reason='dragon can not be sold')
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                lev = p.ground_id - 420
+                i = 0
+                while i <= lev:
+                    u.populationupbound -= friendGod[i][4]
+                    i += 1
+                #h f c exp
+                #u.food += friendGod[lev][1]/4
+                cornAdd = [2500, 5000, 10000, 20000, 40000]
+                u.corn += cornAdd[lev]
+                    #todo reduce corn and food 
+                DBSession.delete(p)
+                return dict(id=1, result="sell friendGod suc", grid=grid_id)
+            
             lis=getGround_id(p.ground_id)
             if lis==None:
                 return dict(id=0)
@@ -2295,7 +2329,7 @@ class RootController(BaseController):
                         lisx=getGround_id(p.ground_id-1)
                         lisy=getGround_id(p.ground_id-2)
                         u.labor_num=u.labor_num-lis[2]-lisx[2]-lisy[2]
-                elif p.ground_id>=400 and p.ground_id<499:
+                elif p.ground_id>=400 and p.ground_id<420:
                     
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         u.food_god_lev=0                                
@@ -2306,42 +2340,30 @@ class RootController(BaseController):
                                                       
                         u.wealth_god_lev=0
                     else:
-                        u.war_god_lev=0                        
+                        u.war_god_lev=0                  
                 else:
                     x=0     
-                if p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==0:
+                if p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==0:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-250
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==1:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-250
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==1:
                     ub=u.populationupbound                    
                     u.populationupbound=u.populationupbound-500
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==2:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-500
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==2:
                     ub=u.populationupbound                       
                     u.populationupbound=u.populationupbound-750
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                    
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==3:
-                    #if p.finish==0:
-                    #    u.populationupbound=u.populationupbound-750
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==3:
                     ub=u.populationupbound   
                     u.populationupbound=u.populationupbound-1000  
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)                      
-                elif p.ground_id>=400 and p.ground_id<=499 and int((p.ground_id-400)/4)==4:
-                    #if p.finisht==0:
-                    #    u.populationupbound=u.populationupbound-1000
-                    #else:
+                elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==4:
                     ub=u.populationupbound
                     u.populationupbound=u.populationupbound-1250  
                     ua=u.populationupbound
@@ -2352,7 +2374,7 @@ class RootController(BaseController):
                         u.corn=u.corn+lis[0]/4
                     elif p.ground_id>=500 and p.ground_id<=599:
                         u.corn=u.corn+lis[0]/4
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         if p.ground_id<=403:
                             u.corn=u.corn+2500
                         elif p.ground_id<=407:
@@ -2494,16 +2516,8 @@ class RootController(BaseController):
                     u.populationupbound=u.populationupbound-decorationbuild[p.ground_id-500][1]
                     ua=u.populationupbound
                     popuplog(ub,ua,u.userid)
-                #if u.population>u.populationupbound:
-                #    u.population=u.populationupbound      
                 DBSession.delete(p)
                 DBSession.flush()
-                #p.ground_id=-1
-                #p.producttime=0
-                #p.object_id=-1
-                #p.finish=0
-                read(city_id)
-                replacecache(user_id,u)#cache
                 return  dict(id=1)
         except InvalidRequestError:
             return dict(id=0)   
@@ -2866,7 +2880,6 @@ class RootController(BaseController):
         wargodtime=-1
         wealthgodtime=-1
         popgodtime=-1
-        wealthgodtime=-1
         foodlost=0
         src=papayaid+'-'+md5string
         md51=hashlib.md5(src).hexdigest()
@@ -2947,8 +2960,7 @@ class RootController(BaseController):
                 user.war_god=0
                 user.wargodtime=0
                 wargodtime=0
-
-            if user.war_god == 0:
+            if user.war_god_lev == 0:
                 wargodtime = -1
 
             if user.person_god==1:
@@ -2963,8 +2975,7 @@ class RootController(BaseController):
                 user.pop_god=0
                 user.popgodtime=0 
                 popgodtime=0
-
-            if user.person_god == 0:
+            if user.person_god_lev == 0:
                 popgodtime = -1
 
             if user.food_god==1:
@@ -2979,7 +2990,7 @@ class RootController(BaseController):
                 user.food_god=0
                 user.foodgodtime=0 
                 foodgodtime=0
-            if user.food_god == 0:
+            if user.food_god_lev == 0:
                 foodgodtime = -1
 
             if user.wealth_god==1:
@@ -2994,9 +3005,9 @@ class RootController(BaseController):
                 user.wealth_god=0
                 user.wealthgodtime=0 
                 wealthgodtime=0 
-
-            if user.wealth_god == 0:
+            if user.wealth_god_lev == 0:
                 wealthgodtime = -1
+
             task=-1
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
                 task=-1
@@ -4272,48 +4283,6 @@ class RootController(BaseController):
         if len(uni) != 0:
             print "tar union with other"
             return dict(id=0, reason="tar union with others")
-        """        
-        src2 = sorted(src)
-        tar2 = sorted(tar)
-        #print "src " + str(src2)
-        #print "tar " + str(tar2)
-        #check if src in same grid_id
-
-        pre = -1
-        for s in src2:
-            if s == pre:
-                print "src collision " + str(pre) + ' ' + str(s)
-                return dict(id=0, reason="src collision "+str(pre)+' '+str(s))
-            pre = s
-        pre = -1
-        #check if tar in same grid_id
-        for t in tar2:
-            if t == pre:
-                print "tar collision " + str(pre) +' ' + str(t)
-                return dict(id=0, reason="tar collision "+str(pre)+' '+str(t)) 
-        allbuilding = DBSession.query(businessWrite.grid_id).filter(businessWrite.city_id==city).filter(businessWrite.ground_id != -1).all()
-        temp = []
-        for b in allbuilding:
-            temp.append(b[0])
-        #print temp
-        #remove src from all buildings
-        for b in src2:
-            try:
-                temp.index(b)
-                temp.remove(b)
-            except:
-                print "src not exist " + str(b)
-                return dict(id = 0, reason="no move build "+str(b))
-        j = 0
-        #check tar collision with src
-        for b in tar2:
-            try:
-                temp.index(b)
-                print "tar collision with left " + str(b)
-                return dict(id=0, reason = "collision " + str(b))
-            except:
-                j += 1
-        """
         allSrc = []#bid
         for s in src:
             building = DBSession.query(businessWrite.bid).filter_by(city_id=city).filter_by(grid_id = s).all()
@@ -4333,12 +4302,29 @@ class RootController(BaseController):
     @expose('json')
     def godbless(self,uid,godtype,caetype):#对外接口，施加神迹
         uid=int(uid)
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
         u=checkopdata(uid)#cache
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         godtype=int(godtype)
         caetype=int(caetype)
+        caeCost = [3, 15, 30]
         mark=0
+        warmap = DBSession.query(warMap).filter_by(userid = uid).one()
+        if godtype == 4: #friendGod
+            if caetype >= 0 and caetype < len(caeCost):
+                buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=warmap.city_id).all()
+                #buildings = list(buildings)
+                print "friend god help now " + str(caetype)
+                #print buildings
+                if len(buildings) > 0:
+                   if u.cae >= caeCost[caetype]:
+                        u.cae -= caeCost[caetype]
+                        b = buildings[0]
+                        b.producttime = t
+                        b.object_id = caetype
+                        print "friend god bless suc"
+                        return dict(id=1, result = "friend god bless "+ str(caetype))
+            return dict(id=0, reason="cae not enough or no god") 
+
         if caetype==0:
             if u.cae-3>=0:
                 cb=u.cae
@@ -4423,29 +4409,56 @@ class RootController(BaseController):
             ground_id=int(ground_id)
             stone=0
             wood=0
-            lis=getGround_id(int(ground_id))
-            if lis==None:
-                return dict(id=-int(ground_id))
-            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
+
             u=checkopdata(user_id)#cache
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+
+            if ground_id >= 420 and ground_id <= 424:
+                lev = ground_id - 420#next level
+                if (p.ground_id+1) != ground_id:
+                    return dict(id = 0, reason = "not friend god or lev > tar")
+                #0 time 1 food 2 corn 3 exp 4 population 5 cae
+                if lev <= 4:
+                    if int(type) == 0:
+                        if u.cae >= friendGod[lev][5]:
+                            u.cae -= friendGod[lev][5]
+                            u.populationupbound += friendGod[lev][4]
+                            u.exp += friendGod[lev][3]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti 
+                            return dict(id=1, result="update by cae", caeCost = friendGod[lev][5])
+                    else:
+                        if u.food >= friendGod[lev][1] and u.corn >= friendGod[lev][2]:
+                            u.food -= friendGod[lev][1]
+                            u.corn -= friendGod[lev][2]
+                            u.exp += friendGod[lev][3]
+                            u.populationupbound += friendGod[lev][4]
+                            p.ground_id += 1
+                            p.finish = 0
+                            p.producttime = ti
+                            return dict(id=1, result="update by food")
+                return dict(id=0, reason="lev or resource not correct")
+
+            lis=getGround_id(int(ground_id))
+            if lis==None:
+                return dict(id=-int(ground_id))
             price=lis[0]
             if p.ground_id<=0 or p.grid_id<=0:
                 return dict(id=0)
             if int(type)==0:
                 if ground_id>=100 and ground_id<=199:
                     cae=lis[3]
-                    
                 elif ground_id>=200 and ground_id<=299:
                     cae=lis[4]
                     pop=lis[2]
                 elif ground_id>=300 and ground_id<=399:
                     cae=lis[4]
                     pop=lis[2]
-                elif ground_id>=400 and ground_id<=499:
+                elif ground_id>=400 and ground_id<420:
                     cae=lis[2]
-                #if u.cae-cae>=0:    
+                    
                 if u.cae-cae>=0 and u.labor_num+pop<=u.population:
                     p.producttime=ti
                     p.finish=0
@@ -4465,8 +4478,9 @@ class RootController(BaseController):
                         u.exp=u.exp+lis[5]
                     elif p.ground_id>=300 and p.ground_id<=399:
                         u.exp=u.exp+lis[5]
-                    elif p.ground_id>=400 and p.ground_id<=499:
+                    elif p.ground_id>=400 and p.ground_id<420:
                         u.exp=u.exp+lis[3]
+                        
                     if ground_id>=400 and ground_id<=499:
                         if (ground_id-400)%4==0:
                             u.foodgodtime=-1
@@ -4608,39 +4622,21 @@ class RootController(BaseController):
                         return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    #hour food corn exp popupbound upgrade_cae 
+    global friendGod
+    global friGodReward
+    friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 250, 5], [12*3600, 2000, 50000, 170, 250, 10], [18*3600, 5000, 100000, 250, 250, 15], [24*3600, 10000, 500000, 350, 250, 30]]
+    friGodReward = [5, 10, 20, 30, 50]
     global initH
     global addHealth
     global growUp
     global reward
-    global allowFriend
     global eggCost
-    eggCost = [[50000, 100, 5], [100000, 150, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 200, 7], [-100, 1100, 11]]
+    eggCost = [[50000, 100, 5], [100000, 250, 6], [500000, 1000, 10], [-10, 150, 5], [-50, 800, 7], [-100, 1100, 11]]
     initH = [0, 25, 40, 600]
     addHealth = [3, 5, 7, 7]
     growUp = [51, 100, 250, 99999999]
     reward = [[4500, 30], [9000, 40], [15000, 100], [0, 0]]
-    allowFriend = 3
-    @expose('json')
-    def relive(self, uid, cid, gid):
-        building = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=gid).one()
-        dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
-        #-1 dead 0 not active 1 egg 2 child 3 adult 4 old when health < 0 dead update
-        if dragon.state != -1:#dead = -1 0 not active
-            return dict(id=0, reason="not dead yet")
-        user = checkopdata(uid)
-        if user.cae <= 10:
-            return dict(id = 0, reason="cae not enough")
-        user.cae -= 10
-        #dead = 0
-        dragon.kind += 1
-        if dragon.kind >= len(eggCost):
-            dragon.kind = len(eggCost)-1
-        dragon.state = 2#egg = 2
-        dragon.health = 9
-        dragon.friList = '[]'
-        dragon.lastFeed = 0
-        dragon.attack = eggCost[dragon.kind][1]+dragon.health*eggCost[dragon.kind][2] 
-        return dict(id=1, result = "relive suc")
 
     @expose('json')
     def getBids(self, uid, cid):
@@ -4659,6 +4655,14 @@ class RootController(BaseController):
             return dict(id = 0, reason="no user or no dragon")
         return dict(id=1, pets=dragon)
 
+    @expose('json')
+    def getFriPets(self, uid, otherid, cid):
+        try:
+            user = DBSession.query(operationalData).filter_by(otherid=otherid).one();
+            dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == user.userid, businessWrite.bid==Dragon.bid)).all()#index bid
+        except:
+            return dict(id = 0, reason="no user or no dragon")
+        return dict(id=1, pets=dragon)
     #命名宠物 修改名字
     @expose('json')#state = 2
     def namePet(self, uid, gid, name, cid):
@@ -4666,8 +4670,55 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
         dragon.name = name        
         return dict(id=1)
+    @expose('json')
+    def changeAttr(self, uid, pid, attr):#000 attr 000 kind
+        uid = int(uid)
+        pid = int(pid)
+        attr = int(attr)
+        pet = DBSession.query(Dragon).filter_by(pid = pid).one()
+        user = DBSession.query(operationalData).filter_by(userid = uid).one()
+        if pet.uid != uid:
+            return dict(id=0, reason="not your pet")
+        #0 solid 1 fire 2 ice
+        if attr <= 0:
+            return dict(id=0, reason='attr not  > 0')
+        curkind = pet.kind % 1000
+        if user.cae >= 20:
+            user.cae -= 20
+            pet.kind = curkind + attr*1000
+            return dict(id=1, result='change attr suc')
+        return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
 
+    @expose('json')
+    def changeKind(self, uid, pid, kind):
+        uid = int(uid)
+        pid = int(pid)
+        kind = int(kind)
+        pet = DBSession.query(Dragon).filter_by(pid = pid).one()
+        user = DBSession.query(operationalData).filter_by(userid = uid).one()
+        if pet.uid != uid:
+            return dict(id=0, reason="not your pet")
+        if pet.state == 2:#0 not active 1 not buy 2
+            print "is egg " + str(kind)
+            if kind >= 0 and kind < len(eggCost):
+                print "kind right"
+                cost = eggCost[kind]
+                if cost[0] > 0:#money
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
+                    if user.corn >= cost[0] and user.food >= cost[1]:
+                        user.corn -= cost[0]
+                        user.food -= cost[1]
+                        pet.kind = kind
+                        return dict(id=1, result="change by corn")
+                else:
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
+                    caeCost = abs(cost[0])
+                    if user.cae >= caeCost:
+                        user.cae -= caeCost
+                        pet.kind = kind
+                        return dict(id=1, result="change by cae")
+        return dict(id=0, reason="resource not enough, not egg, kind not right")
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
         uid = int(uid)
@@ -4697,7 +4748,8 @@ class RootController(BaseController):
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
             #update attack
-            incAtt = dragon.health*eggCost[dragon.kind][2]
+            rkind = dragon.kind % 1000
+            incAtt = dragon.health*eggCost[rkind][2]
             attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
@@ -4705,6 +4757,12 @@ class RootController(BaseController):
         else:
             friList = dragon.friList
             friList = json.loads(friList)
+            if dragon.state >= 4:
+                allowFriend = 7
+            elif dragon.state == 3:
+                allowFriend = 5
+            else:
+                allowFriend = 3
             if len(friList) > allowFriend:
                 print "friend help enough"
                 return dict(id = 0, reason = "enough friend helped")
@@ -4734,7 +4792,8 @@ class RootController(BaseController):
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
                 #update attack
-                incAtt = dragon.health*eggCost[dragon.kind][2]
+                rkind = dragon.kind % 1000
+                incAtt = dragon.health*eggCost[rkind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
@@ -4877,14 +4936,47 @@ class RootController(BaseController):
     @expose('json')
     #return id = 1 suc  id = 0 fail 
     def build(self,user_id,city_id,ground_id,grid_id):# 对外接口，建造建筑物build operationalData:query->update; businessWrite:query->update
-        #建造宠物巢穴
-        ground_id = int(ground_id)
+        print "build " + str(ground_id)
+        curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
         user_id = int(user_id)
+        user = checkopdata(user_id)
+        #420 421 422 423 424 can't build high level
+        #when visit friend add corn more
+        ground_id = int(ground_id)
+        if ground_id >= 420 and ground_id <= 424:
+            buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and  ground_id <= 424").params(cid=city_id).all();
+            #print buildings
+            if len(buildings) != 0:
+                return dict(id=0, reason="friend god exist in city")
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
+            for b in buildings:
+                if b.ground_id != -1:
+                    return dict(id = 0, reason="building exist here")
+                DBSession.delete(b)
+            lev = int(ground_id)-420
+            #check demands
+            if lev == 0:
+                if user.lev < 25:
+                    return dict(id=0, reason="level < 25")
+            if user.food >= friendGod[lev][1] and user.corn >= friendGod[lev][2]:
+                user.food -= friendGod[lev][1]
+                user.corn -= friendGod[lev][2]
+                user.populationupbound += friendGod[lev][4]
+                user.exp += friendGod[lev][3]
+
+                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, producttime = curTime, finish = 0)
+                DBSession.add(building)
+                read(city_id)
+                return dict(id=1, result="friendgod suc")
+            else:
+                return dict(id=0, reason="resource not enough")
+            return dict(id=0, reason="unknown")
+
+
         demands = [10, 1000, 100000]#lev 10 food 10000 corn 10W
         #upbound + 100
         if ground_id / 1000 != 0:
             print "build dragon " + str(user_id)
-            user = checkopdata(user_id)
             coinCost = 0
             foodCost = 0
             
@@ -5627,6 +5719,7 @@ class RootController(BaseController):
                 return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
+    #build or upgrade finish both call this funciton
     @expose('json')
     def finish_building(self,user_id,city_id,grid_id):#对外接口，完成建筑物建造operationalData:query->update; businessWrite:query->update
         try:
@@ -5634,6 +5727,17 @@ class RootController(BaseController):
            lis=getGround_id(p.ground_id)
            u=checkopdata(user_id)#cache
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+           if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    if (ti-p.producttime) >= needTime:
+                        p.object_id = -1
+                        p.finish = 1
+                        p.producttime = 0
+                        return dict(id=1, result = "finish suc")
+                return dict(id=0, reason="need more time or finish yet")
+
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                if p.ground_id==400:
                    u.food_god_lev=1
@@ -5714,6 +5818,20 @@ class RootController(BaseController):
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
             print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
+            if p.ground_id >= 420 and p.ground_id <= 424:
+                if p.finish == 0:
+                    lev = p.ground_id - 420
+                    needTime = friendGod[lev][0]
+                    timeLeft = needTime - t
+                    cost = accCost(timeLeft)
+                    if u.cae >= cost:
+                        u.cae -= cost
+                        p.object_id = -1
+                        p.finish = 1
+                        p.producttime = 0
+                        DBSession.flush()
+                        return dict(id=1, result = "firendgod finish suc", caeCost = cost)
+                return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id==0:
                 return dict(id=0, reason = "castal")
             elif  p.ground_id>=1 and p.ground_id<=99:
