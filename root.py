@@ -2948,7 +2948,7 @@ class RootController(BaseController):
                 user.wargodtime=0
                 wargodtime=0
 
-            if user.war_god == 0:
+            if user.war_god_lev == 0:
                 wargodtime = -1
 
             if user.person_god==1:
@@ -2964,7 +2964,7 @@ class RootController(BaseController):
                 user.popgodtime=0 
                 popgodtime=0
 
-            if user.person_god == 0:
+            if user.person_god_lev == 0:
                 popgodtime = -1
 
             if user.food_god==1:
@@ -2995,7 +2995,7 @@ class RootController(BaseController):
                 user.wealthgodtime=0 
                 wealthgodtime=0 
 
-            if user.wealth_god == 0:
+            if user.wealth_god_lev == 0:
                 wealthgodtime = -1
             task=-1
             if user.currenttask=='' or user.currenttask==None or user.currenttask=='-1' or int(user.currenttask)<0:
