@@ -4655,9 +4655,14 @@ class RootController(BaseController):
         return dict(id=1, bids = buildings)
     @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).filter(PetAtt.pid == Dragon.pid).all()#index bid
-        return dict(id=1, pets=dragon)
-
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        allPets = []
+        for d in dragon:
+            attribute = DBSession.query(PetAtt.att).filter_by(pid=d[0]).one()
+            d.append(attribute[0])
+            allPets.append(d)
+        return dict(id=1, pets=allPets)
+    """
     @expose('json')
     def getFriPets(self, uid, otherid, cid):
         try:
@@ -4666,6 +4671,7 @@ class RootController(BaseController):
         except:
             return dict(id = 0, reason="no user or no dragon")
         return dict(id=1, pets=dragon)
+    """
     #命名宠物 修改名字
     @expose('json')#state = 2
     def namePet(self, uid, gid, name, cid):
