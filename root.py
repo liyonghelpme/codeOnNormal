@@ -4658,7 +4658,11 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         allPets = []
         for d in dragon:
-            attribute = DBSession.query(PetAtt.att).filter_by(pid=d[0]).one()
+            try:
+                attribute = DBSession.query(PetAtt.att).filter_by(pid=d[0]).one()
+            except:
+                attribute = PetAtt(pid=d.pid, att=0)
+                DBSession.add(attribute)
             d.append(attribute[0])
             allPets.append(d)
         return dict(id=1, pets=allPets)
