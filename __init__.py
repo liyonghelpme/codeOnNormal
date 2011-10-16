@@ -19,10 +19,10 @@ beginTime=(2011,1,1,0,0,0,0,0,0)
 timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
 taskbonus=[]
 wartaskbonus=[]
-f = file('/root/tg2env/taskbonus.json')
+f = file('taskbonus.json')
 source = f.read()
 target = json.JSONDecoder().decode(source)
-f2=file('/root/tg2env/wartask.json')
+f2=file('wartask.json')
 source2=f2.read()
 if source2!=None:
     target2 = json.JSONDecoder().decode(source2)
@@ -30,6 +30,11 @@ for t in target:
     taskbonus.append([t['id'],t['des'],t['lev']])
 for tt in target2:
     wartaskbonus.append([tt['id'],tt['des'],tt['lev']])
+
+#newtask = file('newtask.json')
+#newtask = newtask.read()
+#newtask = json.loads(newtask)
+
 logfile=open("logfile"+timestr,'w')
 # Base class for all of our model classes: By default, the data model is
 # defined with SQLAlchemy's declarative extension, but if you need more
@@ -145,4 +150,6 @@ from stchong.model.caebuy import Caebuy
 from stchong.model.papayafriend import Papayafriend
 from stchong.model.rank import Rank
 from stchong.model.dragon import Dragon
+from stchong.model.petAtt import PetAtt
+from stchong.model.message import Message
 #from stchong.model.useraccount import userAccount

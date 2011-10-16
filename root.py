@@ -14,7 +14,7 @@ from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
-#from stchong.model import PetAtt
+from stchong.model import PetAtt
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -4673,7 +4673,6 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon).filter(Dragon.bid == building.bid).one()#index bid
         dragon.name = name        
         return dict(id=1)
-    """
     @expose('json')
     def changeAttr(self, uid, pid, attr):#find if exist then visit petAtt table
         uid = int(uid)
@@ -4697,7 +4696,6 @@ class RootController(BaseController):
             return dict(id=1, result='change attr suc')
         return dict(id=0, reason='cae not enough')
     #喂养宠物 self feed friend feed 
-    """
     @expose('json')
     def changeKind(self, uid, pid, kind):
         uid = int(uid)
@@ -4726,6 +4724,25 @@ class RootController(BaseController):
                         pet.kind = kind
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
+    global needHealth 
+    needHealth = [51, 999, 9999, 99999, 999999]
+    @expose('json')#upgrade state
+    def getUp(self, uid, pid):
+        uid = int(uid)
+        pid = int(pid)
+        dragon = DBSession.query(Dragon).filter(Dragon.pid = pid).one()
+        if dragon.uid != uid:
+            return dict(id=0, reason="not your dragon")
+        state = dragon.state - 2
+        if state < 0 or state >= len(needHealth):
+            return dict(id=0, reason="not in right state")
+        if dragon.health >= needHealth[state]:
+            user = checkopdata(uid)
+            user.corn += reward[state][0]
+            user.exp += reward[state][1]
+            dragon.state += 1
+            return dict(id=1, result="new state " + str(state))
+        return dict(id=0, reason="health not enough " + str(dragon.health))
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
         uid = int(uid)
@@ -4749,14 +4766,16 @@ class RootController(BaseController):
             user.food -= needFood;
             dragon.lastFeed |= 1
             #update health
-            dragon.health += addHealth[state]
+            if dragon.health < needHealth[state]        
+                dragon.health += addHealth[state]
+            """
             if dragon.health >= growUp[state] and dragon.state < 5:
                 dragon.state += 1
                 user.corn += reward[state][0]
                 user.exp += reward[state][1]
+            """
             #update attack
-            rkind = dragon.kind
-            incAtt = dragon.health*eggCost[rkind][2]
+            incAtt = dragon.health*eggCost[dragon.kind][2]
             attack = eggCost[dragon.kind][1] + incAtt
             if attack > dragon.attack:
                 dragon.attack = attack
@@ -4793,14 +4812,16 @@ class RootController(BaseController):
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
                 #update health
-                dragon.health += 1
+                if dragon.health < needHealth[state]        
+                    dragon.health += 1
+                """
                 if dragon.health >= growUp[state] and dragon.state < 5:
                     dragon.state += 1
                     user.corn += reward[state][0]
                     user.exp += reward[state][1]
+                """
                 #update attack
-                rkind = dragon.kind
-                incAtt = dragon.health*eggCost[rkind][2]
+                incAtt = dragon.health*eggCost[dragon.kind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
                 if attack > dragon.attack:
                     dragon.attack = attack
