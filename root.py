@@ -4693,8 +4693,16 @@ class RootController(BaseController):
         if pet.uid != uid:
             return dict(id=0, reason="not your pet")
         #0 solid 1 fire 2 ice
-        if attr <= 0:
+        if attr < 0:
             return dict(id=0, reason='attr not  > 0')
+        if attr == 0:
+            petAtt = DBSession.query(PetAtt).filter_by(pid = pid).all()
+            if len(petAtt) == 0:
+                petAtt = PetAtt(pid=pid, att = attr)
+                DBSession.add(petAtt)
+            else:
+                petAtt[0].att = attr
+            return dict(id=1, result="return to soil dragon")
         if user.cae >= 20:
             user.cae -= 20
             petAtt = DBSession.query(PetAtt).filter_by(pid = pid).all()
