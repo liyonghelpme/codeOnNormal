@@ -2979,7 +2979,7 @@ class RootController(BaseController):
                 user.food_god=0
                 user.foodgodtime=0 
                 foodgodtime=0
-            if user.food_god == 0:
+            if user.food_god_lev == 0:
                 foodgodtime = -1
 
             if user.wealth_god==1:
