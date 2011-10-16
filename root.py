@@ -218,11 +218,13 @@ class RootController(BaseController):
             end = nums
 
         if end == -1:
+            end = nums
             msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
         else:
             msgs = DBSession.query(Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
             m.read = 1
+        DBSession.flush()
         return dict(id=1, leftNum = nums-end, msg = msgs)
 
     @expose('json')
@@ -3241,7 +3243,7 @@ class RootController(BaseController):
             x=defenceplist[nobility][1]
             cb=u.cae
             if type==0:
-                cae=int((defencenum+10-1)/10)
+                cae=int((defencenum+100-1)/100)
                 if u.cae-cae>=0:
                     u.defencepower=u.defencepower+defencenum
                     u.cae=u.cae-cae
@@ -3253,7 +3255,7 @@ class RootController(BaseController):
                     return dict(id=0)
             else:
                 corn=100*defencenum
-                food=50*defencenum
+                food=5*defencenum
                 #corn=150*defenceplist[nobility][0]
                 #food=10*defenceplist[nobility][2]
                 #stone=5*defenceplist[nobility][3]
