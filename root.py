@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -4661,6 +4661,7 @@ class RootController(BaseController):
         dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, PetAtt.att).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         allPets = []
         for d in dragon:
+            d = list(d)
             try:
                 attribute = DBSession.query(PetAtt.att).filter_by(pid=d[0]).one()
             except:
@@ -4743,7 +4744,7 @@ class RootController(BaseController):
     def getUp(self, uid, pid):
         uid = int(uid)
         pid = int(pid)
-        dragon = DBSession.query(Dragon).filter(Dragon.pid = pid).one()
+        dragon = DBSession.query(Dragon).filter(Dragon.pid == pid).one()
         if dragon.uid != uid:
             return dict(id=0, reason="not your dragon")
         state = dragon.state - 2
@@ -4754,7 +4755,7 @@ class RootController(BaseController):
             user.corn += reward[state][0]
             user.exp += reward[state][1]
             dragon.state += 1
-            return dict(id=1, result="new state " + str(state))
+            return dict(id=1, result="new state " + str(state+2))
         return dict(id=0, reason="health not enough " + str(dragon.health))
     @expose('json')#state = 2  1clear all state > 2 friList = "[]" 2all health -=  3clear all feed state
     def feed(self, uid, gid, cid):
@@ -4779,7 +4780,7 @@ class RootController(BaseController):
             user.food -= needFood;
             dragon.lastFeed |= 1
             #update health
-            if dragon.health <= needHealth[state]        
+            if dragon.health <= needHealth[state]:        
                 dragon.health += addHealth[state]
             """
             if dragon.health >= growUp[state] and dragon.state < 5:
@@ -4825,7 +4826,7 @@ class RootController(BaseController):
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
                 #update health
-                if dragon.health <= needHealth[state]        
+                if dragon.health <= needHealth[state]:        
                     dragon.health += 1
                 """
                 if dragon.health >= growUp[state] and dragon.state < 5:
