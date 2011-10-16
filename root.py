@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -4655,20 +4655,25 @@ class RootController(BaseController):
     def changeKind(self, uid, pid, kind):
         uid = int(uid)
         pid = int(pid)
+        kind = int(kind)
         pet = DBSession.query(Dragon).filter_by(pid = pid).one()
         user = DBSession.query(operationalData).filter_by(userid = uid).one()
         if pet.uid != uid:
             return dict(id=0, reason="not your pet")
         if pet.state == 2:#0 not active 1 not buy 2
+            print "is egg " + str(kind)
             if kind >= 0 and kind < len(eggCost):
+                print "kind right"
                 cost = eggCost[kind]
                 if cost[0] > 0:#money
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
                     if user.corn >= cost[0] and user.food >= cost[1]:
                         user.corn -= cost[0]
                         user.food -= cost[1]
                         pet.kind = kind
                         return dict(id=1, result="change by corn")
                 else:
+                    print "cost " + str(cost[0]) + ' ' + str(cost[1])
                     caeCost = abs(cost[0])
                     if user.cae >= caeCost:
                         user.cae -= caeCost
