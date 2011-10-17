@@ -4790,12 +4790,6 @@ class RootController(BaseController):
             #update health
             if dragon.health <= needHealth[state]:        
                 dragon.health += addHealth[state]
-            """
-            if dragon.health >= growUp[state] and dragon.state < 5:
-                dragon.state += 1
-                user.corn += reward[state][0]
-                user.exp += reward[state][1]
-            """
             #update attack
             incAtt = dragon.health*eggCost[dragon.kind][2]
             attack = eggCost[dragon.kind][1] + incAtt
@@ -4837,12 +4831,6 @@ class RootController(BaseController):
                 #update health
                 if dragon.health <= needHealth[state]:        
                     dragon.health += 1
-                """
-                if dragon.health >= growUp[state] and dragon.state < 5:
-                    dragon.state += 1
-                    user.corn += reward[state][0]
-                    user.exp += reward[state][1]
-                """
                 #update attack
                 incAtt = dragon.health*eggCost[dragon.kind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
