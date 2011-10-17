@@ -220,9 +220,9 @@ class RootController(BaseController):
 
         if end == -1:
             end = nums
-            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
         else:
-            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
             print str(m)
             ms = DBSession.query(Message).filter_by(mid=m[0]).one()
