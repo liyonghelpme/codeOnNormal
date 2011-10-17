@@ -2,7 +2,7 @@ import MySQLdb
 import json
 import time
 
-con = MySQLdb.connect(host='localhost', user='root', db='stcHong')
+con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='badperson3')
 cursor = con.cursor()
 
 beginTime = [2011, 1, 1, 0, 0, 0, 0, 0, 0]

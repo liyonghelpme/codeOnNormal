@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exceptions import InvalidRequestError
+from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -2264,7 +2264,7 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:#not visited
                 print "not visited yet"
-                bonus=100+10*(dv.visitnum)
+                bonus=100+1*(dv.visitnum)
                 print "bonus " + str(bonus)
                 mycity = DBSession.query(warMap).filter_by(userid = userid).one()
                 buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=mycity.city_id).all() 
@@ -4689,12 +4689,6 @@ class RootController(BaseController):
             #update health
             if dragon.health <= needHealth[state]:        
                 dragon.health += addHealth[state]
-            """
-            if dragon.health >= growUp[state] and dragon.state < 5:
-                dragon.state += 1
-                user.corn += reward[state][0]
-                user.exp += reward[state][1]
-            """
             #update attack
             incAtt = dragon.health*eggCost[dragon.kind][2]
             attack = eggCost[dragon.kind][1] + incAtt
@@ -4729,18 +4723,13 @@ class RootController(BaseController):
                     print "need more food"
                     return dict(id=0, reason="food not enough")
                 friend.food -= needFood
+                friend.corn += 1000
                 friList.append(uotherid)
                 dragon.friList = json.dumps(friList)#clear at 0:00 when friend logsign
                 dragon.lastFeed |= 2
                 #update health
                 if dragon.health <= needHealth[state]:        
                     dragon.health += 1
-                """
-                if dragon.health >= growUp[state] and dragon.state < 5:
-                    dragon.state += 1
-                    user.corn += reward[state][0]
-                    user.exp += reward[state][1]
-                """
                 #update attack
                 incAtt = dragon.health*eggCost[dragon.kind][2]
                 attack = eggCost[dragon.kind][1] + incAtt
@@ -4836,12 +4825,6 @@ class RootController(BaseController):
                         friList.append(-1)
                     dragon.friList = json.dumps(friList)
                     dragon.friNum += 1
-                    """
-                    if dragon.friNum >= needFri:
-                        dragon.state = 1
-                        dragon.friList = "[]"#clear friendList
-                        print "can buy egg"
-                    """
                     return dict(id=1, leftNum = needFri - dragon.friNum)
                 return dict(id=0, reason="cae not enou")
             else:
@@ -4869,14 +4852,9 @@ class RootController(BaseController):
                        return dict(id=0, reason = "you help yet")
                     except:
                         friList.append(uotherid)
+                user.corn += 1000
                 dragon.friList = json.dumps(friList)
                 dragon.friNum += 1
-                """
-                if dragon.friNum >= needFri:
-                    dragon.state = 1#egg
-                    dragon.friList = "[]"#clear friendList
-                    print "can buy egg"
-                """
                 return dict(id=1, leftNum=needFri-dragon.friNum)
             else:
                 return dict(id=0, reason="active yet")
