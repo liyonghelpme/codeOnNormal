@@ -3984,175 +3984,38 @@ class RootController(BaseController):
 
     def recalev(u,v):
         nobility1=u.nobility
-        subno=0
-        minus=-1
-        if nobility1==0:
-            
-            enemynum=int((mapKind[nobility1]-1+6-1)/6)
-            if v.woninmap<int(mapKind[nobility1]/6):
-                minus=int(mapKind[nobility1]/6)-v.woninmap
-            if v.woninmap>=int(mapKind[nobility1]/6) and v.woninmap<int(mapKind[nobility1]*2/6):
-                #u.subno=1
-                minus=int(mapKind[nobility1]*2/6)-v.woninmap
-                #u.castlelev=u.castlelev+1  
-            elif v.woninmap>=int(mapKind[nobility1]*2/6) and v.woninmap<int(mapKind[nobility1]*3/6):
-                #u.subno=2
-                minus=int(mapKind[nobility1]*3/6)-v.woninmap
-            elif v.woninmap>=int(mapKind[nobility1]*3/6):
-                minus=0
-        elif nobility1==1:
-            enemynum=6
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0
-        elif nobility1==2:
-            enemynum=14
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0
-        elif nobility1==3:
-            enemynum=29
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0 
-        elif nobility1==4:
-            enemynum=40
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0   
-        elif nobility1==5:
-            enemynum=137
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0                                                            
-
-        return minus
+        base = [1, 6, 14, 29, 40, 137]
+        if nobility1 < 0 or nobility1 >= len(base):
+            return -1
+        wonInMap = v.woninmap
+        need = base[nobility1]
+        if wonInMap < need:
+            return need-wonInMap
+        if wonInMap < 2*need:
+            return need*2-wonInMap
+        if wonInMap < 3*need:
+            return need*3-wonInMap
+        return 0#can update nobility
     def calev(u,v):#计算爵位等级，在warresult中调用
         nobility1=u.nobility
         subno=0
         minus=-1
-        if nobility1==0:
-            
-            enemynum=int((mapKind[nobility1]-1+6-1)/6)
-            if v.woninmap<int(mapKind[nobility1]/6):
-                minus=int(mapKind[nobility1]/6)-v.woninmap
-            if v.woninmap>=int(mapKind[nobility1]/6) and v.woninmap<int(mapKind[nobility1]*2/6):
-                u.subno=1
-                subno=1
-                minus=int(mapKind[nobility1]*2/6)-v.woninmap
-                #u.castlelev=u.castlelev+1  
-            elif v.woninmap>=int(mapKind[nobility1]*2/6) and v.woninmap<int(mapKind[nobility1]*3/6):
-                u.subno=2
-                subno=2
-                minus=int(mapKind[nobility1]*3/6)-v.woninmap
-            elif v.woninmap>=int(mapKind[nobility1]*3/6):
-                minus=0
-                subno=2
-        elif nobility1==1:
-            enemynum=6
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0
-                subno=2
-        elif nobility1==2:
-            enemynum=14
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0
-                subno=2
-        elif nobility1==3:
-            enemynum=29
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0 
-                subno=2
-        elif nobility1==4:
-            enemynum=40
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0  
-                subno=2 
-        elif nobility1==5:
-            enemynum=137
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0 
-                subno=2                                                           
-        else:
-            subno=0
-            minus=-1
-        return [subno,minus]
-
+        base = [1, 6, 14, 29, 40, 137]
+        if nobility1 < 0 or nobility1 >= len(base):
+            return [subno, minus]
+        wonInMap = v.woninmap
+        need = base[nobility1]
+        if wonInMap < need:
+            u.subno = 0
+            return [0, need-wonInMap]
+        if wonInMap < 2*need:
+            u.subno = 1
+            return [1, need*2-wonInMap]
+        if wonInMap < 3*need:
+            u.subno = 2
+            return [2, need*3-wonInMap]
+        u.subno = 2
+        return [2, 0]#can update nobility
     @expose('json')
     def battlelist(self,uid):
         alist=[]
