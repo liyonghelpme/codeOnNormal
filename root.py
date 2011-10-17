@@ -3698,7 +3698,61 @@ class RootController(BaseController):
                     i = i + 1
                 return dict(rank=rank3)                  
         except InvalidRequestError:
-            return dict(id=0)                
+            return dict(id=0)
+    @expose('json')
+    def foodrank(self,type,off,num,uid):
+        rank1=[]
+        rank2=[]
+        rank3=[]
+        off=int(off)
+        num=int(num)
+        type=int(type)
+        uid=int(uid)
+        try:
+            if type==0:
+                fl=[]
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.corn).filter(Rank.foodrank<21).order_by(Rank.foodrank).all()
+                one=[]
+                for n in fl:
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
+                    rank1.append(one)
+                return dict(rank=rank1)
+            else:
+                fl=DBSession.query(Papayafriend.papayaid).filter_by(uid=int(uid)).all()
+                fll=[]
+                flll=[]
+                rank2=[]
+                for n in fl:
+                    fll.append(n[0])
+                otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
+                otherid=list(otherid)
+                fll.append(otherid[0])
+                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.foodrank).all()
+                for n in rank1:
+                    one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
+                    one=list(one)
+                    one.append(n[1])
+                    one.append(n[2])
+                    one.append(n[3])
+                    one.append(n[4])
+                    rank2.append(one)
+                if rank2==None or len(rank2)==0:
+                    return dict(id=0)
+                i = off - 1#the index of begin
+                j = off + num - 2#the index of end
+                if j >= len(rank2)-1:
+                    j=len(rank2)-1
+                while i <= j:
+                    rank3.append(rank2[i])
+                    i = i + 1
+                return dict(rank=rank3)
+        except InvalidRequestError:
+            return dict(id=0) 
     @expose('json')
     def war(self,uid):#对外接口，战争结果
         print 'fetch warresult ' + str(uid)
