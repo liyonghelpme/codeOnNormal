@@ -3711,7 +3711,7 @@ class RootController(BaseController):
         try:
             if type==0:
                 fl=[]
-                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.corn).filter(Rank.foodrank<21).order_by(Rank.foodrank).all()
+                fl=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.food).filter(Rank.foodrank<21).order_by(Rank.foodrank).all()
                 one=[]
                 for n in fl:
                     one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
@@ -3732,7 +3732,7 @@ class RootController(BaseController):
                 otherid=DBSession.query(operationalData.otherid).filter_by(userid=int(uid)).one()#add user himself
                 otherid=list(otherid)
                 fll.append(otherid[0])
-                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.corn).filter(Rank.otherid.in_(fll)).order_by(Rank.foodrank).all()
+                rank1=DBSession.query(Rank.userid,Rank.otherid,Rank.foodrank,Rank.lev,Rank.food).filter(Rank.otherid.in_(fll)).order_by(Rank.foodrank).all()
                 for n in rank1:
                     one=DBSession.query(operationalData.papayaname,operationalData.empirename).filter_by(userid=int(n[0])).one()
                     one=list(one)
