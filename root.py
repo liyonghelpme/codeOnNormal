@@ -2228,7 +2228,7 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:#not visited
                 print "not visited yet"
-                bonus=100+1*(dv.visitnum)
+                bonus=100+10*(dv.visitnum)
                 print "bonus " + str(bonus)
                 mycity = DBSession.query(warMap).filter_by(userid = userid).one()
                 buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=mycity.city_id).all() 
