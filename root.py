@@ -4024,18 +4024,40 @@ class RootController(BaseController):
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
 			return ''
-		
+	    #not remove unread battle result 
+        """	
         if user.battleresult == '' or user.battleresult == None:
 			user.battleresult = user.nbattleresult
         
         else:
 			user.battleresult = user.battleresult + ';' + user.nbattleresult
-        
+        """
         temp = user.nbattleresult
-        
-        user.nbattleresult = ''
+        #user.nbattleresult = ''
         return temp    
-
+    @expose('json')
+    def removeRead(self, uid, warList):#[] json array
+        user = checkopdata(uid)
+        battle = user.nbattleresult
+        battle = battle.split(';')
+        rems = json.loads(warList)
+        rems = set(rems)
+        left = []
+        i = 0
+        for b in battle:
+            if not i in warList:
+                left.append(b)
+            i += 1
+        nbat = ''
+        i = 0
+        for b in left:
+            if i == 0:
+                nbat += b
+            else:
+                nbat += ';'+b
+            i += 1
+        user.nbattleresult = nbat
+        return dict(id=1, left = len(left))
     def recalev(u,v):
         nobility1=u.nobility
         base = [1, 6, 14, 29, 40, 137]
