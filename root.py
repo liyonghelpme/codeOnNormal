@@ -4029,13 +4029,11 @@ class RootController(BaseController):
         if user.nbattleresult == '' or user.nbattleresult == None:
 			return ''
 	    #not remove unread battle result 
-        """	
         if user.battleresult == '' or user.battleresult == None:
 			user.battleresult = user.nbattleresult
         
         else:
 			user.battleresult = user.battleresult + ';' + user.nbattleresult
-        """
         temp = user.nbattleresult
         #user.nbattleresult = ''
         return temp    
