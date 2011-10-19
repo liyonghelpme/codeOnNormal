@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -2289,8 +2289,12 @@ class RootController(BaseController):
                 
                 visit.visited=1
                 i=0
-            addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
-            replacecache(userid,uu)#cache
+            viNews = DBSession.query(News).filter_by(uid=u.userid).filter_by(fpapayaid=uu.otherid).filter_by(kind=0).all()
+            if len(viNews) == 0:
+                addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
+            else:
+                news = viNews[0]
+                news.time = t
             sub=0
             try:
                 vf=DBSession.query(Victories).filter_by(uid=u.userid).one()
@@ -4044,8 +4048,9 @@ class RootController(BaseController):
         rems = set(rems)
         left = []
         i = 0
+        #print rems
         for b in battle:
-            if not i in warList:
+            if not i in rems:
                 left.append(b)
             i += 1
         nbat = ''
