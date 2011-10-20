@@ -151,4 +151,5 @@ from stchong.model.papayafriend import Papayafriend
 from stchong.model.rank import Rank
 from stchong.model.dragon import Dragon
 from stchong.model.petAtt import PetAtt
+from stchong.model.message import Message
 #from stchong.model.useraccount import userAccount
