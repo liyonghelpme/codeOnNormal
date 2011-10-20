@@ -8,12 +8,13 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
+from stchong.model import Message
 from stchong.model import PetAtt
 from stchong import model
 from stchong.controllers.secure import SecureController
@@ -194,6 +195,41 @@ class RootController(BaseController):
             return True
         else:
             return False
+    @expose('json')
+    def sendMsg(self, uid, fid, msg):
+        uid = int(uid)
+        fid = int(fid)
+        cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+        msg = Message(uid=uid, fid=fid, mess = msg, read = 0, time=cur)
+        DBSession.add(msg)
+        return dict(id=1, result="send msg suc")
+
+    @expose('json')
+    def fetchMsg(self, uid, start, end):
+        uid = int(uid)
+        start = int(start)
+        end = int(end)
+        nums = DBSession.query(Message).filter_by(fid=uid).filter_by(read=0).count()
+        print "msg num " + str(uid) +' '+str(nums)
+        if start > nums:
+            return dict(id=0, leftNum = 0, reason = "no more unread msg")
+        if start < 0:
+            start = 0
+        if end > nums:
+            end = nums
+
+        if end == -1:
+            end = nums
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
+        else:
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
+        for m in msgs:
+            print str(m)
+            ms = DBSession.query(Message).filter_by(mid=m[0]).one()
+            ms.read = 1
+        DBSession.flush()
+        return dict(id=1, leftNum = nums-end, msg = msgs)
+
     @expose('json')
     def completepay(self,uid,tid,papapas,signature):
         u=checkopdata(uid)
@@ -2253,8 +2289,12 @@ class RootController(BaseController):
                 
                 visit.visited=1
                 i=0
-            addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
-            replacecache(userid,uu)#cache
+            viNews = DBSession.query(News).filter_by(uid=u.userid).filter_by(fpapayaid=uu.otherid).filter_by(kind=0).all()
+            if len(viNews) == 0:
+                addnews(u.userid,uu.otherid,0,t,uu.user_kind)#2011.7.13:add news
+            else:
+                news = viNews[0]
+                news.time = t
             sub=0
             try:
                 vf=DBSession.query(Victories).filter_by(uid=u.userid).one()
@@ -3988,189 +4028,75 @@ class RootController(BaseController):
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
 			return ''
-		
+	    #not remove unread battle result 
+        """	
         if user.battleresult == '' or user.battleresult == None:
 			user.battleresult = user.nbattleresult
         
         else:
 			user.battleresult = user.battleresult + ';' + user.nbattleresult
-        
+        """
         temp = user.nbattleresult
-        
-        user.nbattleresult = ''
+        #user.nbattleresult = ''
         return temp    
-
+    @expose('json')
+    def removeRead(self, uid, warList):#[] json array
+        user = checkopdata(uid)
+        battle = user.nbattleresult
+        battle = battle.split(';')
+        rems = json.loads(warList)
+        rems = set(rems)
+        left = []
+        i = 0
+        #print rems
+        for b in battle:
+            if not i in rems:
+                left.append(b)
+            i += 1
+        nbat = ''
+        i = 0
+        for b in left:
+            if i == 0:
+                nbat += b
+            else:
+                nbat += ';'+b
+            i += 1
+        user.nbattleresult = nbat
+        return dict(id=1, left = len(left))
     def recalev(u,v):
         nobility1=u.nobility
-        subno=0
-        minus=-1
-        if nobility1==0:
-            
-            enemynum=int((mapKind[nobility1]-1+6-1)/6)
-            if v.woninmap<int(mapKind[nobility1]/6):
-                minus=int(mapKind[nobility1]/6)-v.woninmap
-            if v.woninmap>=int(mapKind[nobility1]/6) and v.woninmap<int(mapKind[nobility1]*2/6):
-                #u.subno=1
-                minus=int(mapKind[nobility1]*2/6)-v.woninmap
-                #u.castlelev=u.castlelev+1  
-            elif v.woninmap>=int(mapKind[nobility1]*2/6) and v.woninmap<int(mapKind[nobility1]*3/6):
-                #u.subno=2
-                minus=int(mapKind[nobility1]*3/6)-v.woninmap
-            elif v.woninmap>=int(mapKind[nobility1]*3/6):
-                minus=0
-        elif nobility1==1:
-            enemynum=6
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0
-        elif nobility1==2:
-            enemynum=14
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0
-        elif nobility1==3:
-            enemynum=29
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0 
-        elif nobility1==4:
-            enemynum=40
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0   
-        elif nobility1==5:
-            enemynum=137
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-            else:
-                minus=0                                                            
-
-        return minus
+        base = [1, 6, 14, 29, 40, 137]
+        if nobility1 < 0 or nobility1 >= len(base):
+            return -1
+        wonInMap = v.woninmap
+        need = base[nobility1]
+        if wonInMap < need:
+            return need-wonInMap
+        if wonInMap < 2*need:
+            return need*2-wonInMap
+        if wonInMap < 3*need:
+            return need*3-wonInMap
+        return 0#can update nobility
     def calev(u,v):#计算爵位等级，在warresult中调用
         nobility1=u.nobility
         subno=0
         minus=-1
-        if nobility1==0:
-            
-            enemynum=int((mapKind[nobility1]-1+6-1)/6)
-            if v.woninmap<int(mapKind[nobility1]/6):
-                minus=int(mapKind[nobility1]/6)-v.woninmap
-            if v.woninmap>=int(mapKind[nobility1]/6) and v.woninmap<int(mapKind[nobility1]*2/6):
-                u.subno=1
-                subno=1
-                minus=int(mapKind[nobility1]*2/6)-v.woninmap
-                #u.castlelev=u.castlelev+1  
-            elif v.woninmap>=int(mapKind[nobility1]*2/6) and v.woninmap<int(mapKind[nobility1]*3/6):
-                u.subno=2
-                subno=2
-                minus=int(mapKind[nobility1]*3/6)-v.woninmap
-            elif v.woninmap>=int(mapKind[nobility1]*3/6):
-                minus=0
-                subno=2
-        elif nobility1==1:
-            enemynum=6
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0
-                subno=2
-        elif nobility1==2:
-            enemynum=14
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0
-                subno=2
-        elif nobility1==3:
-            enemynum=29
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0 
-                subno=2
-        elif nobility1==4:
-            enemynum=40
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0  
-                subno=2 
-        elif nobility1==5:
-            enemynum=137
-            if v.woninmap<enemynum:
-                minus=enemynum-v.woninmap
-            elif v.woninmap>=enemynum and v.woninmap<2*enemynum:
-                minus=enemynum*2-v.woninmap
-                u.subno=1
-                subno=1
-            elif v.woninmap>=2*enemynum and v.woninmap<3*enemynum:
-                minus=enemynum*3-v.woninmap
-                u.subno=2
-                subno=2
-            else:
-                minus=0 
-                subno=2                                                           
-        else:
-            subno=0
-            minus=-1
-        return [subno,minus]
-
+        base = [1, 6, 14, 29, 40, 137]
+        if nobility1 < 0 or nobility1 >= len(base):
+            return [subno, minus]
+        wonInMap = v.woninmap
+        need = base[nobility1]
+        if wonInMap < need:
+            u.subno = 0
+            return [0, need-wonInMap]
+        if wonInMap < 2*need:
+            u.subno = 1
+            return [1, need*2-wonInMap]
+        if wonInMap < 3*need:
+            u.subno = 2
+            return [2, need*3-wonInMap]
+        u.subno = 2
+        return [2, 0]#can update nobility
     @expose('json')
     def battlelist(self,uid):
         alist=[]
