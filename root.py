@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exceptions import InvalidRequestError
+from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -196,6 +196,13 @@ class RootController(BaseController):
         else:
             return False
     @expose('json')
+    def getOtherid(self, uid):
+        try:
+            user = checkopdata(uid)
+        except:
+            return dict(id=0, reason='no such user')
+        return dict(id=1, otherid=user.otherid)
+    @expose('json')
     def sendMsg(self, uid, fid, msg):
         uid = int(uid)
         fid = int(fid)
@@ -209,7 +216,7 @@ class RootController(BaseController):
         uid = int(uid)
         start = int(start)
         end = int(end)
-        nums = DBSession.query(Message).filter_by(fid=uid).filter_by(read=0).count()
+        nums = DBSession.query(Message).filter_by(fid=uid).count()
         print "msg num " + str(uid) +' '+str(nums)
         if start > nums:
             return dict(id=0, leftNum = 0, reason = "no more unread msg")
@@ -220,9 +227,9 @@ class RootController(BaseController):
 
         if end == -1:
             end = nums
-            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, nums).all()
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read, operationalData.otherid).filter_by(fid=uid).filter(Message.uid==operationalData.userid).order_by(desc(Message.time)).slice(start, nums).all()
         else:
-            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read).filter_by(fid=uid).order_by(desc(Message.time)).slice(start, end).all()
+            msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read, operationalData.otherid).filter_by(fid=uid).filter(Message.uid==operationalData.userid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
             print str(m)
             ms = DBSession.query(Message).filter_by(mid=m[0]).one()
@@ -4027,16 +4034,16 @@ class RootController(BaseController):
         #defence fail lost 3% corn
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
-			return ''
-	    #not remove unread battle result 
-        """	
+            return ''
+        """
         if user.battleresult == '' or user.battleresult == None:
-			user.battleresult = user.nbattleresult
-        
+            user.battleresult = user.nbattleresult
         else:
-			user.battleresult = user.battleresult + ';' + user.nbattleresult
+            user.battleresult += ';' + user.nbattleresult
+	    #not remove unread battle result 
         """
         temp = user.nbattleresult
+        DBSession.flush()
         #user.nbattleresult = ''
         return temp    
     @expose('json')
@@ -4047,12 +4054,28 @@ class RootController(BaseController):
         rems = json.loads(warList)
         rems = set(rems)
         left = []
+        readed = []
         i = 0
-        #print rems
+        print "remove " + str(rems)
         for b in battle:
             if not i in rems:
                 left.append(b)
+            else:
+                readed.append(b)
             i += 1
+        readStr = ''
+        i = 0
+        for b in readed:
+            if i == 0:
+                readStr += b
+            else:
+                readStr += ';'+b
+            i += 1
+        if user.battleresult == '' or user.battleresult == None:
+            user.battleresult = readStr
+        else:
+            user.battleresult += ';'+readStr
+
         nbat = ''
         i = 0
         for b in left:
