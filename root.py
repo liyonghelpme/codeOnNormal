@@ -231,7 +231,7 @@ class RootController(BaseController):
         else:
             msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read, operationalData.otherid).filter_by(fid=uid).filter(Message.uid==operationalData.userid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
-            print str(m)
+            #print str(m)
             ms = DBSession.query(Message).filter_by(mid=m[0]).one()
             ms.read = 1
         DBSession.flush()
