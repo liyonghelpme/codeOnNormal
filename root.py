@@ -73,9 +73,7 @@ class RootController(BaseController):
     global timejudge #内部函数，判断时间是否相差一天function pan duan shifou duguo 0 dian 
     global giftstring #内部函数，返回用户相关礼物字符串 function giftstring
     global sg#内部函数，赠送特殊物品作为礼物
-    global minusstateeli#内部函数，消除负面状态function eliminating minusstate
     global completereceive#内部函数，完成礼物赠予或收取
-    global checkminusstate#内部函数，查询负面状态是否存在
     global monsterlist#怪物列表
     global returnSoldier#内部函数，返回士兵数量
     global returnsentouryoku#内部函数，返回城内战斗力
@@ -1540,197 +1538,36 @@ class RootController(BaseController):
             return dict(id=1,cardid=card,powerlost=powerlost,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,specialgoods=s)  
         except InvalidRequestError:
             return dict(id=0)
-    ##################
-    ##################负面状态相关
-    def checkminusstate(gridid,mstr):#str为表示负面状态的字符串，函数用于检查此城市的负面状态中是否含有str状态，在对外接口addminusstate中使用
-        mlist=mstr.split(mstr)
-        i=0
-        s=''
-        for m in mlist:
-            if u.minusstate.find(m)!=-1:
-                if i==0:
-                    s=m
-                    i=1
-                else:
-                    s=s+';'+m
-        return s   
-    def checkminusstate2(u,str):#str为表示负面状态的字符串，函数用于检查此城市的负面状态中是否含有str状态，在对外接口addminusstate中使用
-        if u.minusstate.find(str)!=-1:
-            return True
-        else:
-            return False
+    global MAX_ELI
+    MAX_ELI = 10
     @expose('json')
-    def addminusstate(self,city_id,minusstr):#对外接口，在城市city_id的grid_id处，增加类型为type的异常状态，异常状态字符串在warmap数据库中
-        #t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-        str2=minusstr
-        strminus=minusstr#异常状态字符串，最后加', '是为了使用checkminusstate的方便
-        strminus=checkminusstate(war,minusstr)
-        str3=''
-        x=[]
-        minus=[] 
-        x=minusstr.split(';')
-        minus=war.minusstate.split(';')
-        if minus==None or len(minus)==0:
-            minus=[]
-            minus.append(war.minusstate)
-        if x==None or len(x)==0:
-            x=[]
-            x.append(minusstr)
-        xy=[]
-        mark=0
-        for xx in x:
-            xm=xx.split(',')
-            for mm in minus:
-                mmx=mm.split(',')
-                if mmx[1]==xx[1]:
-                    mark=1
-            if mark==0:
-                xy.append(xx)
-            mark=0
-        i=0
-        for xyy in xy:
-            if i==0:
-                str3=str3+xyy[0]+','+xyy[1]
-                i=1
-            else:
-                str3=str3+';'+xyy[0]+','+xyy[1]
-                         
-        if war.minusstate=='':
-            mb=war.minusstate
-            war.minusstate=str3
-            ma=war.minusstate
-            minusstatelog(mb,ma,city_id)
-            return dict(id=1)
-        else:
-            if strminus!='':
-                mb=war.minusstate
-                war.minusstate=war.minusstate+';'+str3
-                ma=war.minusstate
-                minusstatelog(mb,ma,city_id)                
-                return dict(id=1)    
-            else:
-                return dict(id=0)
-    @expose('json')
-    def addminusstate2(self,city_id,type,grid_id):#对外接口，在城市city_id的grid_id处，增加类型为type的异常状态，异常状态字符串在warmap数据库中
-        #t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-        str2=type+','+grid_id+', '
-        strminus=type+','+grid_id#异常状态字符串，最后加', '是为了使用checkminusstate的方便  
-        mlist=[]  
-        if war.minusstate=='':
-            mb=war.minusstate
-            war.minusstate=strminus
-            ma=war.minusstate
-            minusstatelog(mb,ma,city_id)
-            return dict(id=1)
-        else:
-            mlist=war.minusstate.split(';')
-            if len(mlist)==0:
-                x=war.minusstate.split(',')
-                if len(x)>1 and x[1]==grid_id:
-                    return dict(id=0)
-            else:
-                for m in mlist:
-                    xx=m.split(',')
-                    if len(xx)>1:
-                        if xx[1]==grid_id:
-                            return dict(id=0)
-            war.minusstate=war.minusstate+';'+strminus
-            return dict(id=1)            
-    @expose('json')
-    def eliminusstate(self,uid,city_id,grid_id):#对外接口，用户uid对城市city_id grid_id处的负面状态进行消除操作
-        stri=''
-        i=0
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        minuslist=[]
+    def eliminusstate(self, uid, city_id, grid_id):
+        uid = int(uid)
+        city_id = int(city_id)
+        user = checkopdata(uid)
+        city = DBSession.query(warMap).filter_by(city_id = city_id).one()
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
-            u=checkopdata(uid)
-            war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-            strminus=war.minusstate
-            minuslist=strminus.split(';')
-            if strminus=='' or strminus==None or minuslist==None or len(minuslist)==0:
-                return dict(id=0)
-            else:
-                if len(minuslist)==0:
-                    minuslist.append(strminus)
-                i=0
-                for ml in minuslist :
-                    if ml=='' or ml==None:
-                        continue
-                    mle=ml.split(',')
-                    if len(mle)>=2:
-                        if mle[1]==grid_id :
-                            if mle[0]=='3':
-                                return dict(id=0)
-                            mle[0]='3'
-                        if i==0:
-                            stri=stri+mle[0]+','+mle[1]
-                            i=1
-                        else:
-                            stri=stri+';'+mle[0]+','+mle[1]
-                mb=war.minusstate
-                war.minusstate=stri
-                ma=war.minusstate
-                minusstatelog(mb,ma,city_id)
-                lev=int((u.lev-1)/10)
-                u.corn=u.corn+50+lev*20
-                u.exp=u.exp+1+lev*1
-                #u.corn=u.corn+50
-                if u.userid!=war.userid:#当不是打理自己的城堡时，记录新闻
-                    try:
-                        n=DBSession.query(News).filter_by(uid=war.userid).filter_by(fpapayaid=u.otherid).filter_by(fuser_kind=u.user_kind).filter_by(kind=1).one()
-                        n.time=t
-                    except:
-                        addnews(war.userid,u.otherid,1,t,u.user_kind) 
-                replacecache(uid,u)  
-                return dict(id=1)
-        except InvalidRequestError:
-            return dict(id=0)         
-    def minusstateeli(user,war,stri,t1):#自动消除负面状态，返回值mark，当mark=1时，只给经验。在harvest，finipop，production接口中使用
-        mark=0
-        if war.minusstate=='' or war.minusstate==None:
-            return 0
-        msl=war.minusstate.split(';')
-        t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        ss=''
-        sss=''
-        day1=0
-        i=0
-        if msl==None:
-            return 0
-        for msle in msl :
-            if msle=='' or msle==None:
-                continue
-            mslee=msle.split(',')
-            if len(mslee)<2:
-                continue
-            day=t/86400-t1/86400
-            if stri==mslee[1] and user.lev<10:
-
-                if day>=3:
-                    mark=1
-                           
-            elif stri==mslee[1] and user.lev>=10 and user.lev<20:
-                if day>=5:
-                    mark=1
-                        
-            elif stri==mslee[1]:
-                if day>=7:
-                    mark=1
-            else:
-                sss=sss+mslee[0]+','+mslee[1]+';'
-                if i==0:
-                    ss=ss+msle
-                    i=1
-                else:
-                    ss=ss+';'+msle   
-        mb=war.minusstate         
-        war.minusstate=ss
-        ma=war.minusstate
-        minusstatelog(mb,ma,war.city_id)
-        return mark
+            minus = json.loads(city.minusstate)
+        except:
+            print "no minusstate"
+            minus = []
+        find = False
+        for m in minus:
+            if m[0] == uid:
+                if m[1] >= MAX_ELI:
+                    return dict(id=0, reason="eliminate too many times")
+                m[1] += 1
+                find = True
+                break
+        if not find:
+            me = [uid, 1]
+            minus.append(me)
+        
+        lev=int((user.lev-1)/10)
+        user.corn=user.corn+50+lev*20
+        user.exp=user.exp+1+lev*1
+        city.minusstate = json.dumps(minus)
+        return dict(id=1, result="eliminate suc")
     ################
     ################结盟相关                       
     @expose('json')
@@ -5422,8 +5259,6 @@ class RootController(BaseController):
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-            
-            mark=minusstateeli(u,war,grid_id,p.producttime)
             mark=0
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             factor=1
@@ -5640,7 +5475,6 @@ class RootController(BaseController):
                         factor2=1.6
                     if producttime+growtime<=t:
                         flag=1
-                        mark=minusstateeli(u,map,grid_id,producttime)
                         if t-producttime>86400*3 and producttime!=1:
                             expadd = expadd+single_exp
                         else:
@@ -5722,7 +5556,6 @@ class RootController(BaseController):
                     needtime = production[g.ground_id-300][3]
                     if producttime+needtime<=t or producttime==1:
                         flag=1
-                        mark=minusstateeli(u,map,grid_id,producttime)
                         if t-producttime>86400*3 and producttime!=1 and producttime!=0:
                             expadd = expadd + single_exp
                         else:
@@ -6043,7 +5876,6 @@ class RootController(BaseController):
             u=checkopdata(user_id)#cache
             war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
             num=houses[p.ground_id-100][0]
-            mark=minusstateeli(u,war,grid_id,p.producttime)
             mark=0
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             factor=1
@@ -6138,7 +5970,6 @@ class RootController(BaseController):
            u=checkopdata(user_id)#cache
            sid=p.object_id
            mark=-1
-           mark=minusstateeli(u,war,grid_id,p.producttime)
            mark=0
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
            if p.producttime!=1 and ti-p.producttime>86400*3:
@@ -6193,7 +6024,6 @@ class RootController(BaseController):
            #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
            u=checkopdata(user_id)#cache
            war=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
-           mark=minusstateeli(u,war,grid_id,p.producttime)
            mark=0
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
            factor=1
