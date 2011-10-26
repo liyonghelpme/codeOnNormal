@@ -3277,8 +3277,8 @@ class RootController(BaseController):
             u.stone=u.stone+nobilitybonuslist[u.nobility][3]
             
             cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
-            #48 hours protect
-            u.protecttype = 3
+            #24 hours protect
+            u.protecttype = 2
             u.protecttime = cur
             
             p.gridid=c[0]
@@ -3551,7 +3551,7 @@ class RootController(BaseController):
             return dict(id=0)                 
     def checkprotect(u):
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        proTime = [7200, 28800, 86400, 48*3600]
+        proTime = [7200, 28800, 86400]
         if u.protecttype==-1:
             return -1
         else:
