@@ -19,10 +19,10 @@ beginTime=(2011,1,1,0,0,0,0,0,0)
 timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
 taskbonus=[]
 wartaskbonus=[]
-f = file('taskbonus.json')
+f = file('/root/tg2env/taskbonus.json')
 source = f.read()
 target = json.JSONDecoder().decode(source)
-f2=file('wartask.json')
+f2=file('/root/tg2env/wartask.json')
 source2=f2.read()
 if source2!=None:
     target2 = json.JSONDecoder().decode(source2)
@@ -31,9 +31,6 @@ for t in target:
 for tt in target2:
     wartaskbonus.append([tt['id'],tt['des'],tt['lev']])
 
-#newtask = file('newtask.json')
-#newtask = newtask.read()
-#newtask = json.loads(newtask)
 
 logfile=open("logfile"+timestr,'w')
 # Base class for all of our model classes: By default, the data model is
