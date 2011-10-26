@@ -48,3 +48,4 @@ class Dragon(DeclarativeBase):
     lastFeed = Column(Integer)
 
     attack = Column(Integer)
+    trainNum = Column(Integer)

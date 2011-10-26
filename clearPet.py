@@ -4,6 +4,10 @@ import json
 con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='2e4n5k2w2x')
 cursor = con.cursor()
 
+sql = "update dragon set trainNum = 0"
+cursor.execute(sql)
+con.commit()
+
 sql = "select pid, friList, lastFeed, state, health  from dragon where state >= 2"
 cursor.execute(sql)
 print sql
