@@ -3281,6 +3281,11 @@ class RootController(BaseController):
             u.wood=u.wood+nobilitybonuslist[u.nobility][2]
             u.stone=u.stone+nobilitybonuslist[u.nobility][3]
             
+            cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+            #24 hours protect
+            u.protecttype = 2
+            u.protecttime = cur
+            
             p.gridid=c[0]
             p.mapid=c[1]
             p.map_kind=p.map_kind+1
@@ -3551,29 +3556,18 @@ class RootController(BaseController):
             return dict(id=0)                 
     def checkprotect(u):
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        proTime = [7200, 28800, 86400]
         if u.protecttype==-1:
             return -1
-        elif u.protecttype==0:
-            if ti-u.protecttime>7200:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 7200+u.protecttime
-        elif u.protecttype==1:
-            if ti-u.protecttime>28800:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 28800+u.protecttime
-        elif u.protecttype==2:
-            if ti-u.protecttime>86400:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 86400+u.protecttime
+        else:
+            proType = u.protecttype
+            if proType >= 0 and proType < len(proTime):
+                if ti - u.producttime > proTime[proType]:
+                    u.protecttype = -1
+                    return -1
+                return proTime[proType] + u.protecttime
+        return -1
+    #0 1 2 3 newer protect
     @expose('json')
     def addprotect(self,uid,type):
         u=checkopdata(uid)
@@ -4011,9 +4005,30 @@ class RootController(BaseController):
             defFullPow += defence.defencepower
             defFullPow += allyhelp(defence.userid, 1, defPurePow)
             print "defence full power " + str(defFullPow)
-
+            
             lost = callost(attFullPow, defFullPow, attPurePow, defPurePow+defence.defencepower, 1)
             print "att Lost " + str(lost[0]) + " def lost " + str(lost[1])
+            #check if in weak protect mode
+            weakMode = False
+            if attFullPow > defFullPow:
+                defWar = defence.battleresult
+                defWar = defWar.split(';')
+                length = len(defWar)
+                #fail three times
+                fails = 0
+                i = length - 1
+                while i >= 0 and fails < 3:
+                    res = defWar[i].split(',')
+                    if res[2] == 1:
+                        break
+                    if res[1] == 0:#defence fail
+                        fails += 1
+                    i -= 1
+                if fails == 3:
+                    weakMode = True
+            #if in weak Mode just lost defence 5%
+            if weakMode:
+                lost[1] = (defPurePow+defence.defencepower) * 5 /100
             #update power data
             returnIn = b.powerin - lost[0]
             returnCa = b.powerca + min(returnIn, 0)
@@ -4024,6 +4039,7 @@ class RootController(BaseController):
             print "attack return In " + str(returnIn) + " returnca " + str(returnCa)
             attack.infantrypower += returnIn
             attack.cavalrypower += returnCa
+
 
             #update power data
             leftIn = defence.infantrypower - lost[1]
