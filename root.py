@@ -3562,7 +3562,7 @@ class RootController(BaseController):
         else:
             proType = u.protecttype
             if proType >= 0 and proType < len(proTime):
-                if ti - u.producttime > proTime[proType]:
+                if ti - u.protecttime > proTime[proType]:
                     u.protecttype = -1
                     return -1
                 return proTime[proType] + u.protecttime
@@ -4019,6 +4019,9 @@ class RootController(BaseController):
                 i = length - 1
                 while i >= 0 and fails < 3:
                     res = defWar[i].split(',')
+                    if len(res) < 2:
+                        i -= 1
+                        continue
                     if res[2] == 1:
                         break
                     if res[1] == 0:#defence fail
