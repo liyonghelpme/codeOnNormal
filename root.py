@@ -137,7 +137,7 @@ class RootController(BaseController):
     #statuebuilding lev,corn(cae) defenceadd pop time
     statuebuilding = [[27,80000,600,20,7200],[30,-8,700,40,14400]]
     #decorationbuild：cornorcae，人口上限，解锁等级
-    decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[1200,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3],[2000,30,17],[-10,300,20]]#corn(or cae),populationupbound
+    decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[1200,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3],[2000,30,17],[2000,30,17],[-10,300,20]]#corn(or cae),populationupbound
     #农作物list：#corn,exp,food,time，解锁等级
     Plant_Price=[[50,1,20,600,1],[165,3,50,2700,1],[-1,8,120,3600,5],[700,7,150,9360,5],[1440,12,300,22680,7],[-3,25,430,14400,7],[230,5,52,1800,13],[600,9,80,5400,16],[-2,30,280,9000,10],[1210,15,200,11520,20],[3000,25,410,29160,25],[-5,50,650,25200,15]]#corn,food,cae
     beginTime=(2011,1,1,0,0,0,0,0,0)
@@ -239,7 +239,7 @@ class RootController(BaseController):
         else:
             msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read, operationalData.otherid).filter_by(fid=uid).filter(Message.uid==operationalData.userid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
-            print str(m)
+           #print str(m)
             ms = DBSession.query(Message).filter_by(mid=m[0]).one()
             ms.read = 1
         DBSession.flush()
@@ -4275,6 +4275,8 @@ class RootController(BaseController):
         try:
 
             if u.nobility<0:
+                u.protecttype = 2
+                u.protecttime = t
                 mapgrid=newwarmap(u)
                 #wartask=wartasknew(u.userid)
             v=DBSession.query(Victories).filter_by(uid=userid).one()
