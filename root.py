@@ -4028,7 +4028,6 @@ class RootController(BaseController):
                         fails += 1
                     i -= 1
                 if fails == 3:
-                    print "weak mode"
                     weakMode = True
             #if in weak Mode just lost defence 5%
             if weakMode:
@@ -5895,16 +5894,18 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)
     @expose('json')
-    def getfriendall(self,user_id,user_kind,type):#type=0 normal;type=1 leiji
+    def getfriendall(self,user_id,friend_num,type):#type=0 normal;type=1 leiji
+        print "getfriend "+str(user_id)
         uid = int(user_id)
         type = int(type)
+        friend_num = int(friend_num)
         u = checkopdata(uid)
         cornadd = 0
         flag = 0
         bonus = 0
         k = 0#the number of the friend
         try:
-            notvisited = DBSession.query(Papayafriend).filter_by(uid=uid).filter_by(visited=0).all()
+            notvisited = DBSession.query(Papayafriend).filter_by(uid=uid).filter_by(visited=0).filter("lev > 0").all()
             if notvisited == None or len(notvisited)==0:
                 return dict(id=0, reason="do not have not visited friend")
             card = DBSession.query(Card).filter_by(uid=uid).one()
@@ -5935,9 +5936,8 @@ class RootController(BaseController):
                         temp_cae = temp_cae + 2
                     for f in notvisited:
                         k += 1
-                        cornadd += 100 + bonus
                         f.visited = 1
-                    
+                    cornadd = (100 + bonus)*friend_num
                 else:
                     return dict(id=0, reason="cae or card invalid")
             else:#cae=10 
@@ -5950,6 +5950,7 @@ class RootController(BaseController):
                         cornadd += 100 + bonus + 5*k
                         k += 1
                         f.visited = 1
+                    cornadd = (100+bonus)*friend_num + 5*(friend_num+1)*friend_num/2
             if flag == 1:
                 u.corn = u.corn + cornadd
                 u.cae = temp_cae
