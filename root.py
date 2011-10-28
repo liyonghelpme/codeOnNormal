@@ -4022,12 +4022,13 @@ class RootController(BaseController):
                     if len(res) < 2:
                         i -= 1
                         continue
-                    if res[2] == 1:
+                    if int(res[2]) == 1:
                         break
-                    if res[1] == 0:#defence fail
+                    if int(res[1]) == 0:#defence fail
                         fails += 1
                     i -= 1
                 if fails == 3:
+                    print "weak mode"
                     weakMode = True
             #if in weak Mode just lost defence 5%
             if weakMode:
