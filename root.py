@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -1380,7 +1380,7 @@ class RootController(BaseController):
     @expose('json')   
     def monstercomplete(self,uid):
         u=checkopdata(uid)
-        refreshtime=random.randint(6,12)
+        refreshtime=random.randint(12,24)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         u.monstertime=t+refreshtime*3600
         u.monsterlist=''
@@ -1389,12 +1389,9 @@ class RootController(BaseController):
         elif u.lev<=14:
             u.exp=u.exp+int((2*u.monpower+5-1)/5)
         else:
-            #mu=int((100*u.monpower+65-1)/65)    
             u.exp=u.exp+int((u.monpower+2-1)/2)
         u.corn=u.corn+u.monlost*30
         u.monlost=0
-        #u.monster=-1
-        replacecache(uid,u)
         return dict(monstertime=u.monstertime)
     @expose('json')
     def foodlost(self,uid):
@@ -1408,18 +1405,26 @@ class RootController(BaseController):
             except:
                 return dict(foodlost=0)
             if ds.monfood==0 or ds.monfood==None:
+                ds.monfood = 1
+            elif ds.monfood == 1:
+                ds.monfood = 2
                 fo=user.food
-                foodlost=random.randint(int(fo/20),int(fo/10))
-                if foodlost > 100:
-                    foodlost = 100
-                user.food=user.food-foodlost
+                monlist = user.monsterlist
+                monlist = monlist.split(';')
+                length = len(monlist)
+                if length > 0:
+                    res = monlist[0].split(',')
+                    if len(res) < 2:
+                        return dict(foodlost = 0)
+                foodlost = (0.03 + length*1.0/200) * user.food
+                foodlost = int(foodlost)
+                user.food -= foodlost
                 #user.monfood=1
-                ds.monfood=1 
-                replacecache(uid,user)
-            print "lostfood " + str(foodlost)
-            return dict(foodlost=foodlost)
+                print "lostfood " + str(foodlost)
+                return dict(foodlost=foodlost)
         except :
             return dict(foodlost=0)
+        return dict(foodlost = 0)
     @expose('json')
     def defeatmonster(self,uid,gridid):#对外接口，与怪兽进行战斗
         listsoldier=[]
@@ -3276,6 +3281,11 @@ class RootController(BaseController):
             u.wood=u.wood+nobilitybonuslist[u.nobility][2]
             u.stone=u.stone+nobilitybonuslist[u.nobility][3]
             
+            cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+            #24 hours protect
+            u.protecttype = 2
+            u.protecttime = cur
+            
             p.gridid=c[0]
             p.mapid=c[1]
             p.map_kind=p.map_kind+1
@@ -3546,29 +3556,18 @@ class RootController(BaseController):
             return dict(id=0)                 
     def checkprotect(u):
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        proTime = [7200, 28800, 86400]
         if u.protecttype==-1:
             return -1
-        elif u.protecttype==0:
-            if ti-u.protecttime>7200:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 7200+u.protecttime
-        elif u.protecttype==1:
-            if ti-u.protecttime>28800:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 28800+u.protecttime
-        elif u.protecttype==2:
-            if ti-u.protecttime>86400:
-                u.protecttype=-1
-                u.protecttime=-1
-                return -1
-            else:
-                return 86400+u.protecttime
+        else:
+            proType = u.protecttype
+            if proType >= 0 and proType < len(proTime):
+                if ti - u.protecttime > proTime[proType]:
+                    u.protecttype = -1
+                    return -1
+                return proTime[proType] + u.protecttime
+        return -1
+    #0 1 2 3 newer protect
     @expose('json')
     def addprotect(self,uid,type):
         u=checkopdata(uid)
@@ -4006,9 +4005,35 @@ class RootController(BaseController):
             defFullPow += defence.defencepower
             defFullPow += allyhelp(defence.userid, 1, defPurePow)
             print "defence full power " + str(defFullPow)
-
+            
             lost = callost(attFullPow, defFullPow, attPurePow, defPurePow+defence.defencepower, 1)
             print "att Lost " + str(lost[0]) + " def lost " + str(lost[1])
+            #check if in weak protect mode
+            weakMode = False
+            if attFullPow > defFullPow:
+                defWar = defence.battleresult + ';' + defence.nbattleresult
+                defWar = defWar.split(';')
+                length = len(defWar)
+                #fail three times
+                fails = 0
+                i = length - 1
+                while i >= 0 and fails < 3:
+                    res = defWar[i].split(',')
+                    if len(res) < 2:
+                        i -= 1
+                        continue
+                    if int(res[2]) == 1:
+                        break
+                    if int(res[1]) == 0:#defence fail
+                        fails += 1
+                    i -= 1
+                if fails == 3:
+                    weakMode = True
+            #if in weak Mode just lost defence 5%
+            if weakMode:
+                print "weak mode"
+                lost[1] = (defPurePow+defence.defencepower) * 5 /100
+            print "def lost " + str(lost[1])
             #update power data
             returnIn = b.powerin - lost[0]
             returnCa = b.powerca + min(returnIn, 0)
@@ -4019,6 +4044,7 @@ class RootController(BaseController):
             print "attack return In " + str(returnIn) + " returnca " + str(returnCa)
             attack.infantrypower += returnIn
             attack.cavalrypower += returnCa
+
 
             #update power data
             leftIn = defence.infantrypower - lost[1]
@@ -4102,13 +4128,6 @@ class RootController(BaseController):
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
             return ''
-        """
-        if user.battleresult == '' or user.battleresult == None:
-            user.battleresult = user.nbattleresult
-        else:
-            user.battleresult += ';' + user.nbattleresult
-	    #not remove unread battle result 
-        """
         temp = user.nbattleresult
         DBSession.flush()
         #user.nbattleresult = ''
