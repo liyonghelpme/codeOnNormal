@@ -4270,6 +4270,8 @@ class RootController(BaseController):
         try:
 
             if u.nobility<0:
+                u.protecttype = 2
+                u.protecttime = t
                 mapgrid=newwarmap(u)
                 #wartask=wartasknew(u.userid)
             v=DBSession.query(Victories).filter_by(uid=userid).one()
