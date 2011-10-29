@@ -1,12 +1,8 @@
 import MySQLdb
 import json
 
-con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='2e4n5k2w2x')
+con = MySQLdb.connect(host='localhost', user='root', db='stcHong', passwd='badperson3')
 cursor = con.cursor()
-
-sql = "update dragon set trainNum = 0"
-cursor.execute(sql)
-con.commit()
 
 sql = "select pid, friList, lastFeed, state, health  from dragon where state >= 2"
 cursor.execute(sql)
@@ -31,11 +27,16 @@ for data in allData:
             elif state == 5:#old
                 health -= 10
         else:
+            #if state == 5:
+            #    health -= 10
             friList = '[]'
             lastFeed = 0
         if health < 0 :#no dead at all
+            #if state == 5:
+            #    state = -1 #dead
+           # else:
             health = 0
-        sql = "update dragon set health = " + str(health) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\' where pid = ' + str(pid)
+        sql = "update dragon set health = " + str(health) + ', lastFeed = ' + str(lastFeed)+', friList = \''+str(friList) + '\',trainNum=0 where pid = ' + str(pid)
         print sql
         cursor.execute(sql)
         con.commit()
