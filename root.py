@@ -1412,7 +1412,6 @@ class RootController(BaseController):
                 ds.monfood = 1
             elif ds.monfood == 1:
                 ds.monfood = 2
-                fo=user.food
                 monlist = user.monsterlist
                 monlist = monlist.split(';')
                 length = len(monlist)
@@ -2281,6 +2280,7 @@ class RootController(BaseController):
                 cardlist.append(ca.fortunecard)
                 cardlist.append(ca.popcard)
                 cardlist.append(ca.warcard)
+                cardlist.append(ca.friendcard)
             except:
                 cardlist=[]
             if visit.visited==0:#not visited
@@ -2937,6 +2937,8 @@ class RootController(BaseController):
                 card.popcard=cardnum
             elif cardtype==3:
                 card.warcard=cardnum
+            elif cardtype==4:
+                card.friendcard=cardnum
             return dict(id=1,card=card)
         except InvalidRequestError:
             return dict(id=0)
@@ -3011,6 +3013,7 @@ class RootController(BaseController):
                 cardlist.append(card.fortunecard)
                 cardlist.append(card.popcard)
                 cardlist.append(card.warcard)
+                cardlist.append(card.friendcard)
             except:
                 card=None
             #######卡片数量列表
@@ -3505,7 +3508,7 @@ class RootController(BaseController):
             m=random.randint(1,100)
             if type<=2 and scout[type]-6<0:
                 return dict(id=0)
-            if type==3 and u.cae-2*(u.nobility+1)<0:
+            if type==3 and u.cae-(u.nobility+1)<0:
                 return dict(id=0)
             if type==4 and u.cae-1<0:
                 return dict(id=0)
@@ -3540,7 +3543,7 @@ class RootController(BaseController):
                 return dict(dead=killed,won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,allynum=allypower)
             elif type==3:
                 cb=u.cae
-                u.cae=u.cae-2*(u.nobility+1)
+                u.cae=u.cae-(u.nobility+1)
                 ca=u.cae
                 caelog(cb,ca)
                 uv=checkopdata(enemy_id)#cache
@@ -5921,10 +5924,8 @@ class RootController(BaseController):
                     return dict(id=0, reason="cae or card invalid")
             else:#cae=10 
                 temp_cae = u.cae - 10
-                if temp_cae >=0 or card.friendcar == 5:
+                if temp_cae >=0:
                     flag = 1
-                    if card.friendcard == 5:
-                        temp_cae = temp_cae + 10
                     for f in notvisited: 
                         cornadd += 100 + bonus + 5*k
                         k += 1
