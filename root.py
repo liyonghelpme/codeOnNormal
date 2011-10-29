@@ -8,8 +8,8 @@ from pylons import response
 from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
-from sqlalchemy.exceptions import InvalidRequestError
-from sqlalchemy.exceptions import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
@@ -1384,7 +1384,7 @@ class RootController(BaseController):
     @expose('json')   
     def monstercomplete(self,uid):
         u=checkopdata(uid)
-        refreshtime=random.randint(6,12)
+        refreshtime=random.randint(12,24)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         u.monstertime=t+refreshtime*3600
         u.monsterlist=''
@@ -1393,12 +1393,9 @@ class RootController(BaseController):
         elif u.lev<=14:
             u.exp=u.exp+int((2*u.monpower+5-1)/5)
         else:
-            #mu=int((100*u.monpower+65-1)/65)    
             u.exp=u.exp+int((u.monpower+2-1)/2)
         u.corn=u.corn+u.monlost*30
         u.monlost=0
-        #u.monster=-1
-        replacecache(uid,u)
         return dict(monstertime=u.monstertime)
     @expose('json')
     def foodlost(self,uid):
@@ -1412,18 +1409,26 @@ class RootController(BaseController):
             except:
                 return dict(foodlost=0)
             if ds.monfood==0 or ds.monfood==None:
+                ds.monfood = 1
+            elif ds.monfood == 1:
+                ds.monfood = 2
                 fo=user.food
-                foodlost=random.randint(int(fo/20),int(fo/10))
-                if foodlost > 100:
-                    foodlost = 100
-                user.food=user.food-foodlost
+                monlist = user.monsterlist
+                monlist = monlist.split(';')
+                length = len(monlist)
+                if length > 0:
+                    res = monlist[0].split(',')
+                    if len(res) < 2:
+                        return dict(foodlost = 0)
+                foodlost = (0.03 + length*1.0/200) * user.food
+                foodlost = int(foodlost)
+                user.food -= foodlost
                 #user.monfood=1
-                ds.monfood=1 
-                replacecache(uid,user)
-            print "lostfood " + str(foodlost)
-            return dict(foodlost=foodlost)
+                print "lostfood " + str(foodlost)
+                return dict(foodlost=foodlost)
         except :
             return dict(foodlost=0)
+        return dict(foodlost = 0)
     @expose('json')
     def defeatmonster(self,uid,gridid):#对外接口，与怪兽进行战斗
         listsoldier=[]
@@ -3026,9 +3031,6 @@ class RootController(BaseController):
             #writelog(1,0,'loginover')
             replacecache(user.userid,user)
             ds=DBSession.query(Datesurprise).filter_by(uid=user.userid).one()   
-            #logging.info(str(user.userid)+'is login')
-            #if user.signtime>0:
-             #   user.monstertime=user.monstertime+3600  
             if user.war_god==1:
                 wargodtime=3600-(logintime-user.wargodtime)
             elif user.war_god==2:
@@ -3106,12 +3108,16 @@ class RootController(BaseController):
             except:
                 sub=-1
             #loginNum how many time login continuous
-            if user.newcomer<3:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)    
-            if user_kind==0:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+            if ds.monfood < 2:
+                foodlost = 0
             else:
-                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+                foodlost = 1
+            if user.newcomer<3:
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)    
+            if user_kind==0:
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+            else:
+                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
                     
         except InvalidRequestError:
             newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
@@ -4010,7 +4016,7 @@ class RootController(BaseController):
             #check if in weak protect mode
             weakMode = False
             if attFullPow > defFullPow:
-                defWar = defence.battleresult
+                defWar = defence.battleresult + ';' + defence.nbattleresult
                 defWar = defWar.split(';')
                 length = len(defWar)
                 #fail three times
@@ -4030,7 +4036,9 @@ class RootController(BaseController):
                     weakMode = True
             #if in weak Mode just lost defence 5%
             if weakMode:
+                print "weak mode"
                 lost[1] = (defPurePow+defence.defencepower) * 5 /100
+            print "def lost " + str(lost[1])
             #update power data
             returnIn = b.powerin - lost[0]
             returnCa = b.powerca + min(returnIn, 0)
@@ -4125,13 +4133,6 @@ class RootController(BaseController):
         user = checkopdata(uid)
         if user.nbattleresult == '' or user.nbattleresult == None:
             return ''
-        """
-        if user.battleresult == '' or user.battleresult == None:
-            user.battleresult = user.nbattleresult
-        else:
-            user.battleresult += ';' + user.nbattleresult
-	    #not remove unread battle result 
-        """
         temp = user.nbattleresult
         DBSession.flush()
         #user.nbattleresult = ''
@@ -4763,16 +4764,6 @@ class RootController(BaseController):
             ld.append(attribute.att)
             allPets.append(ld)
         return dict(id=1, pets=allPets)
-    """
-    @expose('json')
-    def getFriPets(self, uid, otherid, cid):
-        try:
-            user = DBSession.query(operationalData).filter_by(otherid=otherid).one();
-            dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack).filter(and_(Dragon.uid == user.userid, businessWrite.bid==Dragon.bid)).all()#index bid
-        except:
-            return dict(id = 0, reason="no user or no dragon")
-        return dict(id=1, pets=dragon)
-    """
     #命名宠物 修改名字
     @expose('json')#state = 2
     def namePet(self, uid, gid, name, cid):
@@ -4906,11 +4897,6 @@ class RootController(BaseController):
             #update health
             if dragon.health <= needHealth[state]:        
                 dragon.health += addHealth[state]
-            #update attack
-            incAtt = dragon.health*eggCost[dragon.kind][2]
-            attack = eggCost[dragon.kind][1] + incAtt
-            if attack > dragon.attack:
-                dragon.attack = attack
             return dict(id=1, result="self feed suc", state= dragon.state)
         else:
             friList = dragon.friList
@@ -4947,11 +4933,6 @@ class RootController(BaseController):
                 #update health
                 if dragon.health <= needHealth[state]:        
                     dragon.health += 1
-                #update attack
-                incAtt = dragon.health*eggCost[dragon.kind][2]
-                attack = eggCost[dragon.kind][1] + incAtt
-                if attack > dragon.attack:
-                    dragon.attack = attack
                 curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 #help pet
                 addnews(friend.userid, user.otherid, 6, curTime, user.user_kind)#some one help you
@@ -4978,7 +4959,7 @@ class RootController(BaseController):
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
-                        dragon.attack = eggCost[kind][1] + dragon.health*eggCost[kind][2]
+                        dragon.attack = 0
                         dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc corn")
                     return dict(id=0, reason="need corn")
@@ -4989,7 +4970,7 @@ class RootController(BaseController):
                         dragon.kind = kind
                         dragon.state = 2
                         dragon.health = 9
-                        dragon.attack = eggCost[kind][1]+dragon.health*eggCost[kind][2]
+                        dragon.attack = 0
                         dragon.name = '我的宠物'
                         return dict(id=1, result = "buy suc cae")
                     return dict(id=0, reason="need cae")
