@@ -3506,7 +3506,7 @@ class RootController(BaseController):
             m=random.randint(1,100)
             if type<=2 and scout[type]-6<0:
                 return dict(id=0)
-            if type==3 and u.cae-2*(u.nobility+1)<0:
+            if type==3 and u.cae-(u.nobility+1)<0:
                 return dict(id=0)
             if type==4 and u.cae-1<0:
                 return dict(id=0)
@@ -3541,7 +3541,7 @@ class RootController(BaseController):
                 return dict(dead=killed,won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,allynum=allypower)
             elif type==3:
                 cb=u.cae
-                u.cae=u.cae-2*(u.nobility+1)
+                u.cae=u.cae-(u.nobility+1)
                 ca=u.cae
                 caelog(cb,ca)
                 uv=checkopdata(enemy_id)#cache
