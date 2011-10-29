@@ -4,12 +4,16 @@ var sys = require("sys");
 var url = require("url");
 var qs = require("querystring")
 
+
 var ser = exports;
 var map = {};
 ser.get = function(path, handler){
     map[path] = handler;
 };
 NOT_FOUND = "not found\n";
+
+var beginTime = Math.floor((new Date(2011, 0)).getTime()/1000);
+sys.puts("beginTime " + beginTime);
 
 function notFound(req, res) {
     res.writeHead(404, {"Content-Type":"text/plain", "Content-Length":NOT_FOUND.length});
@@ -37,7 +41,6 @@ ser.listen=function(port, host){
 
 HOST = null;
 port = 8003;
-var starttime = (new Date()).getTime();
 
 var channels = {};//cid channel
 function createChannel(cid)
@@ -61,7 +64,9 @@ function createChannel(cid)
                 sys.puts(nick+" part");
                 break;
             };
-            m = [uid, text, (new Date()).getTime()];
+            cur = Math.floor((new Date()).getTime()/1000);
+            m = [uid, text, (cur - beginTime)];
+
             messages.push(m);
             while(callbacks.length>0){
                 callbacks.shift().callback([m]);
