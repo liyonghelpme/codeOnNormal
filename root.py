@@ -3541,21 +3541,58 @@ class RootController(BaseController):
         scout.append(u.scout2_num)
         scout.append(u.scout3_num)
         return scout
+    @expose('json')
+    def sendEmpty(self, uid, enemy_id, inf, cav):
+        
+    #all my empty
+    @expose('json')
+    def getEmpty(self, uid):
+        uid = int(uid)
+        empty = DBSession.query(EmptyCastal.cid, EmptyCastal.gid, EmptyCastal.inf, EmptyCastal.cav, EmptyCastal.coin, EmptyCastal.food, EmptyCastal.wood, EmptyCastal.rock, EmptyCastal.lastTime).filter_by(uid=uid).all()
+        return dict(id=1, empties = empty)
+    @expose('json')
+    def emptyBattle(self, uid):#fetch all
+        battle = DBSession.query(EmptyCastal.cid, Battle.enemy_id).filter(EmptyCastal.uid == uid).filter_by(EmptyCastal.cid=)
     global detectEmpty
     def detectEmpty(uid, enemy_id, t):
         user = checkopdata(uid)
         scout = returnscout(user)
+        enemy_id = -enemy_id
+        try:
+            empty = DBSession.query(EmptyCastal).filter_by(cid = enemy_id).one()
+        except:
+            return dict(id=0, status = 2, reason = 'no this empty')
         if t <= 2:
             if scout[t] < 6:
                 return dict(id=0, status = 0, reason='scout not enough')
         if t == 3:
             if user.cae < user.nobility+1:
                 return dict(id=0, status = 1, reason='cae not enough')
+
+
         if t == 0:
-            
+            user.scout1_num -= 6
+            return dict(id=1, inf = empty.inf, cav = empty.cav)
         elif t == 1:
+            user.scout2_num -= 6
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
+            blist = []
+            for b in battle:
+                if curTime - b.left_time > 3600*3:
+                    break
+                blist.append(b)
+            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         elif t == 2:
+            user.scout3_num -= 6
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            blist = list(battle)
+            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         elif t == 3:
+            user.cae -= user.nobility+1
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            blist = list(battle)
+            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         return dict(id = 0, status = 2, reason='no such detect')
     @expose('json')
     def detect(self,uid,enemy_id,type):#对外接口，侦察
@@ -3568,7 +3605,7 @@ class RootController(BaseController):
         enemy_id=int(enemy_id)
         killed=0
         allypower=0
-        if enemy_id < 0:
+        if enemy_id < 0:#<0 to identify 
             return detectEmpty(uid, enemy_id, type)
         try:
             u=checkopdata(uid)#cache
