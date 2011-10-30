@@ -16,6 +16,7 @@ from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operatio
 from stchong.model import Dragon
 from stchong.model import Message
 from stchong.model import PetAtt
+from stchong.model import EmptyCastal
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -3380,6 +3381,7 @@ class RootController(BaseController):
             return fullpower
         except InvalidRequestError:
             return 0 
+
     #check if attack exist
     @expose('json')
     def attackspeedup(self,uid,enemy_id):
@@ -3416,20 +3418,57 @@ class RootController(BaseController):
                 return dict(id=0, reason='cae')
         except:
             return dict(id=0, reason='no bat')
+    
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
+    global attackEmpty
+    def attackEmpty(uid, enemy_id, timeneed, infantry, cavalry):
+        battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).all()
+        if len(battle) > 0:
+            return dict(id=0, status = 0, reason='attacking')
+        user = checkopdata(uid)
+        try:
+            empty = DBSession.query(EmptyCastal).filter_by(cid=-enemy_id).one()
+        except:
+            return dict(id=0, status=1, reason='no this emptyC')
+        if user.infantrypower >= infantry and user.cavalrypower >= cavalry:
+            user.infantrypower -= infantry
+            user.cavalrypower -= cavalry
+            timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+            #replace old battle
+            battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = -enemy_id).filter_by(finish != 0).all()
+            allypower=allyhelp(uid,0,infantry+cavalry)
+            if len(battle) == 0:#create New
+                nb = Battle(uid=uid, enemy_id=-enemy_id, left_time = timeNow, timeneed=timeneed, finish = 0, powerin = infantry, powerca = cavalry, power = infantry+cavalry, allypower = allypower)
+                DBSession.add(nb)
+            else:#replace
+                nb = battle[0]
+                nb.enemy_id = -enemy_id
+                nb.left_time = timeNow
+                nb.timeneed = timeneed
+                nb.finish = 0
+                nb.powerin = infantry
+                nb.powerca = cavalry
+                nb.power = infantry + cavalry
+                nb.allypower = allypower
+                DBSession.flush()
+            return dict(id=1)
+        return dict(id=0, status = 2, reason = "power not enough")
 
+
+    #if enemy_id < 0 attack empty castal
     @expose('json')
     def attack(self,uid,enemy_id,timeneed,infantry,cavalry):#对外接口，进攻
         uid=int(uid)
         enemy_id=int(enemy_id)
-        if uid == enemy_id:
-            return dict(id=0, status = 4)
         timeneed=int(timeneed)
         infantry=int(infantry)
         cavalry=int(cavalry)
-
+        if enemy_id < 0:
+            return attackEmpty(uid, enemy_id, timeneed, infantry, cavalry)
+        if uid == enemy_id:
+            return dict(id=0, status = 4)
         try:
             occupy = DBSession.query(Occupation).filter_by(masterid=uid).filter_by(slaveid=enemy_id).one()
             print "you occupy him"
@@ -3471,7 +3510,6 @@ class RootController(BaseController):
             print 'replace old battle info ' + str(uid)
             rep = 1
         except InvalidRequestError:
-           # u=DBSession.query(operationalData).filter_by(userid=uid).one()
             print 'attack ' + str(uid) + ' ' + str(enemy_id) + ' timeneed ' + str(timeneed)
             u = checkopdata(uid)
             u.infantrypower=u.infantrypower-infantry
