@@ -158,7 +158,7 @@ class RootController(BaseController):
     #不使用randombuilding
     randombuilding=[[1,1],[100,1],[103,5],[106,10],[109,15],[112,20],[300,1],[303,5],[309,10],[312,15],[318,20],[321,25],[500,1],[501,1],[502,1],[503,1],[505,1],[508,5],[509,5],[510,5],[511,5],[512,5],[513,5],[514,7],[515,8],[516,9],[519,13],[520,14],[521,15],[522,16],[523,17],[525,19],[526,19],[527,19],[528,19],[529,20],[530,20],[531,20],[536,22],[537,22],[538,22],[539,23],[541,24]]#building id, lev
     #各爵位地图用户数
-    mapKind=[8,32,72,144,200,512,800]
+    mapKind=[8,32,72,128,200,512,800]
     #woods product cost(corn or cae),exp,gain,time，解锁等级
     woods=[[600,5,20,4320,7],[1850,15,50,21600,10],[-4,20,70,6480,7],[1000,10,40,5400,15],[2500,20,80,25200,20],[-8,50,120,9000,7]]#woods product cost(corn or cae),exp,gain,time
     #stones product cost(corn or cae),exp,gain,time，解锁等级
@@ -3552,7 +3552,7 @@ class RootController(BaseController):
         return dict(id=1, empties = empty)
     @expose('json')
     def emptyBattle(self, uid):#fetch all
-        battle = DBSession.query(EmptyCastal.cid, Battle.enemy_id).filter(EmptyCastal.uid == uid).filter_by(EmptyCastal.cid=)
+        battle = DBSession.query(EmptyCastal.cid, Battle.uid, Battle.left_time, Battle.timeneed, ).filter(EmptyCastal.uid == uid).filter_by(EmptyCastal.cid=-Battle.enemy_id).filter_by(Em)
     global detectEmpty
     def detectEmpty(uid, enemy_id, t):
         user = checkopdata(uid)
