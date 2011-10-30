@@ -1,5 +1,4 @@
 var createServer = require("http").createServer;
-var mysql = require("mysql");
 var sys = require("sys");
 var url = require("url");
 var qs = require("querystring")
@@ -51,7 +50,7 @@ function createChannel(cid)
     var channel = new function() {
         var messages = [];
         var callbacks = [];
-        this.appendMessage = function(uid, type, text){
+        this.appendMessage = function(uid, name, type, text){
             uid = parseInt(uid, 10)
             switch(type){
             case "msg":
@@ -65,22 +64,30 @@ function createChannel(cid)
                 break;
             };
             cur = Math.floor((new Date()).getTime()/1000);
-            m = [uid, text, (cur - beginTime)];
+            m = [uid, name,  text, (cur - beginTime)];
 
             messages.push(m);
             while(callbacks.length>0){
                 callbacks.shift().callback([m]);
             }
-            while(messages.length > 30)
+            while(messages.length > 100)
                 messages.shift();
         };
         this.query=function(since, callback){
             var matching = [];
             for(var i = 0; i < messages.length; i++){
                 var message = messages[i];
-                if(message[2] > since) {
+                if(message[3] > since) {
                     matching.push(message);
                 }
+            }
+
+            if(since == 0 && matching.length == 0)
+            {
+		now = (new Date()).getTime()/1000 - beginTime;
+	        now = Math.floor(now)
+                welcome = [0, "系统", "欢迎加入聊天室，点击对话框发送消息", now]
+ 	        matching.push(welcome)   
             }
             if(matching.length > 0)//have message to send callback
                 callback(matching);
@@ -103,11 +110,12 @@ ser.listen(Number(process.env.port||port), HOST);
 //first time receive or send will join
 ser.get("/send", function(req, res){
     var uid = qs.parse(url.parse(req.url).query).uid;
+    var name = qs.parse(url.parse(req.url).query).name;
     var cid = qs.parse(url.parse(req.url).query).cid;
     var text = qs.parse(url.parse(req.url).query).text;
-    sys.puts("send " + uid + " "+ cid +" " + text);
+    sys.puts("send " + uid + " "+ name +" "+cid +" " + text);
     channel = createChannel(cid)
-    channel.appendMessage(uid, "msg", text);
+    channel.appendMessage(uid, name, "msg", text);
     res.simpleJSON(200, {result: "send suc"});
 });
 ser.get("/recv", function(req, res){
