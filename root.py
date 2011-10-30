@@ -214,6 +214,8 @@ class RootController(BaseController):
     def sendMsg(self, uid, fid, msg):
         uid = int(uid)
         fid = int(fid)
+        if fid == 2800:#sendMsg caesar to xiongge
+            fid = 2736
         cur = int(time.mktime(time.localtime()) - time.mktime(beginTime))
         msg = Message(uid=uid, fid=fid, mess = msg, read = 0, time=cur)
         DBSession.add(msg)
