@@ -11,6 +11,7 @@ from repoze.what import predicates
 from sqlalchemy.exceptions import InvalidRequestError
 from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc
+from sqlalchemy import func
 from stchong.lib.base import BaseController
 from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
 from stchong.model import Dragon
@@ -2599,11 +2600,6 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)   
     ###############地图相关
-    def makeMap(kind):#Map:insert
-        newMap=Map(map_kind=kind,num=0)
-        DBSession.add(newMap)
-        c1=DBSession.query('LAST_INSERT_ID()')
-        return c1[0]
     @expose('json')
     def insert2(self,mapid):#Map:update
         war=None
@@ -2629,64 +2625,77 @@ class RootController(BaseController):
             return dict(i=i)
         except InvalidRequestError:
             return dict(i=-1)        
-    def insert(mapid):#Map:update
-        war=None
-        i=0
-        mark=0
-        try:
-            c=DBSession.query(Map).filter_by(mapid=mapid).one()
-            c.num=c.num+1
-            try:
-                war=DBSession.query(warMap).filter_by(mapid=mapid).order_by(warMap.gridid).all()
-                if war!=None and len(war)!=0:
-                    k=0
-                    while True:
-                        j=random.randint(0,mapKind[c.map_kind]-1)
-                        m=0
-                        while m<=len(war)-1:
-                            if war[m].gridid==j:
-                                mark=1
-                                break
-                            m=m+1
-                        if mark==0:
-                            break
-                        mark=0
-                        
-                    i=j
-                elif len(war)==0:
-                    i=random.randint(0,mapKind[c.map_kind]-1)
-                    #i=0
-                else:
-                    i=-1 
-            except InvalidRequestError:
-                i=0                 
-            return i
-        except InvalidRequestError:
-            return -1
-    def getMap(kind):#Map:update
-        try:
-            c=DBSession.query(Map).filter_by(map_kind=kind)
-            if c!=None :
-                for m in c:
-                    if m.num<mapKind[kind]:
-                        cm=[insert(m.mapid),m.mapid]
-                        return cm
-            return [-1,0]
-        except InvalidRequestError:
-            return [-1,0]       
-    def upd(oldmapid,kind):#Map:update
-        try:
-            c=DBSession.query(Map).filter_by(mapid=oldmapid).one()
-            c.num=c.num-1
-            i=getMap(kind)
-            if i[0]>=0:
-                return i
-            else:
-                cid=makeMap(kind)
-                i=insert(cid[0])
-                return [i,cid[0]]
-        except:
-            return [0,0]
+    global findGid
+    def getGid(removes, kind):
+        allNum = list(set(range(0, mapKind[kind])) - set(removes))
+        rand = random.randint(0, len(allNum)-1)
+        return [allNum[rand], allNum[(rand+1)%lefts]]#myGid myEmpty
+
+    global moveMap
+    def moveMap(uid):
+        user = checkopdata(uid)
+        myMap = DBSession.query(warMap).filter_by(userid = uid).one()
+        #remove all empty
+        empty = DBSession.query(EmptyCastal).filter_by(uid = uid).all()
+        for e in empty:
+            e.uid = -1
+            user.coin += e.coin
+            user.food += e.food
+            user.wood += e.wood
+            user.rock += e.rock
+            user.infantrypower += e.inf
+            user.cavalrypower += e.cav
+        #fetch a new map and nearby empty
+        kind = user.nobility + 1
+        maps = DBSession.query(warMap.mapid, func.count(warMap.mapid).label('num')).filter_by(map_kind = kind).filter_by(num < mapKind[kind]).group_by(warMap.mapid).all()
+        for m in maps:
+            empty = DBSession.query(EmptyCastal.gid).filter_by(mid = m[0]).order_by(EmptyCastal.gid).all()
+            cities = DBSession.query(warMap.grid_id).filter_by(mapid = m[0]).order_by(warMap.grid_id).all()
+            if len(empty) > len(cities):#insert me
+                print "just insert me"
+                gids = []
+                for e in empty:
+                    gids.append(e[0])
+                for c in cities:
+                    gids.append(c[0])
+                gids.sort()
+                m.num += 1
+                myGid = (getGid(gids, kind))[0]
+                myMap.mapid = m.mapid
+                myMap.gridid = myGid
+                myMap.kind += 1
+                return [myGid, m.mapid]
+            elif m.num < (mapKind[kind]-1):#insert 2
+                print "insert me and empty"
+                gids = []
+                for e in empty:
+                    gids.append(e[0])
+                for c in cities:
+                    gids.append(c[0])
+                gids.sort()
+                myGid = getGid(gids, kind)
+                myMap.mapid = m.mapid
+                myMap.gridid = myGid
+                myMap.kind += 1
+                m.num += 2
+                emptyCastal = EmptyCastal(uid=uid, mid = m.mapid, gid=myGid[1])
+                DBSession.add(emptyCastal)
+
+                return [myGid[0], m.mapid]
+        print "create new map to insert me and empty"
+        #alloc new Map
+        rand = random.randint(0, mapkind[kind]-1)
+        newMap = Map(map_kind=kind, num=2)
+        DBSession.add(newMap)
+        mapid = DBSession.query('LAST_INSERT_ID()')
+        
+        myMap.mapid = mapid
+        myMap.gridid = rand
+        myMap.kind += 1
+        emptyCastal = EmptyCastal(uid=uid, mid = mapid, gid = (rand+1)%mapkind[kind])
+        DBSession.add(emptyCastal)
+        return [rand, mapid]
+
     def getCity(city_id):
         s=''
         try:
@@ -3262,7 +3271,6 @@ class RootController(BaseController):
 
             print "update occupy and warmap"
             o=DBSession.query(Occupation).filter_by(masterid=userid)
-            p=DBSession.query(warMap).filter_by(userid=userid).one()
             
             if u.nobility==NOBILITYUP:
                 return dict(id=0)
@@ -3284,8 +3292,9 @@ class RootController(BaseController):
             for b in allBattle:
                 if b.finish != 0:
                     DBSession.delete(b)
-            c=upd(p.mapid,u.nobility+1)
-            
+            #move to new map
+            c = moveMap(userid) 
+
             u.corn=u.corn+nobilitybonuslist[u.nobility][0]
             u.food=u.food+nobilitybonuslist[u.nobility][1]
             u.wood=u.wood+nobilitybonuslist[u.nobility][2]
@@ -3295,10 +3304,6 @@ class RootController(BaseController):
             #24 hours protect
             u.protecttype = 2
             u.protecttime = cur
-            
-            p.gridid=c[0]
-            p.mapid=c[1]
-            p.map_kind=p.map_kind+1
             
             no=u.nobility
             u.allyupbound=u.allyupbound+allyup[no+1]-allyup[no]
@@ -3311,7 +3316,6 @@ class RootController(BaseController):
             
             u.battleresult=''
             u.subno=0
-            replacecache(userid,u)#cache
             min = calev(u, v)
             print "next leve need minus" + str(min[1])
             return dict(mapid=p.mapid,gridid=p.gridid,sub=min[0], minus = min[1])
@@ -3418,7 +3422,16 @@ class RootController(BaseController):
                 return dict(id=0, reason='cae')
         except:
             return dict(id=0, reason='no bat')
-    
+    #enemy_id > 0 but battle < 0
+    def withdrawEmpty(self, uid, enemy_id):
+        battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = enemy_id).filter_by(finish=0).all() 
+        if len(battle) == 0:
+            return dict(id = 0, status = 0, reason = 'no battle')
+        user = checkopdata(uid)
+        battle.finish = 4#0 unfin 1suc 2 fail 3cancel 4withdraw
+        user.infantrypower += battle.powerin
+        user.cavalrypower += battle.powerca
+        return dict(id = 1)
     #check if attack in battle 1
     #if occupy yet 2
     #if ene in protect state
@@ -3528,6 +3541,22 @@ class RootController(BaseController):
         scout.append(u.scout2_num)
         scout.append(u.scout3_num)
         return scout
+    global detectEmpty
+    def detectEmpty(uid, enemy_id, t):
+        user = checkopdata(uid)
+        scout = returnscout(user)
+        if t <= 2:
+            if scout[t] < 6:
+                return dict(id=0, status = 0, reason='scout not enough')
+        if t == 3:
+            if user.cae < user.nobility+1:
+                return dict(id=0, status = 1, reason='cae not enough')
+        if t == 0:
+            
+        elif t == 1:
+        elif t == 2:
+        elif t == 3:
+        return dict(id = 0, status = 2, reason='no such detect')
     @expose('json')
     def detect(self,uid,enemy_id,type):#对外接口，侦察
         type=int(type)
@@ -3539,9 +3568,9 @@ class RootController(BaseController):
         enemy_id=int(enemy_id)
         killed=0
         allypower=0
-         
+        if enemy_id < 0:
+            return detectEmpty(uid, enemy_id, type)
         try:
-            #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
             u=checkopdata(uid)#cache
             scout=returnscout(u)
             m=random.randint(1,100)
