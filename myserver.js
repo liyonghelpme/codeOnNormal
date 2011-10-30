@@ -86,7 +86,7 @@ function createChannel(cid)
             {
 		now = (new Date()).getTime()/1000 - beginTime;
 	        now = Math.floor(now)
-                welcome = [0, "系统", "欢迎加入聊天室，点击对话框发送消息", now]
+                welcome = [0, "系统", "欢迎加入聊天室，点击输入框发送消息", now]
  	        matching.push(welcome)   
             }
             if(matching.length > 0)//have message to send callback
