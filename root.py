@@ -2698,7 +2698,7 @@ class RootController(BaseController):
                 myMap.map_kind += 1
                 m.num += 2
                 rand = random.randint(0, len(EmptyLev)-1)
-                emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand)
+                emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
                 DBSession.add(emptyCastal)
 
                 return [myGid[0], m.mapid]
@@ -2715,7 +2715,7 @@ class RootController(BaseController):
         myMap.map_kind += 1
 
         rand = random.randint(0, len(EmptyLev)-1)
-        emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand)
+        emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
         DBSession.add(emptyCastal)
         return [myMap.gridid, newMap.mapid]
 
@@ -3309,6 +3309,7 @@ class RootController(BaseController):
             v.dewoninmap=0
             
             u.battleresult=''
+            u.EmptyResult = ''
             u.subno=0
             min = calev(u, v)
             print "next leve need minus " + str(min[1])
@@ -3387,10 +3388,10 @@ class RootController(BaseController):
         uid=int(uid)
         enemy_id=int(enemy_id)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-        if uid == enemy_id:
-            return dict(id=0, reason='self attack self')
+        #if uid == enemy_id:
+        #    return dict(id=0, reason='self attack self')
         try:
-            f=checkopdata(enemy_id)
+            #f=checkopdata(enemy_id)
             ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
             tl=ub.timeneed-(t-ub.left_time)
             hour = 3600
@@ -3416,6 +3417,50 @@ class RootController(BaseController):
                 return dict(id=0, reason='cae')
         except:
             return dict(id=0, reason='no bat')
+    @expose('json')
+    def harvestEmpty(self, uid, cid):
+        uid = int(uid)
+        cid = int(cid)
+        empty = DBSession.query(EmptyCastal).filter_by(cid=cid).one()
+        user = checkopdata(uid)
+        if empty.uid != uid:
+            return dict(id=0, status = 0, reason='not your empty')
+        curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
+        proTime = (curTime - empty.lastTime)*1.0/3600
+        #not over limitation 10000
+        if proTime >= 1.0:
+            coinGen = int(min(proTime * EmptyLev[empty.attribute][6], 10000)) 
+            foodGen = int(min(proTime * EmptyLev[empty.attribute][7], 10000))
+            woodGen = int(min(proTime * EmptyLev[empty.attribute][8], 100))
+            stoneGen = int(min(proTime * EmptyLev[empty.attribute][9], 100))
+            user.corn += coinGen
+            user.food += foodGen
+            user.wood += woodGen
+            user.stone += stoneGen
+            empty.lastTime = curTime
+            return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = curTime)
+        return dict(id=0, status = 0, reason='protime< 3600')
+        
+
+    @expose('json')
+    def callbackEmpty(self, uid, cid, inf, cav):
+        uid = int(uid)
+        cid = int(cid)
+        inf = int(inf)
+        cav = int(cav)
+        empty = DBSession.query(EmptyCastal).filter_by(cid = cid).one()
+        if empty.uid != uid:
+            return dict(id=0, status = 0, reason='not your emptyCity')
+        user = checkopdata(uid)
+        inf = min(empty.inf, inf)
+        cav = min(empty.cav, cav)
+        empty.inf -= inf
+        empty.cav -= cav
+        empty.inf = max(empty.inf, 0)
+        empty.cav = max(empty.cav, 0)
+        user.infantrypower += inf
+        user.cavalrypower += cav
+        return dict(id=1, inf = inf, cav = cav)
     #enemy_id > 0 but battle < 0
     @expose('json')
     def withdrawEmpty(self, uid, enemy_id):
@@ -3432,7 +3477,8 @@ class RootController(BaseController):
     #if ene in protect state
     global attackEmpty
     def attackEmpty(uid, enemy_id, timeneed, infantry, cavalry):
-        battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).all()
+        #enemy_id < 0
+        battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish = 0).all()
         if len(battle) > 0:
             return dict(id=0, status = 0, reason='attacking')
         user = checkopdata(uid)
@@ -3445,14 +3491,14 @@ class RootController(BaseController):
             user.cavalrypower -= cavalry
             timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
             #replace old battle
-            battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = -enemy_id).filter_by(finish != 0).all()
+            battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = enemy_id).filter(Battle.finish != 0).all()
             allypower=allyhelp(uid,0,infantry+cavalry)
             if len(battle) == 0:#create New
-                nb = Battle(uid=uid, enemy_id=-enemy_id, left_time = timeNow, timeneed=timeneed, finish = 0, powerin = infantry, powerca = cavalry, power = infantry+cavalry, allypower = allypower)
+                nb = Battle(uid=uid, enemy_id=enemy_id, left_time = timeNow, timeneed=timeneed,  powerin = infantry, powerca = cavalry, power = infantry+cavalry, allypower = allypower)
                 DBSession.add(nb)
             else:#replace
                 nb = battle[0]
-                nb.enemy_id = -enemy_id
+                nb.enemy_id = enemy_id
                 nb.left_time = timeNow
                 nb.timeneed = timeneed
                 nb.finish = 0
@@ -3460,7 +3506,7 @@ class RootController(BaseController):
                 nb.powerca = cavalry
                 nb.power = infantry + cavalry
                 nb.allypower = allypower
-                DBSession.flush()
+            DBSession.flush()
             return dict(id=1)
         return dict(id=0, status = 2, reason = "power not enough")
 
@@ -3542,13 +3588,14 @@ class RootController(BaseController):
         uid = int(uid)
         empty = DBSession.query(EmptyCastal.cid, EmptyCastal.mid, EmptyCastal.gid, EmptyCastal.inf, EmptyCastal.cav, EmptyCastal.lastTime).filter_by(uid=uid).all()
         return dict(id=1, empties = empty)
-    global detectEmpty
-    def detectEmpty(uid, enemy_id, t):
+    @expose('json')
+    def detectEmpty(self, uid, cid, t):
         user = checkopdata(uid)
         scout = returnscout(user)
-        enemy_id = -enemy_id
+        cid = int(cid)
+        t = int(t)
         try:
-            empty = DBSession.query(EmptyCastal).filter_by(cid = enemy_id).one()
+            empty = DBSession.query(EmptyCastal).filter_by(cid = cid).one()
         except:
             return dict(id=0, status = 2, reason = 'no this empty')
         if t <= 2:
@@ -3564,22 +3611,18 @@ class RootController(BaseController):
             return dict(id=1, inf = empty.inf, cav = empty.cav)
         elif t == 1:
             user.scout2_num -= 6
-            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
             curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
-            blist = []
-            for b in battle:
-                if curTime - b.left_time > 3600*3:
-                    break
-                blist.append(b)
+            blist = list(battle)[0:len(battle)/2]
             return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         elif t == 2:
             user.scout3_num -= 6
-            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
             blist = list(battle)
             return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         elif t == 3:
             user.cae -= user.nobility+1
-            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca).filter_by(enemy_id=-enemy_id).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
+            battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
             blist = list(battle)
             return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
         return dict(id = 0, status = 2, reason='no such detect')
@@ -3594,8 +3637,6 @@ class RootController(BaseController):
         enemy_id=int(enemy_id)
         killed=0
         allypower=0
-        if enemy_id < 0:#<0 to identify 
-            return detectEmpty(uid, enemy_id, type)
         try:
             u=checkopdata(uid)#cache
             scout=returnscout(u)
@@ -4080,11 +4121,11 @@ class RootController(BaseController):
         defencer = checkopdata(empty.uid)
         attStr = []
         defStr = []
-        if empty.uid == attacker.uid:
+        if empty.uid == attacker.userid:
             empty.inf += battle.powerin
             empty.cav += battle.powerca
-            attStr = [0, battle.uid, battle.enemy_id, battle.powerin, battle.powerca]
-            result = EmptyResult(uid=battle.uid, data=json.dumps(attStr), read=0)
+            attStr = [0, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
+            result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
             DBSession.add(result)
             return
 
@@ -4096,7 +4137,7 @@ class RootController(BaseController):
         defPurePow = empty.inf + empty.cav
         factor = 1.5 + empty.attribute*0.1
         defFullPow = int(defPurePow * factor)
-        lost = callost(attFullPow, defFullPow, attPurePow, defPurePower, 1)
+        lost = callost(attFullPow, defFullPow, attPurePow, defPurePow, 1)
 
         returnIn = battle.powerin - lost[0]
         returnCa = battle.powerca + min(returnIn, 0)
@@ -4111,7 +4152,7 @@ class RootController(BaseController):
         #lose no reward
         #type 0 send uid enemy_id suc/fail attackerPower left defencePower left attackReward defeReward
         #type 1 attack     
-        attStr = [1, battle.uid, battle.enemy_id]
+        attStr = [1, battle.uid, -battle.enemy_id]
         if attFullPow > defFullPow:
             attStr.append(1)
         else:
@@ -4119,23 +4160,24 @@ class RootController(BaseController):
         attStr += [battle.powerin, battle.powerca, attGod, battle.allypower, returnIn, returnCa, empty.inf, empty.cav, leftIn, leftCa]#full god ally
         
         if attFullPow > defFullPow:
-            empty.uid = attack.userid
+
             print "attack return In " + str(returnIn) + " returnca " + str(returnCa)
             empty.inf = returnIn
             empty.cav = returnCa
 
             curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
-            proTime = (curTime - empty.lastTime)*1.0 / 3600
+            if empty.uid != -1:
+                proTime = (curTime - empty.lastTime)*1.0 / 3600
             empty.lastTime = curTime
-            attacker.corn += EmptyLev[empty.lev][10]
-            attacker.food += EmptyLev[empty.lev][11]
-            attacker.wood += EmptyLev[empty.lev][12]
-            attacker.stone += EmptyLev[empty.lev][13]
+            attacker.corn += EmptyLev[empty.attribute][2]
+            attacker.food += EmptyLev[empty.attribute][3]
+            attacker.wood += EmptyLev[empty.attribute][4]
+            attacker.stone += EmptyLev[empty.attribute][5]
             if empty.uid != -1:#not monster
-                coinGen = proTime * EmptyLev[empty.lev][6]/2 
-                foodGen = proTime * EmptyLev[empty.lev][7]/2
-                woodGen = proTime * EmptyLev[empty.lev][8]/2
-                stoneGen = proTime * EmptyLev[empty.lev][9]/2
+                coinGen = proTime * EmptyLev[empty.attribute][6]/2 
+                foodGen = proTime * EmptyLev[empty.attribute][7]/2
+                woodGen = proTime * EmptyLev[empty.attribute][8]/2
+                stoneGen = proTime * EmptyLev[empty.attribute][9]/2
 
                 defencer.infantrypower += leftIn
                 defencer.cavalrypower += leftCa
@@ -4146,7 +4188,8 @@ class RootController(BaseController):
                 #attack empty left Resource
                 defStr = list(attStr)
                 defStr += [coinGen, foodGen, woodGen, stoneGen]
-            attStr += [EmptyLev[10], EmptyLev[11], EmptyLev[12], EmptyLev[13]]
+            attStr += [EmptyLev[empty.attribute][2], EmptyLev[empty.attribute][3], EmptyLev[empty.attribute][4], EmptyLev[empty.attribute][5]]
+            empty.uid = attacker.userid
         else:
             attacker.infantrypower += returnIn
             attacker.cavalrypower += returnCa
@@ -4161,25 +4204,28 @@ class RootController(BaseController):
             DBSession.add(result)
     
     #update user empty battle result
-    global emptyBattle
-    def emptyBattle(uid):
+    @expose('json')
+    def emptyBattle(self, uid):
         uid = int(uid)
         user = checkopdata(uid)
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         #defence my empty
         emptySet = DBSession.query(EmptyCastal.cid, Battle.uid, Battle.enemy_id).filter(Battle.enemy_id < 0).filter(Battle.uid != uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).filter(Battle.timeneed+Battle.left_time < curTime).order_by(Battle.left_time).all()
+        print "defence my empty ", emptySet
         for e in emptySet:
             b = DBSession.query(Battle).filter_by(uid=e[1]).filter_by(enemy_id=e[2]).one()
             b.finish = 1
             emptyLost(b)
         #attack other empty
-        emptySet = DBSession.query(Battle).filter_by(finish = 0).filter(Battle.timeneed+Battle.left_time<curTime).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).order_by(Battle.left_time).all()
+        emptySet = DBSession.query(Battle).filter("uid = :uid and finish = 0 and enemy_id < 0 and (timeneed+left_time)<:curTime").params(uid = uid, curTime = curTime).all()
+        print "attack other empty " , emptySet
         for b in emptySet:        
             b.finish = 1
             emptyLost(b)
         
         emptyres = DBSession.query(EmptyResult).filter_by(uid=uid).all()#remove read in other function
         res = []
+        data = []
         for e in emptyres:
             data = json.loads(e.data)
             res += data
@@ -4188,8 +4234,9 @@ class RootController(BaseController):
             userEmpty = json.loads(user.EmptyResult)
         except:
             userEmpty = []
-        user.emptyResult = json.dumps(userEmpty+data)
-
+        if data != []:
+            user.emptyResult = json.dumps(userEmpty+data)
+        return dict(result = data)
     def warresult2(uid):
         uid = int(uid)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -4487,7 +4534,7 @@ class RootController(BaseController):
     @expose('json')
     def mapEmptyInfo(self, uid, mid):
         mid = int(mid)
-        empty = DBSession.query(EmptyCastal).from_statement("select cid, uid, gid, inf, cav, attribute, lastTime from EmptyCastal where mid = :mid ").params(mid=mid).all()
+        empty = DBSession.query(EmptyCastal).from_statement("select cid, uid, gid, inf, cav, attribute, lastTime from emptyCastal where mid = :mid ").params(mid=mid).all()
         return dict(empty = empty)
     #occupation Data
     @expose('json')
@@ -4499,10 +4546,9 @@ class RootController(BaseController):
     @expose('json')
     def mapEmptyBattle(self, uid):
         uid = int(uid)
-        myAttack = DBSession.query(Battle).from_statement("select enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
-        myDef = DBSession.query(Battle).from_statement("select battle.uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and battle.enemy_id = -cid and finish = 0").params(uid=uid).all()
-        myAttack += myDef
-        return dict(emptyWar = myAttack)
+        myAttack = DBSession.query(Battle).from_statement("select -enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
+        myDef = DBSession.query(Battle).from_statement("select battle.uid, -enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and battle.enemy_id = -cid and finish = 0").params(uid=uid).all()
+        return dict(emptyAtt = myAttack, emptyDef = myDef)
     """
     #userinformation  battle mapinformation
     @expose('json')
