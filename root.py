@@ -4843,7 +4843,7 @@ class RootController(BaseController):
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
     global needHealth 
-    needHealth = [51, 999, 9999, 99999, 999999]
+    needHealth = [51, 201, 9999, 99999, 999999]
     @expose('json')#upgrade state
     def getUp(self, uid, pid):
         uid = int(uid)
