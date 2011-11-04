@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc, select
 from sqlalchemy import func
 from stchong.lib.base import BaseController
-from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank,logfile
+from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank
 from stchong.model import Dragon
 from stchong.model import Message
 from stchong.model import PetAtt
@@ -33,6 +33,7 @@ import hashlib
 import copy
 import httplib
 import json
+import inspect
 __all__ = ['RootController']
 class RootController(BaseController):
     secc = SecureController()
@@ -92,7 +93,6 @@ class RootController(BaseController):
     global getbonusbattle#内部函数，返回战斗奖励functionspecialgoods bonus for battle
     global warresult#内部函数，返回战争结果function  calculate result of battles
     global functionname#函数名列表list of function name
-    global writelog#内部函数，写日志function write to log
     global calev#内部函数，计算爵位等级function castle lev up
     global addnews#内部函数，新闻function add news
     global opentreasurebox#内部函数，计算打开宝箱奖励function
@@ -116,12 +116,7 @@ class RootController(BaseController):
     global appsecret
     global tasknew
     global tasknew3
-    global caelog
     global SERVER_NAME
-    global popuplog
-    global minusstatelog
-    global buylog
-    global retlevlog
     global wartasknew#战争任务
     global checkprotect#检查保护
     global recalev#计算爵位等级差
@@ -277,8 +272,6 @@ class RootController(BaseController):
                 else:
                     u.cae=u.cae+int(int(papapas)/100)
                 ca=u.cae
-                buylog(int(int(papapas)/100),u.userid)
-                replacecache(uid,u) 
                 try:
                     x=DBSession.query(Caebuy).filter_by(uid=u.userid).filter_by(time=ti).one()
                     x.cae=int(int(papapas)/100)
@@ -302,8 +295,7 @@ class RootController(BaseController):
             except:
                 ncb=Caebuy(uid=u.userid,cae=caeplus,time=ti)
                 DBSession.add(ncb)            
-            caelog(cb,ca)
-            replacecache(uid,u)
+            print inspect.stack()[0]
             return dict(id=1)
     #######payment
     @expose()
@@ -314,10 +306,6 @@ class RootController(BaseController):
             u=checkopdata(uu.userid)
             s=hashlib.md5(tid+'-'+uid+'-'+papapas+'-'+appsecret).hexdigest() 
             if s==signature:
-                #u.tid=tid
-                #u.paytime=time
-                #u.cae=u.cae+int(int(papapas)/100)
-                replacecache(u.userid,u)
                 return '1'
             else:
                 return '0'
@@ -343,6 +331,7 @@ class RootController(BaseController):
             u.invite=1
             u.inviteid=ub.userid
             u.cae=u.cae+3
+            print inspect.stack()[0]
             try:
                 f=DBSession.query(Friend).filter_by(uid=uid).filter_by(fotherid=fotherid).one()            
                 DBSession.commit()
@@ -750,45 +739,6 @@ class RootController(BaseController):
             tmp=theFile.getvalue()
             theFile.close()
             return tmp
-    def retlevlog(stri,uid):
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        strl=uid+":"+stri+"\n"
-        logfile.write(strl)
-        logfile.flush()        
-    def buylog(cb,uid):
-        uid=str(uid)
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        strl=uid+":buycae:"+str(cb)+";"+timestr+'\n'
-        logfile.write(strl)
-        logfile.flush()     
-    def caelog(cb,ca):
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        strl=timestr+':'+str(cb)+':'+str(ca)+'\n'
-        logfile.write(strl)
-        logfile.flush()   
-    def popuplog(ub,ua,uid):
-        uid=str(uid)
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        strl=uid+":popchange:"+timestr+':'+str(ub)+':'+str(ua)+'\n'
-        logfile.write(strl)
-        logfile.flush() 
-    def minusstatelog(ub,ua,uid):
-        uid=str(uid)
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        strl=uid+":minusstringchange:"+timestr+':'+str(ub)+':'+str(ua)+'\n'
-        logfile.write(strl)
-        logfile.flush()              
-    def writelog(beginend,num,state):#beginend=0：#调用开始，beginend=1，调用结束 num：函数名称list,functionname下标，state：状态字符串
-        strl=''
-        timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        if beginend==0:
-            strl=timestr+',begin,'+functionname[num]+state+'\n'
-            logfile.write(strl)
-            logfile.flush()
-        else:
-            strl=timestr+',end,'+functionname[num]+state+'\n'
-            logfile.write(strl)
-            logfile.flush()            
             
     #cache related 与缓存相关测试函数
     @expose('json')
@@ -1043,31 +993,19 @@ class RootController(BaseController):
         u=checkopdata(uid)#cache
         u.rate=1
         u.cae=u.cae+5
-        replacecache(uid,u)#cache
+        print inspect.stack()[0]
         return dict(id=1)
     @expose('json')
     def levup(self,uid,lev):#operationalData:update,modify 用户升级时调用，uid为用户userid，lev为目标等级，10，30,60,100级时增加人口上限
-        #u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
         u=checkopdata(uid)#cache
         u.corn=u.corn+(int(lev))*200#奖励corn 用户等级*20 
         u.lev=int(lev)
         tasklist=[]
         task=[-1,-1]
-        #if u.currenttask=='' or u.currenttask==None:
-        #    tasklist=newtask(u)
-        #if u.lev==10:#等级为10时，人口上相增长1000
-        #    u.populationupbound=u.populationupbound+1000
-        #elif u.lev==30 or u.lev==60 or u.lev==100:#30,60，100级时增长2000
-        #    u.populationupbound=u.populationupbound+2000
-        cb=u.cae
         if u.lev%10==0:
-            ub=u.populationupbound
             u.populationupbound=u.populationupbound+500
-            ua=u.populationupbound
-            popuplog(ub,ua,uid)
             u.cae=u.cae+u.lev/10
-            ca=u.cae
-            caelog(cb,ca)
+            print inspect.stack()[0]
         if u.currenttask!='-1' and int(u.currenttask)<0:
             task=tasknew3(u)
             #u.currenttask=task[0]
@@ -1115,10 +1053,8 @@ class RootController(BaseController):
                 if bonus>0 :
                     u.corn=u.corn+bonus
                 else:
-                    cb=u.cae
                     u.cae=u.cae-bonus
-                    ca=u.cae
-                    caelog(cb,ca)
+                    print inspect.stack()[0]
                 if u.loginnum<4:
                     u.loginnum=u.loginnum+1
                 else:
@@ -1350,12 +1286,9 @@ class RootController(BaseController):
             cf=5
         if u.cae-cf<0:
             return dict(id=0)
-        cb=u.cae
         u.cae=u.cae-cf
-        ca=u.cae
-        caelog(cb,ca)
+        print inspect.stack()[0]
         u.monstertime=u.monstertime+86400
-        replacecache(uid,u)
         return dict(id=1)
     @expose('json')
     def speedupmonster(self,uid,monsterstr): 
@@ -1374,16 +1307,11 @@ class RootController(BaseController):
             cf=5
         if u.cae-cf<0:
             return dict(id=0)
-        cb=u.cae
         u.cae=u.cae-cf
-        ca=u.cae
-        caelog(cb,ca)
+        print inspect.stack()[0]
         u.monsterlist=monsterstr
-        #u.monsterdefeat=0
         u.monstertime=0
         u.monster=u.monster+1
-        replacecache(uid,u)#cache
-        
         return dict(id=1)     
     @expose('json')   
     def monstercomplete(self,uid):
@@ -1612,17 +1540,11 @@ class RootController(BaseController):
                 str3=str3+';'+xyy[0]+','+xyy[1]
                          
         if war.minusstate=='':
-            mb=war.minusstate
             war.minusstate=str3
-            ma=war.minusstate
-            minusstatelog(mb,ma,city_id)
             return dict(id=1)
         else:
             if strminus!='':
-                mb=war.minusstate
                 war.minusstate=war.minusstate+';'+str3
-                ma=war.minusstate
-                minusstatelog(mb,ma,city_id)                
                 return dict(id=1)    
             else:
                 return dict(id=0)
@@ -1634,10 +1556,7 @@ class RootController(BaseController):
         strminus=type+','+grid_id#异常状态字符串，最后加', '是为了使用checkminusstate的方便  
         mlist=[]  
         if war.minusstate=='':
-            mb=war.minusstate
             war.minusstate=strminus
-            ma=war.minusstate
-            minusstatelog(mb,ma,city_id)
             return dict(id=1)
         else:
             mlist=war.minusstate.split(';')
@@ -1685,10 +1604,7 @@ class RootController(BaseController):
                             i=1
                         else:
                             stri=stri+';'+mle[0]+','+mle[1]
-                mb=war.minusstate
                 war.minusstate=stri
-                ma=war.minusstate
-                minusstatelog(mb,ma,city_id)
                 lev=int((u.lev-1)/10)
                 u.corn=u.corn+50+lev*20
                 u.exp=u.exp+1+lev*1
@@ -1741,10 +1657,7 @@ class RootController(BaseController):
                     i=1
                 else:
                     ss=ss+';'+msle   
-        mb=war.minusstate         
         war.minusstate=ss
-        ma=war.minusstate
-        minusstatelog(mb,ma,war.city_id)
         return mark
     ################
     ################结盟相关                       
@@ -1773,12 +1686,12 @@ class RootController(BaseController):
     def cancelally(self,uid,fid):#对外接口，用户uid取消与fid用户的结盟关系
         uid=int(uid)
         fid=int(fid)
-        #u=DBSession.query(operationalData).filter_by(userid=uid).one()
         u=checkopdata(uid)#cache
         try:
             if u.cae-5<0:
                 return dict(id=0)
             u.cae=u.cae-5
+            print inspect.stack()[0]
             u.allynum=u.allynum-1
             if u.allynum<0:
                 u.allynum=0
@@ -1797,14 +1710,11 @@ class RootController(BaseController):
             if u.nobility>NOBILITYUP :
                 return dict(id=0)
             sub=u.allyupbound-allyup[u.nobility]
-            cb=u.cae
             cae=5*(sub+1)+5
             if u.cae-cae>=0:
                 u.cae=u.cae-cae
-                ca=u.cae
-                caelog(cb,ca)
                 u.allyupbound=u.allyupbound+1
-                replacecache(userid,u)#cache
+                print inspect.stack()[0]
                 return dict(id=1)
             else:
                 return dict(id=0)
@@ -1853,7 +1763,6 @@ class RootController(BaseController):
             return dict(id=1)
     @expose('json')
     def selfopen(self,user_id):#用户使用cae币打开宝箱
-        #u=DBSession.query(operationalData).filter_by(userid=int(user_id)).one()
         u=checkopdata(user_id)#cache
         if u.cae-1>=0:
             if u.treasurebox!='':
@@ -1862,14 +1771,14 @@ class RootController(BaseController):
                 if length<u.treasurenum:
                     u.treasurebox=u.treasurebox+';'+str(-1)
                     u.cae=u.cae-1
-                    replacecache(user_id,u)#cache
+                    print inspect.stack()[0]
                     return dict(id=1)
                 else:
                     return dict(id=0)
             else:
                 u.treasurebox='-1'
                 u.cae=u.cae-1
-                replacecache(user_id,u)#cache
+                print inspect.stack()[0]
                 return dict(id=1)
         else:
             return dict(id=0)
@@ -2423,30 +2332,15 @@ class RootController(BaseController):
                 else:
                     x=0     
                 if p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==0:
-                    ub=u.populationupbound
                     u.populationupbound=u.populationupbound-250
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)
                 elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==1:
-                    ub=u.populationupbound                    
                     u.populationupbound=u.populationupbound-500
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)                    
                 elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==2:
-                    ub=u.populationupbound                       
                     u.populationupbound=u.populationupbound-750
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)                    
                 elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==3:
-                    ub=u.populationupbound   
                     u.populationupbound=u.populationupbound-1000  
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)                      
                 elif p.ground_id>=400 and p.ground_id<420 and int((p.ground_id-400)/4)==4:
-                    ub=u.populationupbound
                     u.populationupbound=u.populationupbound-1250  
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)   
                 lis1=[]                 
                 if lis[0]>0:
                     if p.ground_id>=1 and p.ground_id<=99:
@@ -2591,10 +2485,7 @@ class RootController(BaseController):
                 if u.labor_num<0:
                     u.labor_num=0
                 if p.ground_id>=500 and p.ground_id <=599:
-                    ub=u.populationupbound
                     u.populationupbound=u.populationupbound-decorationbuild[p.ground_id-500][1]
-                    ua=u.populationupbound
-                    popuplog(ub,ua,u.userid)
                 DBSession.delete(p)
                 DBSession.flush()
                 return  dict(id=1)
@@ -2967,7 +2858,6 @@ class RootController(BaseController):
         if md51!=md5:
             return dict(md51=md51,id=md5)
         try:
-            #writelog(0,0,'begin')
             ruser=DBSession.query(operationalData).filter_by(otherid=oid).filter_by(user_kind=user_kind).one()
             user=checkopdata(ruser.userid)
             ds=DBSession.query(Datesurprise).filter_by(uid=user.userid).one()
@@ -3036,7 +2926,6 @@ class RootController(BaseController):
             except InvalidRequestError:
                 giftstr=0
             minusstr=s.minusstate
-            #writelog(1,0,'loginover')
             replacecache(user.userid,user)
             ds=DBSession.query(Datesurprise).filter_by(uid=user.userid).one()   
             if user.war_god==1:
@@ -3332,15 +3221,13 @@ class RootController(BaseController):
             u=checkopdata(uid)#cache
             nobility=u.nobility
             x=defenceplist[nobility][1]
-            cb=u.cae
             if type==0:
                 cae=int((defencenum+100-1)/100)
                 if u.cae-cae>=0:
                     u.defencepower=u.defencepower+defencenum
                     u.cae=u.cae-cae
-                    ca=u.cae
-                    caelog(cb,ca)
-                    replacecache(uid,u)#cache
+                    
+                    print inspect.stack()[0]
                     return dict(id=1)
                 else:
                     return dict(id=0)
@@ -3411,6 +3298,7 @@ class RootController(BaseController):
             if u.cae-cae>=0:
                 u.cae=u.cae-cae  
                 ub.timeneed=0
+                print inspect.stack()[0]
                 print "speed cae " + str(cae) + 'time ' + str(tl)
                 return dict(id=1, caesars = cae)
             else:
@@ -3677,23 +3565,19 @@ class RootController(BaseController):
                 replacecache(uid,u)#cache            
                 return dict(dead=killed,won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,allynum=allypower)
             elif type==3:
-                cb=u.cae
                 u.cae=u.cae-(u.nobility+1)
-                ca=u.cae
-                caelog(cb,ca)
                 uv=checkopdata(enemy_id)#cache
                 v=DBSession.query(Victories).filter_by(uid=enemy_id).one()
                 allypower=allyhelp(uv.userid,1,uv.infantrypower+uv.cavalrypower)      
-                replacecache(uid,u)#cache        
+                print inspect.stack()[0]
+
                 return dict(won=v.won,total=v.lost+v.won,power=uv.infantrypower+uv.cavalrypower,citydefence=uv.defencepower,allynum=allypower)
             else:
-                cb=u.cae
                 u.cae=u.cae-1
-                ca=u.cae
-                caelog(cb,ca)
                 ba=DBSession.query(Battle).filter_by(uid=enemy_id).filter_by(enemy_id=u.userid).one()
                 power=ba.allypower
-                replacecache(uid,u)#cache
+                print inspect.stack()[0]
+
                 return dict(power=power)       
         except InvalidRequestError:
             return dict(id=0)                 
@@ -3734,6 +3618,8 @@ class RootController(BaseController):
             if u.cae >= 2:
                 u.cae -= 2
                 suc = True
+                print inspect.stack()[0]
+
         if suc:
             u.protecttype = type
             u.protecttime = ti
@@ -4075,6 +3961,8 @@ class RootController(BaseController):
             if k<=3:
                 u.cae=u.cae+u.nobility+1
                 bonusstring=str(u.nobility+1)+'!'
+                print inspect.stack()[0]
+
             else:
                 cornget=cornget+500*(u.nobility+1)
                 u.corn=u.corn+500*(u.nobility+1)
@@ -4174,10 +4062,10 @@ class RootController(BaseController):
             attacker.wood += EmptyLev[empty.attribute][4]
             attacker.stone += EmptyLev[empty.attribute][5]
             if empty.uid != -1:#not monster
-                coinGen = proTime * EmptyLev[empty.attribute][6]/2 
-                foodGen = proTime * EmptyLev[empty.attribute][7]/2
-                woodGen = proTime * EmptyLev[empty.attribute][8]/2
-                stoneGen = proTime * EmptyLev[empty.attribute][9]/2
+                coinGen = int(proTime * EmptyLev[empty.attribute][6]/2)
+                foodGen = int(proTime * EmptyLev[empty.attribute][7]/2)
+                woodGen = int(proTime * EmptyLev[empty.attribute][8]/2)
+                stoneGen = int(proTime * EmptyLev[empty.attribute][9]/2)
 
                 defencer.infantrypower += leftIn
                 defencer.cavalrypower += leftCa
@@ -4195,6 +4083,7 @@ class RootController(BaseController):
             attacker.cavalrypower += returnCa
             empty.inf = leftIn
             empty.cav = leftCa
+            defStr = attStr
         
         if attStr != []:
             result = EmptyResult(uid=attacker.userid, data=json.dumps(attStr))
@@ -4228,15 +4117,15 @@ class RootController(BaseController):
         data = []
         for e in emptyres:
             data = json.loads(e.data)
-            res += data
+            res.append(data)
             DBSession.delete(e)#remove readed result
         try:
             userEmpty = json.loads(user.EmptyResult)
         except:
             userEmpty = []
         if data != []:
-            user.emptyResult = json.dumps(userEmpty+data)
-        return dict(result = data)
+            user.emptyResult = json.dumps(userEmpty+res)
+        return dict(result = res)
     def warresult2(uid):
         uid = int(uid)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -4536,6 +4425,11 @@ class RootController(BaseController):
         mid = int(mid)
         empty = DBSession.query(EmptyCastal).from_statement("select cid, uid, gid, inf, cav, attribute, lastTime from emptyCastal where mid = :mid ").params(mid=mid).all()
         return dict(empty = empty)
+    @expose('json')
+    def userHisEmptyWar(self, uid):
+        uid = int(uid)
+        user = checkopdata(uid)
+        return user.emptyResult
     #occupation Data
     @expose('json')
     def mapOccData(self, uid):
@@ -4546,8 +4440,10 @@ class RootController(BaseController):
     @expose('json')
     def mapEmptyBattle(self, uid):
         uid = int(uid)
-        myAttack = DBSession.query(Battle).from_statement("select -enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
-        myDef = DBSession.query(Battle).from_statement("select battle.uid, -enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and battle.enemy_id = -cid and finish = 0").params(uid=uid).all()
+        myAttack = DBSession.query(-Battle.enemy_id, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower).filter_by(uid=uid).filter(Battle.enemy_id < 0).filter_by(finish = 0).all()
+        #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
+        myDef = DBSession.query(Battle.uid, EmptyCastal.cid, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter_by(finish = 0).all()
+        #.from_statement("select battle.uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and enemy_id = -cid and finish = 0").params(uid=uid).all()
         return dict(emptyAtt = myAttack, emptyDef = myDef)
     """
     #userinformation  battle mapinformation
@@ -4752,6 +4648,8 @@ class RootController(BaseController):
                 if len(buildings) > 0:
                    if u.cae >= caeCost[caetype]:
                         u.cae -= caeCost[caetype]
+                        print inspect.stack()[0]
+
                         b = buildings[0]
                         b.producttime = t
                         b.object_id = caetype
@@ -4759,14 +4657,11 @@ class RootController(BaseController):
                         return dict(id=1, result = "friend god bless "+ str(caetype))
             return dict(id=0, reason="cae not enough or no god") 
 
+        print inspect.stack()[0]
         if caetype==0:
             if u.cae-3>=0:
-                cb=u.cae
                 u.cae=u.cae-3
-                ca=u.cae
-                caelog(cb,ca)
                 if godtype==0:
-                    
                     u.food_god=1
                     u.foodgodtime=t                    
                 elif godtype==1:
@@ -4784,14 +4679,11 @@ class RootController(BaseController):
                 return dict(id=0)
         elif caetype==1:
             if u.cae-15>=0:
-                cb=u.cae
                 u.cae=u.cae-15
-                ca=u.cae
-                caelog(cb,ca)
+                print inspect.stack()[0]
                 if godtype==0:
                     u.food_god=2
                     u.foodgodtime=t                
-
                 elif godtype==1:
                     u.person_god=2
                     u.popgodtime=t
@@ -4807,10 +4699,8 @@ class RootController(BaseController):
                 return dict(id=0)  
         else:
             if u.cae-30>=0:
-                cb=u.cae
                 u.cae=u.cae-30
-                ca=u.cae
-                caelog(cb,ca)
+                print inspect.stack()[0]
                 if godtype==0:
                     u.food_god=3
                     u.foodgodtime=t                
@@ -4857,6 +4747,8 @@ class RootController(BaseController):
                     if int(type) == 0:
                         if u.cae >= friendGod[lev][5]:
                             u.cae -= friendGod[lev][5]
+                            print inspect.stack()[0]
+
                             u.populationupbound += friendGod[lev][4]
                             u.exp += friendGod[lev][3]
                             p.ground_id += 1
@@ -4899,10 +4791,8 @@ class RootController(BaseController):
                     p.ground_id=ground_id
                     p.object_id=-1
                     if u.cae-cae<u.cae:
-                        cb=u.cae
                         u.cae=u.cae-cae
-                        ca=u.cae
-                        caelog(cb,ca)
+                        print inspect.stack()[0]
                     u.labor_num=u.labor_num+pop
                     if p.ground_id>=1 and p.ground_id<=99:
                         u.exp=u.exp+lis[4]
@@ -4928,12 +4818,7 @@ class RootController(BaseController):
                         elif (ground_id-400)%4==3:
                             u.war_god=0
                             u.wargodtime=-1
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[4]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)
-                    read(city_id)
-                    replacecache(u.userid,u)#cache
                     return dict(id=1)
                 else:
                     return dict(id=0)
@@ -4997,22 +4882,15 @@ class RootController(BaseController):
                             elif (ground_id-400)%4==3:
                                 u.war_god=0
                                 u.wargodtime=-1
-                            ub=u.populationupbound                        
                             u.populationupbound=u.populationupbound+lis[4]
-                            ua=u.populationupbound
-                            popuplog(ub,ua,u.userid)
-                        read(city_id)
-                        replacecache(u.userid,u)#cache
                         return dict(id=1)
                     else:
                         return dict(id=0,lis=lis,price=u.corn-price,food=u.food-pricefood,pop=u.labor_num+pop,s=specialgoods(int(ground_id),u.specialgoods,u),st=u.stone-stone)
                 else:
                     if u.cae+price>=0 and u.food-pricefood>=0 and u.labor_num+pop<=u.population and u.wood-wood>=0 and u.stone-stone>=0 and   specialgoods(int(ground_id),u.specialgoods,u)==True:
                         if u.cae+price<u.cae:
-                            cb=u.cae
                             u.cae=u.cae+price
-                            ca=u.cae
-                            caelog(cb,ca)
+                            print inspect.stack()[0]
                         u.food=u.food-pricefood
                         u.labor_num=u.labor_num+pop
                         u.wood=u.wood-wood
@@ -5045,12 +4923,7 @@ class RootController(BaseController):
                             elif (ground_id-400)%4==3:
                                 u.war_god=0
                                 u.wargodtime=-1      
-                            ub=u.populationupbound                   
                             u.populationupbound=u.populationupbound+lis[4]
-                            ua=u.populationupbound
-                            popuplog(ub,ua,u.userid)
-                        read(city_id)
-                        replacecache(u.userid,u)#cache
                         return dict(id=1)
                     else:
                         return dict(id=0)
@@ -5602,16 +5475,10 @@ class RootController(BaseController):
                     elif ground_id>=500 and ground_id<=599:
                         p.finish=1
                         p.producttime=0
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[1]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)
                     elif ground_id>=400 and ground_id<=499:
                         m=1
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[4]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)                          
                         u.exp=u.exp+lis[3] 
                         p.producttime=ti                     
                     else:
@@ -5626,10 +5493,8 @@ class RootController(BaseController):
             else:
                 if u.cae+price>=0 and u.food-pricefood>=0 and u.labor_num+pop<=u.population and u.wood-wood>=0 and u.stone-stone>=0 and ptime==0 and specialgoods(int(ground_id),u.specialgoods,u)==True:
                     if u.cae+price<u.cae:
-                        cb=u.cae
                         u.cae=u.cae+price
-                        ca=u.cae
-                        caelog(cb,ca)
+                        print inspect.stack()[0]
                     u.food=u.food-pricefood
                     u.labor_num=u.labor_num+pop
                     u.wood=u.wood-wood
@@ -5648,15 +5513,9 @@ class RootController(BaseController):
                     elif ground_id>=500 and ground_id<=699:
                         p.finish=1
                         p.producttime=0
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[1]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)                        
                     elif ground_id>=400 and ground_id<=499:
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[4]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)                        
                         u.exp=u.exp+lis[3]
                         p.producttime=ti
                     else:
@@ -5764,15 +5623,9 @@ class RootController(BaseController):
                     elif ground_id>=200 and ground_id<=399:
                         u.exp=u.exp+lis[5]
                     elif ground_id>=500 and ground_id<=699:
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[1]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)
                     elif ground_id>=400 and ground_id<=499:
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[4]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)                        
                         u.exp=u.exp+lis[3]                        
                     DBSession.add(newbuilding)
                     c1=DBSession.query('LAST_INSERT_ID()')
@@ -5793,10 +5646,8 @@ class RootController(BaseController):
             else:
                 if u.cae+price>=0 and u.food-pricefood>=0 and u.labor_num+pop<=u.population and u.wood-wood>=0 and u.stone-stone>=0 and specialgoods(int(ground_id),u.specialgoods,u)==True:
                     if u.cae+price<u.cae:
-                        cb=u.cae
                         u.cae=u.cae+price
-                        ca=u.cae
-                        caelog(cb,ca)
+                        print inspect.stack()[0]
                     u.wood=u.wood-wood
                     u.stone=u.stone-stone
                     u.food=u.food-pricefood
@@ -5808,19 +5659,11 @@ class RootController(BaseController):
                     elif ground_id>=200 and ground_id<=399:
                         u.exp=u.exp+lis[5]
                     elif ground_id>=400 and ground_id<=499:
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[4]    
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)
                         u.exp=u.exp+lis[3]                    
                     elif ground_id>=500 and ground_id<=699:
-                        ub=u.populationupbound
                         u.populationupbound=u.populationupbound+lis[1]
-                        ua=u.populationupbound
-                        popuplog(ub,ua,u.userid)
                     DBSession.add(newbuilding)
-                    read(city_id)
-                    replacecache(u.userid,u)#cache
                     return dict(id=1)
                 else:
                     return dict(id=0)
@@ -5845,10 +5688,8 @@ class RootController(BaseController):
                 if sub>=0 and ptime==0:
                     #sub=u.cae
                     if u.cae>sub:
-                        cb=u.cae
                         u.cae=sub#to update the datasheet
-                        ca=u.cae
-                        caelog(cb,ca)
+                        print inspect.stack()[0]
                     ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
                     p.object_id=int(object_id)
                     p.producttime=ti
@@ -5974,6 +5815,8 @@ class RootController(BaseController):
                 if card.foodcard==5:
                     temp_cae=temp_cae+1
                 price=Plant_Price[int(object_id)][0]
+                print inspect.stack()[0], object_id
+
                 ground = DBSession.query(businessWrite).filter("city_id=:cid and producttime=0 and finish = 1 and ground_id <=4 and ground_id>=1").params(cid = int(city_id)).all()
                 if ground==None or len(ground)==0:
                     return dict(id=0)
@@ -5993,12 +5836,8 @@ class RootController(BaseController):
                         else:
                             temp_cae = temp_cae+price
                             u.cae = temp_cae
-                            read(city_id)
-                            replacecache(u.userid,u)#cache
                             return dict(id=1,plant=plant_list)
                     u.cae = temp_cae
-                    read(city_id)
-                    replacecache(u.userid,u)#cache
                     return dict(id=1,plant=plant_list)
                 else:
                     temp_corn = u.corn
@@ -6014,13 +5853,9 @@ class RootController(BaseController):
                         else:
                             u.corn=temp_corn
                             u.cae=temp_cae
-                            read(city_id)
-                            replacecache(u.userid,u)
                             return dict(id=1,plant=plant_list)
                     u.corn=temp_corn
                     u.cae=temp_cae
-                    read(city_id)
-                    replacecache(u.userid,u)
                     return dict(id=1,plant=plant_list)
             else:
                 return dict(id=0)
@@ -6035,6 +5870,8 @@ class RootController(BaseController):
             u=checkopdata(user_id)#cache
             card = DBSession.query(Card).filter_by(uid=user_id).one()
             temp_cae = u.cae-1
+            print inspect.stack()[0]
+
             if temp_cae>=0 or card.foodcard==5:
                 if card.foodcard==5:
                     temp_cae=temp_cae+1
@@ -6125,6 +5962,8 @@ class RootController(BaseController):
             u=checkopdata(user_id)
             card = DBSession.query(Card).filter_by(uid=user_id).one()
             temp_cae = u.cae-1
+            print inspect.stack()[0]
+
             if temp_cae>=0 or card.fortunecard==5:
                 if card.fortunecard==5:
                     temp_cae=temp_cae+1
@@ -6236,6 +6075,8 @@ class RootController(BaseController):
             
             if type==0:#cae=2
                 temp_cae = u.cae - 2
+                print inspect.stack()[0]
+
                 if temp_cae >= 0 or card.friendcard == 5:
                     flag = 1
                     if card.friendcard == 5:
@@ -6248,6 +6089,8 @@ class RootController(BaseController):
                     return dict(id=0, reason="cae or card invalid")
             else:#cae=10 
                 temp_cae = u.cae - 10
+                print inspect.stack()[0]
+
                 if temp_cae >=0:
                     flag = 1
                     for f in notvisited: 
@@ -6380,6 +6223,8 @@ class RootController(BaseController):
                     cost = accCost(timeLeft)
                     if u.cae >= cost:
                         u.cae -= cost
+                        print inspect.stack()[0]
+
                         p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
@@ -6394,6 +6239,8 @@ class RootController(BaseController):
                     cost = accCost(timeLeft)
                     if u.cae >= cost:
                         u.cae -= cost
+                        print inspect.stack()[0]
+
                         p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
@@ -6420,8 +6267,9 @@ class RootController(BaseController):
                     caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
+                        print inspect.stack()[0]
+
                         p.producttime=1#finish product
-                        read(city_id)
                         return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
                     else:
                         return dict(id=0, reason = "farm cae not enu")
@@ -6431,9 +6279,10 @@ class RootController(BaseController):
                     caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
+                        print inspect.stack()[0]
+
                         p.producttime=0
                         p.finish=1
-                        read(city_id)
                         return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
                     else:
                         return dict(id=0, reason = "house fin cae not eno")
@@ -6445,8 +6294,9 @@ class RootController(BaseController):
                         return dict(id = 0, reason='house not working', pro = p.producttime)
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
+                        print inspect.stack()[0]
+
                         p.producttime=1
-                        read(city_id)
                         return dict(id=1,caesars=caesars, result = "house pop")
                     else:
                         return dict(id=0, reason="house cae not")
@@ -6456,9 +6306,10 @@ class RootController(BaseController):
                     caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
+                        print inspect.stack()[0]
+
                         p.producttime=0
                         p.finish=1
-                        read(city_id)
                         return dict(id=1, result = "finish militry")
                     else:
                         return dict(id=0, reason = "mil cae not en")
@@ -6468,8 +6319,9 @@ class RootController(BaseController):
                         caesars = accCost(timeLeft)
                         if u.cae-caesars>=0:
                             u.cae=u.cae-caesars
+                            print inspect.stack()[0]
+
                             p.producttime=1
-                            read(city_id)
                             return dict(id=1, result = "mil product")
                         else:
                             return dict(id=0, reason = "mil not cae")
@@ -6481,9 +6333,10 @@ class RootController(BaseController):
                     caesars = accCost(timeLeft)
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
+                        print inspect.stack()[0]
+
                         p.producttime=ti
                         p.finish=1
-                        read(city_id)
                         return dict(id=1,caesars=caesars,t=businessbuild[p.ground_id-300][6], result = "business fin bui")
                     else:
                         return dict(id=0, reason = "busines not fin")
@@ -6495,7 +6348,6 @@ class RootController(BaseController):
                     if u.cae-caesars>=0:
                         u.cae=u.cae-caesars
                         p.producttime=1
-                        read(city_id)
                         return dict(id = 1, result = "busi tax")
                     else:
                         return dict(id=0, reason = "busi cae not")     
@@ -6504,6 +6356,8 @@ class RootController(BaseController):
                 caesars = accCost(timeLeft)
                 if p.finish==0 and u.cae-caesars>0:
                     u.cae=u.cae-caesars
+                    print inspect.stack()[0]
+
                     p.producttime=0
                     if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
                         if p.ground_id==400:
@@ -6814,12 +6668,10 @@ class RootController(BaseController):
                 else:
                     return dict(id=0)
             else:
-                cb=u.cae
                 cae=expanding[u.landkind][1]
                 if u.cae-cae>=0:
                     u.cae=u.cae-cae
-                    ca=u.cae
-                    caelog(cb,ca)
+                    print inspect.stack()[0]
                     u.landkind=u.landkind+1
                 else:
                     return dict(id=0)
@@ -6845,7 +6697,6 @@ class RootController(BaseController):
         ukind=0
         try:
             dict0={}
-            #writelog(0,1,'begin')
             list1=rrstring.split(';')
             for string2 in list1 :
                 list2=string2.split(',')
@@ -6880,10 +6731,8 @@ class RootController(BaseController):
                         uf1=Papayafriend(uid=int(uid),papayaid=oid,lev=-1,user_kind=ukind)
                         DBSession.add(uf1)                
                     dict0[list2[0]]=dict(level=-1)
-            retlevlog(s,str(uid))
             return dict0
         except InvalidRequestError:
-            #writelog(1,1,'except')
             return dict(id=0)         
     @expose('stchong.templates.help')      
     def help(self):
