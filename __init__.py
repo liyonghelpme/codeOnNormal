@@ -152,4 +152,6 @@ from stchong.model.rank import Rank
 from stchong.model.dragon import Dragon
 from stchong.model.petAtt import PetAtt
 from stchong.model.message import Message
+from stchong.model.emptyCastal import EmptyCastal
+from stchong.model.emptyResult import EmptyResult
 #from stchong.model.useraccount import userAccount
