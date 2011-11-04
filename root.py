@@ -4120,10 +4120,10 @@ class RootController(BaseController):
             res.append(data)
             DBSession.delete(e)#remove readed result
         try:
-            userEmpty = json.loads(user.EmptyResult)
+            userEmpty = json.loads(user.emptyResult)
         except:
             userEmpty = []
-        if data != []:
+        if res != []:
             user.emptyResult = json.dumps(userEmpty+res)
         return dict(result = res)
     def warresult2(uid):
