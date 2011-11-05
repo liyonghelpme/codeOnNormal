@@ -4007,7 +4007,10 @@ class RootController(BaseController):
     #remove readed battle
     global emptyLost
     def emptyLost(battle):
-        empty = DBSession.query(EmptyCastal).filter_by(cid=-battle.enemy_id).one()
+        try:
+            empty = DBSession.query(EmptyCastal).filter_by(cid=-battle.enemy_id).one()
+        except:
+            return
         attacker = checkopdata(battle.uid)
         defencer = checkopdata(empty.uid)
         attStr = []
@@ -4096,6 +4099,32 @@ class RootController(BaseController):
             DBSession.add(result)
     
     #update user empty battle result
+    #caculate all battle result
+    @expose('json')
+    def emptyBattle(self, uid):
+        uid = int(uid)
+        user = checkopdata(uid)
+        curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
+        emptySet = DBSession.query(Battle).filter("finish = 0 and (left_time+timeneed) < :curTime and enemy_id < 0").params(curTime=curTime).order_by(Battle.left_time+Battle.timeneed).all()
+        print "emptyBattle", emptySet
+        for b in emptySet:
+            b.finish = 1
+            emptyLost(b)
+        emptyres = DBSession.query(EmptyResult).filter_by(uid=uid).all()#remove read in other function
+        res = []
+        data = []
+        for e in emptyres:
+            data = json.loads(e.data)
+            res.append(data)
+            DBSession.delete(e)#remove readed result
+        try:
+            userEmpty = json.loads(user.emptyResult)
+        except:
+            userEmpty = []
+        if res != []:
+            user.emptyResult = json.dumps(userEmpty+res)
+        return dict(result = res)
+    """
     @expose('json')
     def emptyBattle(self, uid):
         uid = int(uid)
@@ -4129,6 +4158,7 @@ class RootController(BaseController):
         if res != []:
             user.emptyResult = json.dumps(userEmpty+res)
         return dict(result = res)
+    """
     def warresult2(uid):
         uid = int(uid)
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
