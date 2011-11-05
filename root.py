@@ -4550,7 +4550,7 @@ class RootController(BaseController):
         lost=v.lost
         list1=DBSession.query(warMap).filter_by(mapid=m.mapid)
         listuser=[]
-        alist=DBSession.query(Battle).filter_by(uid=userid)
+        alist=DBSession.query(Battle).filter(Battle.enemy_id>0).filter_by(uid=userid).all()
         if u.warcurrenttask=='' or u.warcurrenttask==None or u.warcurrenttask=='-1' or int(u.warcurrenttask)<0:
             wwartask=-1
         else:
@@ -4562,7 +4562,7 @@ class RootController(BaseController):
                 wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
                 atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 attacklist.append(atemp)
-        dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
+        dlist=DBSession.query(Battle).filter(Battle.enemy_id==userid).filter(Battle.enemy_id>0).all()
         for x in dlist:
             if x.finish==0 :
                 #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
