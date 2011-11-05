@@ -3356,9 +3356,11 @@ class RootController(BaseController):
     @expose('json')
     def withdrawEmpty(self, uid, enemy_id):
         battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = enemy_id).filter_by(finish=0).all() 
+        print "withdraw ", len(battle)
         if len(battle) == 0:
             return dict(id = 0, status = 0, reason = 'no battle')
         user = checkopdata(uid)
+        battle = battle[0]
         battle.finish = 4#0 unfin 1suc 2 fail 3cancel 4withdraw
         user.infantrypower += battle.powerin
         user.cavalrypower += battle.powerca
@@ -4475,7 +4477,7 @@ class RootController(BaseController):
     global mapEmptyBattle
     def mapEmptyBattle(uid):
         uid = int(uid)
-        myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).filter(Battle.enemy_id = -EmptyCastal.cid).all()
+        myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).filter(Battle.enemy_id == -EmptyCastal.cid).all()
         #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
         myDef = DBSession.query(operationalData.otherid, EmptyCastal.cid, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).all()
         #.from_statement("select battle.uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and enemy_id = -cid and finish = 0").params(uid=uid).all()
