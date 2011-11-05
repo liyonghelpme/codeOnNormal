@@ -4533,82 +4533,82 @@ class RootController(BaseController):
         userprotect=-1
         u=checkopdata(userid)#cache
             
-        try:
+        #try:
 
-            if u.nobility<0:
-                u.protecttype = 2
-                u.protecttime = t
-                mapgrid = moveMap(u.userid)
-                u.nobility = 0
-            v=DBSession.query(Victories).filter_by(uid=userid).one()
-            m=DBSession.query(warMap).filter_by(userid=userid).one()
-            
-            newstr=u.signtime
-            nobility1=u.nobility
-            subno=u.subno
-            won=v.won
-            lost=v.lost
-            list1=DBSession.query(warMap).filter_by(mapid=m.mapid)
-            listuser=[]
-            alist=DBSession.query(Battle).filter_by(uid=userid)
-            if u.warcurrenttask=='' or u.warcurrenttask==None or u.warcurrenttask=='-1' or int(u.warcurrenttask)<0:
-                wwartask=-1
-            else:
-                wwartask=wartaskbonus[int(u.warcurrenttask)][0]              
-            for x in alist:
-                if x.finish==0:
-                    #ue=DBSession.query(operationalData).filter_by(userid=x.enemy_id).one()
-                    ue=checkopdata(x.enemy_id)#cache
-                    wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
-                    atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
-                    attacklist.append(atemp)
-            dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
-            for x in dlist:
-                if x.finish==0 :
-                    #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
-                    try:
-                    	ue=checkopdata(x.uid)#cache
-                    	wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
-                    	dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
-                    	defencelist.append(dtemp)
-                    except:
-                        print "user deleted"
-            for l in list1 :
-                l1=[]
+        if u.nobility<0:
+            u.protecttype = 2
+            u.protecttime = t
+            mapgrid = moveMap(u.userid)
+            u.nobility = 0
+        v=DBSession.query(Victories).filter_by(uid=userid).one()
+        m=DBSession.query(warMap).filter_by(userid=userid).one()
+        
+        newstr=u.signtime
+        nobility1=u.nobility
+        subno=u.subno
+        won=v.won
+        lost=v.lost
+        list1=DBSession.query(warMap).filter_by(mapid=m.mapid)
+        listuser=[]
+        alist=DBSession.query(Battle).filter_by(uid=userid)
+        if u.warcurrenttask=='' or u.warcurrenttask==None or u.warcurrenttask=='-1' or int(u.warcurrenttask)<0:
+            wwartask=-1
+        else:
+            wwartask=wartaskbonus[int(u.warcurrenttask)][0]              
+        for x in alist:
+            if x.finish==0:
+                #ue=DBSession.query(operationalData).filter_by(userid=x.enemy_id).one()
+                ue=checkopdata(x.enemy_id)#cache
+                wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
+                atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
+                attacklist.append(atemp)
+        dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
+        for x in dlist:
+            if x.finish==0 :
+                #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                 try:
-                    #u1=DBSession.query(operationalData).filter_by(userid=l.userid).one()
-                    u1=checkopdata(l.userid)#cache
-                    l1.append(u1.otherid)
-                    l1.append(u1.user_kind)
-                    l1.append(u1.nobility)
-                    l1.append(l.gridid)
-                    l1.append(u1.empirename)
-                    l1.append(u1.userid)
-                    l1.append(u1.subno)
-                    l1protect=checkprotect(u1)
-                    l1.append(l1protect)                    
-                    #newstr=u1.signtime
-                    #l1.append(newstr)
-                    try:
-                        occ=DBSession.query(Occupation).filter_by(masterid=userid).filter_by(slaveid=l.userid).one()
-                        l1.append(1)
-                    except InvalidRequestError:
-                        l1.append(0)
+                    ue=checkopdata(x.uid)#cache
+                    wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
+                    dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
+                    defencelist.append(dtemp)
+                except:
+                    print "user deleted"
+        for l in list1 :
+            l1=[]
+            try:
+                #u1=DBSession.query(operationalData).filter_by(userid=l.userid).one()
+                u1=checkopdata(l.userid)#cache
+                l1.append(u1.otherid)
+                l1.append(u1.user_kind)
+                l1.append(u1.nobility)
+                l1.append(l.gridid)
+                l1.append(u1.empirename)
+                l1.append(u1.userid)
+                l1.append(u1.subno)
+                l1protect=checkprotect(u1)
+                l1.append(l1protect)                    
+                #newstr=u1.signtime
+                #l1.append(newstr)
+                try:
+                    occ=DBSession.query(Occupation).filter_by(masterid=userid).filter_by(slaveid=l.userid).one()
+                    l1.append(1)
+                except InvalidRequestError:
+                    l1.append(0)
 
-                    if l.userid != userid:
-                        listuser.append(l1)
-                        
-                except: 
-                    continue               
-            #ca=calev(u,v)
-            sub=0
-            sub=recalev(u,v)
-            userprotect=checkprotect(u)
-            #mapEmpty = mapEmptyBattle(userid) 
-            emptyInfo = mapEmptyInfo(userid, m.mapid)
-            return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
-        except InvalidRequestError:
-            return dict(u=u.userid,v=v.uid,map=mapgrid)
+                if l.userid != userid:
+                    listuser.append(l1)
+                    
+            except: 
+                continue               
+        #ca=calev(u,v)
+        sub=0
+        sub=recalev(u,v)
+        userprotect=checkprotect(u)
+        #mapEmpty = mapEmptyBattle(userid) 
+        emptyInfo = mapEmptyInfo(userid, m.mapid)
+        return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
+        #except InvalidRequestError:
+         #   return dict(u=u.userid,v=v.uid,map=mapgrid)
     # city:a,b;c,d 
     # no check
     @expose('json')
