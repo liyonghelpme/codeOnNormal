@@ -2526,9 +2526,8 @@ class RootController(BaseController):
         return [allNum[rand], allNum[(rand+1)%len(allNum)]]#myGid myEmpty
     global EmptyLev
     #inf cav coin food wood rock pro1/hour
-    EmptyLev = [[100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
+    EmptyLev = [[100, 100,   10000, 1000, 100, 100,   100, 10, 1, 1],
+                [100, 100,   20000, 2000, 200, 200,   100, 10, 1, 100],
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
@@ -4390,7 +4389,8 @@ class RootController(BaseController):
                     continue
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
-        return dict(attacklist=attacklist,defencelist=defencelist)
+        mapEmpBat = mapEmptyBattle(uid)
+        return dict(attacklist=attacklist,defencelist=defencelist, emptyAtt = mapEmpBat.emptyAtt, emptyDef = mapEmpBat.emptyDef)
     
     @expose('json')
     def warrecord(self,uid):#对外接口，战绩
@@ -4573,9 +4573,9 @@ class RootController(BaseController):
             sub=0
             sub=recalev(u,v)
             userprotect=checkprotect(u)
-            mapEmpty = mapEmptyBattle(userid) 
+            #mapEmpty = mapEmptyBattle(userid) 
             emptyInfo = mapEmptyInfo(userid, m.mapid)
-            return dict(empty = emptyInfo.empty, emptyAtt = mapEmpty.emptyAtt, emptyDef = mapEmpty.emptyDef, sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
+            return dict(empty = emptyInfo.empty, sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         except InvalidRequestError:
             return dict(u=u.userid,v=v.uid,map=mapgrid)
     # city:a,b;c,d 
