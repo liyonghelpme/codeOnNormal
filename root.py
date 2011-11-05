@@ -4427,7 +4427,7 @@ class RootController(BaseController):
     global mapEmptyInfo
     def mapEmptyInfo(uid, mid):
         mid = int(mid)
-        empty = DBSession.query(EmptyCastal).from_statement("select cid, uid, gid, inf, cav, attribute, lastTime from emptyCastal where mid = :mid ").params(mid=mid).all()
+        empty = DBSession.query(EmptyCastal.cid, EmptyCastal.uid, EmptyCastal.gid, EmptyCastal.inf, EmptyCastal.cav, EmptyCastal.attribute, EmptyCastal.lastTime).filter("mid = :mid ").params(mid=mid).all()
         return dict(empty = empty)
     @expose('json')
     def userHisEmptyWar(self, uid):
