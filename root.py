@@ -2258,7 +2258,7 @@ class RootController(BaseController):
                 print "no such user" 
             if u == None or uu == None:
                 return dict(id=0, reason="error no such user") 
-            return dict(loginNum = u.logincard, money = u.corn, id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(loginNum = u.logincard, money = u.corn, id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=uw.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
     @expose('json')
     def sell(self,user_id,city_id,grid_id):#对外接口，卖建筑物sell building#operationalData:update;businessWrite:query->update
         try:
@@ -4422,7 +4422,8 @@ class RootController(BaseController):
         return -1
 
     #empty City Position
-    @expose('json')
+    #@expose('json')
+    global mapEmptyInfo
     def mapEmptyInfo(self, uid, mid):
         mid = int(mid)
         empty = DBSession.query(EmptyCastal).from_statement("select cid, uid, gid, inf, cav, attribute, lastTime from emptyCastal where mid = :mid ").params(mid=mid).all()
@@ -4439,8 +4440,9 @@ class RootController(BaseController):
         occData = DBSession.query(Occupation.slaveid).filter_by(masterid = uid).all()
         return dict(occData = occData)
     #fighting emptyWar
-    @expose('json')
-    def mapEmptyBattle(self, uid):
+    #@expose('json')
+    global mapEmptyBattle
+    def mapEmptyBattle(uid):
         uid = int(uid)
         myAttack = DBSession.query(-Battle.enemy_id, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower).filter_by(uid=uid).filter(Battle.enemy_id < 0).filter_by(finish = 0).all()
         #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
@@ -4571,7 +4573,9 @@ class RootController(BaseController):
             sub=0
             sub=recalev(u,v)
             userprotect=checkprotect(u)
-            return dict(sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
+            mapEmpty = mapEmptyBattle(userid) 
+            emptyInfo = mapEmptyInfo(userid, m.mapid)
+            return dict(empty = emptyInfo.empty, emptyAtt = mapEmpty.emptyAtt, emptyDef = mapEmpty.emptyDef, sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         except InvalidRequestError:
             return dict(u=u.userid,v=v.uid,map=mapgrid)
     # city:a,b;c,d 
