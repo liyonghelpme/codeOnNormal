@@ -9,8 +9,8 @@ from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy import sql
-from sqlalchemy.exception import InvalidRequestError
-from sqlalchemy.exception import IntegrityError
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import or_, and_, desc, select
 from sqlalchemy import func
 from stchong.lib.base import BaseController
@@ -4375,7 +4375,6 @@ class RootController(BaseController):
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         for x in alist:
             if x.finish==0:
-                #ue=DBSession.query(operationalData).filter_by(userid=x.enemy_id).one()
                 ue=checkopdata(x.enemy_id)#cache
                 wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
                 
@@ -4392,7 +4391,7 @@ class RootController(BaseController):
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
         mapEmpBat = mapEmptyBattle(uid)
-        return dict(attacklist=attacklist,defencelist=defencelist, emptyAtt = mapEmpBat.emptyAtt, emptyDef = mapEmpBat.emptyDef)
+        return dict(attacklist=attacklist,defencelist=defencelist, emptyAtt = mapEmpBat['emptyAtt'], emptyDef = mapEmpBat['emptyDef'])
     
     @expose('json')
     def warrecord(self,uid):#对外接口，战绩
@@ -4577,7 +4576,7 @@ class RootController(BaseController):
             userprotect=checkprotect(u)
             #mapEmpty = mapEmptyBattle(userid) 
             emptyInfo = mapEmptyInfo(userid, m.mapid)
-            return dict(empty = emptyInfo.empty, sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
+            return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         except InvalidRequestError:
             return dict(u=u.userid,v=v.uid,map=mapgrid)
     # city:a,b;c,d 
