@@ -4475,9 +4475,9 @@ class RootController(BaseController):
     global mapEmptyBattle
     def mapEmptyBattle(uid):
         uid = int(uid)
-        myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).all()
+        myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).filter(Battle.enemy_id = -EmptyCastal.cid).all()
         #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
-        myDef = DBSession.query(operationalData.otherid, EmptyCastal.cid, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower).filter(operationalData.userid == Battle.uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).all()
+        myDef = DBSession.query(operationalData.otherid, EmptyCastal.cid, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).all()
         #.from_statement("select battle.uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and enemy_id = -cid and finish = 0").params(uid=uid).all()
         return dict(emptyAtt = myAttack, emptyDef = myDef)
     """
@@ -4550,22 +4550,21 @@ class RootController(BaseController):
         lost=v.lost
         list1=DBSession.query(warMap).filter_by(mapid=m.mapid)
         listuser=[]
-        alist=DBSession.query(Battle).filter_by(uid=userid)
         if u.warcurrenttask=='' or u.warcurrenttask==None or u.warcurrenttask=='-1' or int(u.warcurrenttask)<0:
             wwartask=-1
         else:
             wwartask=wartaskbonus[int(u.warcurrenttask)][0]              
+        """
+        alist=DBSession.query(Battle).filter(Battle.enemy_id>0).filter_by(uid=userid).all()
         for x in alist:
             if x.finish==0:
-                #ue=DBSession.query(operationalData).filter_by(userid=x.enemy_id).one()
                 ue=checkopdata(x.enemy_id)#cache
                 wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
                 atemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 attacklist.append(atemp)
-        dlist=DBSession.query(Battle).filter_by(enemy_id=userid)
+        dlist=DBSession.query(Battle).filter(Battle.enemy_id==userid).filter(Battle.enemy_id>0).all()
         for x in dlist:
             if x.finish==0 :
-                #ue=DBSession.query(operationalData).filter_by(userid=x.uid).one()
                 try:
                     ue=checkopdata(x.uid)#cache
                     wue=DBSession.query(warMap).filter_by(userid=x.enemy_id).one()
@@ -4573,10 +4572,10 @@ class RootController(BaseController):
                     defencelist.append(dtemp)
                 except:
                     print "user deleted"
+        """
         for l in list1 :
             l1=[]
             try:
-                #u1=DBSession.query(operationalData).filter_by(userid=l.userid).one()
                 u1=checkopdata(l.userid)#cache
                 l1.append(u1.otherid)
                 l1.append(u1.user_kind)
@@ -4587,8 +4586,6 @@ class RootController(BaseController):
                 l1.append(u1.subno)
                 l1protect=checkprotect(u1)
                 l1.append(l1protect)                    
-                #newstr=u1.signtime
-                #l1.append(newstr)
                 try:
                     occ=DBSession.query(Occupation).filter_by(masterid=userid).filter_by(slaveid=l.userid).one()
                     l1.append(1)
@@ -4606,7 +4603,7 @@ class RootController(BaseController):
         userprotect=checkprotect(u)
         #mapEmpty = mapEmptyBattle(userid) 
         emptyInfo = mapEmptyInfo(userid, m.mapid)
-        return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower,attacklist=attacklist,defencelist=defencelist,time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
+        return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower, time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         #except InvalidRequestError:
          #   return dict(u=u.userid,v=v.uid,map=mapgrid)
     # city:a,b;c,d 
