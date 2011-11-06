@@ -3498,21 +3498,21 @@ class RootController(BaseController):
             if user.cae < user.nobility+1:
                 return dict(id=0, status = 1, reason='cae not enough')
 
-
+        killed=random.randint(0, 6)
         if t == 0:
-            user.scout1_num -= 6
-            return dict(id=1, inf = empty.inf, cav = empty.cav)
+            user.scout1_num -= killed
+            return dict(id=1, inf = empty.inf, cav = empty.cav, dead = killed)
         elif t == 1:
-            user.scout2_num -= 6
+            user.scout2_num -= killed
             battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
             curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
             blist = list(battle)[0:len(battle)/2]
-            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
+            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist, dead = killed)
         elif t == 2:
-            user.scout3_num -= 6
+            user.scout3_num -= killed
             battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
             blist = list(battle)
-            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist)
+            return dict(id=1, inf = empty.inf, cav = empty.cav, attack = blist, dead = killed)
         elif t == 3:
             user.cae -= user.nobility+1
             battle = DBSession.query(Battle.uid, Battle.left_time, Battle.timeneed, Battle.powerin, Battle.powerca).filter_by(enemy_id=-cid).filter_by(finish = 0).order_by(desc(Battle.left_time)).all()
