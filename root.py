@@ -2542,17 +2542,19 @@ class RootController(BaseController):
             rand = random.randint(0, len(EmptyLev)-1)
         elif lev.count(len(EmptyLev)-2) < 4:
             rand = random.randint(0, len(EmptyLev)-2)
-        else
+        else:
             rand = random.randint(0, len(EmptyLev)-3)
         return rand   
         
     global moveMap
     def moveMap(uid):
         user = checkopdata(uid)
-       
-        myMap = DBSession.query(warMap).filter_by(userid = uid).one()
-        nummap = DBSession.query(Map).filter_by(mapid=myMap.mapid).one()
-        nummap.num -= 1
+        try: 
+            myMap = DBSession.query(warMap).filter_by(userid = uid).one()
+            nummap = DBSession.query(Map).filter_by(mapid=myMap.mapid).one()
+            nummap.num -= 1
+        except:
+            print "no warmap ", uid
         #remove all empty
         empty = DBSession.query(EmptyCastal).filter_by(uid = uid).all()
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
