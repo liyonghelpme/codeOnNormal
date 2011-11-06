@@ -4445,9 +4445,11 @@ class RootController(BaseController):
             i += 1
         user.nbattleresult = nbat
         return dict(id=1, left = len(left))
+    global NobUpBase
+    NobUpBase = [1, 6, 14, 19, 27, 85]
     def recalev(u,v):
         nobility1=u.nobility
-        base = [1, 6, 14, 29, 40, 137]
+        base = NobUpBase
         if nobility1 < 0 or nobility1 >= len(base):
             return -1
         wonInMap = v.woninmap
@@ -4464,7 +4466,7 @@ class RootController(BaseController):
         subno=0
         minus=-1
         oldSub = u.subno
-        base = [1, 6, 14, 19, 27, 85]
+        base = NobUpBase#[1, 6, 14, 19, 27, 85]
         if nobility1 < 0 or nobility1 >= len(base):
             return [subno, minus]
         wonInMap = v.woninmap
