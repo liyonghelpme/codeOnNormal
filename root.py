@@ -4084,12 +4084,13 @@ class RootController(BaseController):
         defPurePow = empty.inf + empty.cav
         
         defGod = 0
+        defAlly = 0
         if defencer != None:
             defGod = calGod(defencer.userid, defPurePow)
-            defGod += allyhelp(defence.userid, 1, defPurePow)
+            defAlly = allyhelp(defence.userid, 1, defPurePow)
 
         factor = 1.5 + empty.attribute*0.1
-        defFullPow = int(defPurePow * factor)+defGod
+        defFullPow = int(defPurePow * factor)+defGod+defAlly
         lost = callost(attFullPow, defFullPow, attPurePow, defPurePow, 1)
 
         returnIn = battle.powerin - lost[0]
@@ -4110,7 +4111,7 @@ class RootController(BaseController):
             attStr.append(1)
         else:
             attStr.append(0)
-        attStr += [battle.powerin, battle.powerca, attGod, battle.allypower, returnIn, returnCa, empty.inf, empty.cav, leftIn, leftCa]#full god ally
+        attStr += [battle.powerin, battle.powerca, attGod, battle.allypower, returnIn, returnCa, empty.inf, empty.cav, leftIn, leftCa, defGod, defAlly]#full god ally
         
         if attFullPow > defFullPow:
 
