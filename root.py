@@ -3917,7 +3917,8 @@ class RootController(BaseController):
         min = calev(u, vic)
         u.subno = min[0]
         nob = u.nobility*3 + u.subno
-        return dict(nobility=nob,battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
+        emptybattle = emptyBattle(uid)
+        return dict(nobility=nob,emptyResult = emptyBattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
     def callost(myFull, eneFull, myPure, enePure, type):
     	lost = [0, 0]
     	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
@@ -4102,8 +4103,9 @@ class RootController(BaseController):
     
     #update user empty battle result
     #caculate all battle result
-    @expose('json')
-    def emptyBattle(self, uid):
+    #@expose('json')
+    global emptyBattle
+    def emptyBattle(uid):
         uid = int(uid)
         user = checkopdata(uid)
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
