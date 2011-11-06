@@ -4554,7 +4554,7 @@ class RootController(BaseController):
         uid = int(uid)
         myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).filter(Battle.enemy_id == -EmptyCastal.cid).all()
         #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
-        myDef = DBSession.query(operationalData.otherid, EmptyCastal.cid, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).all()
+        myDef = DBSession.query(operationalData.otherid, EmptyCastal.cid, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter_by(operationalData.userid != uid).filter(operationalData.userid == Battle.uid).filter(EmptyCastal.uid == uid).filter(EmptyCastal.cid == -Battle.enemy_id).filter(Battle.finish == 0).all()
         #.from_statement("select battle.uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle, emptyCastal where emptyCastal.uid = :uid and enemy_id = -cid and finish = 0").params(uid=uid).all()
         return dict(emptyAtt = myAttack, emptyDef = myDef)
     """
