@@ -3918,7 +3918,7 @@ class RootController(BaseController):
         u.subno = min[0]
         nob = u.nobility*3 + u.subno
         emptybattle = emptyBattle(uid)
-        return dict(nobility=nob,emptyResult = emptyBattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
+        return dict(nobility=nob,emptyResult = emptybattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
     def callost(myFull, eneFull, myPure, enePure, type):
     	lost = [0, 0]
     	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
