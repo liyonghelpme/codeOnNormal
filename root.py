@@ -2529,12 +2529,12 @@ class RootController(BaseController):
         return [allNum[rand], allNum[(rand+1)%len(allNum)]]#myGid myEmpty
     global EmptyLev
     #inf cav coin food wood rock pro1/hour
-    EmptyLev = [[100, 100,   10000, 1000, 100, 100,   100, 10, 1, 1, 6],
-                [100, 100,   20000, 2000, 200, 200,   100, 10, 1, 100, 5],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 4],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 3],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 2],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 1],
+    EmptyLev = [[1000, 0,   10000, 0, 0, 0,   1000, 10, 1, 1, 6],
+                [3000, 0,   25000, 0, 0, 0,   3000, 30, 3, 3, 5],
+                [5000, 0,   42000, 0, 0, 0,   5000, 50, 5, 5, 4],
+                [10000, 0,   60000, 0, 0, 0,  10000, 100, 10, 10, 3],
+                [50000, 0,   200000, 0, 0, 0, 50000, 500, 50, 50, 2],
+                [100000, 0,  500000, 0, 0, 0,   100000, 1000, 100, 100, 1],
             ]
     global randEmptyLev
     def randEmptyLev(levs):
@@ -3444,6 +3444,8 @@ class RootController(BaseController):
                 nb.power = infantry + cavalry
                 nb.allypower = allypower
             DBSession.flush()
+            u.protecttime = -1
+            u.protecttype = -1
             return dict(id=1)
         return dict(id=0, status = 2, reason = "power not enough")
 
