@@ -4100,7 +4100,23 @@ class RootController(BaseController):
         if defencer != None:
             result = EmptyResult(uid=defencer.userid, data=json.dumps(defStr))
             DBSession.add(result)
-    
+    @expose('json')
+    def removeEmptyResult(self, uid, warList):
+        uid = int(uid)
+        user = checkopdata(uid)
+        try:
+            userEmpty = json.loads(user.emptyResult)
+        except:
+            userEmpty = []
+        res = []
+        for w in warList:
+            e = DBSession.query(emptyResult).filter_by(eid=w).one()
+            data = json.loads(e.data)
+            data.insert(0, e.eid)
+            res.append(data)
+            DBSession.delete(e)
+        user.emptyResult = json.dumps(userEmpty+res)
+        return dict(id=1)
     #update user empty battle result
     #caculate all battle result
     #@expose('json')
@@ -4119,14 +4135,18 @@ class RootController(BaseController):
         data = []
         for e in emptyres:
             data = json.loads(e.data)
+            data.insert(0, e.eid)
             res.append(data)
-            DBSession.delete(e)#remove readed result
+            #DBSession.delete(e)#remove readed result
+        """
         try:
             userEmpty = json.loads(user.emptyResult)
         except:
             userEmpty = []
+    
         if res != []:
             user.emptyResult = json.dumps(userEmpty+res)
+        """
         return dict(result = res)
     """
     @expose('json')
