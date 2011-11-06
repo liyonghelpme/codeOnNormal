@@ -4073,7 +4073,7 @@ class RootController(BaseController):
         if empty.uid == attacker.userid:
             empty.inf += battle.powerin
             empty.cav += battle.powerca
-            attStr = [0, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
+            attStr = [2, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
             result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
             DBSession.add(result)
             return
@@ -4108,13 +4108,13 @@ class RootController(BaseController):
         #lose no reward
         #type 0 send uid enemy_id suc/fail attackerPower left defencePower left attackReward defeReward
         #type 1 attack     
-        attStr = [1, battle.uid, -battle.enemy_id]
+
         if attFullPow > defFullPow:
             attStr.append(1)
         else:
             attStr.append(0)
-        attStr += [battle.powerin, battle.powerca, attGod, battle.allypower, returnIn, returnCa, empty.inf, empty.cav, leftIn, leftCa, defGod, defAlly]#full god ally
-        
+        attStr += [attacker.otherid]
+        attStr += [battle.powerin, battle.powerca, attGod, battle.allypower, returnIn, returnCa, attacker.empirename, attacker.nobility*3+attack.subno,  empty.inf, empty.cav, defGod, defAlly, leftIn, leftCa, defencer.otherid, defencer.empirename, defencer.nobility]#full god ally
         if attFullPow > defFullPow:
 
             print "attack return In " + str(returnIn) + " returnca " + str(returnCa)
@@ -4125,6 +4125,7 @@ class RootController(BaseController):
             if empty.uid != -1:
                 proTime = (curTime - empty.lastTime)*1.0 / 3600
             empty.lastTime = curTime
+
             attacker.corn += EmptyLev[empty.attribute][2]
             attacker.food += EmptyLev[empty.attribute][3]
             attacker.wood += EmptyLev[empty.attribute][4]
@@ -4151,6 +4152,7 @@ class RootController(BaseController):
             attacker.cavalrypower += returnCa
             empty.inf = leftIn
             empty.cav = leftCa
+            attStr += [0, 0, 0, 0]
             defStr = attStr
         
         if attStr != []:
