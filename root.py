@@ -4464,7 +4464,7 @@ class RootController(BaseController):
         subno=0
         minus=-1
         oldSub = u.subno
-        base = [1, 6, 14, 29, 40, 137]
+        base = [1, 6, 14, 19, 27, 85]
         if nobility1 < 0 or nobility1 >= len(base):
             return [subno, minus]
         wonInMap = v.woninmap
