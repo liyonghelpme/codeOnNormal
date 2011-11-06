@@ -4076,8 +4076,14 @@ class RootController(BaseController):
         attFullPow += attGod
         attFullPow += battle.allypower
         defPurePow = empty.inf + empty.cav
+        
+        defGod = 0
+        if defencer != None:
+            defGod = calGod(defencer.userid, defPurePow)
+            defGod += allyhelp(defence.userid, 1, defPurePow)
+
         factor = 1.5 + empty.attribute*0.1
-        defFullPow = int(defPurePow * factor)
+        defFullPow = int(defPurePow * factor)+defGod
         lost = callost(attFullPow, defFullPow, attPurePow, defPurePow, 1)
 
         returnIn = battle.powerin - lost[0]
