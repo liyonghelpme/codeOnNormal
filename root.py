@@ -3367,7 +3367,7 @@ class RootController(BaseController):
             user.wood += woodGen
             user.stone += stoneGen
             empty.lastTime += 3600*proTime
-            return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = curTime)
+            return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = empty.lastTime)
         return dict(id=0, status = 0, reason='protime< 3600')
         
 
