@@ -2568,7 +2568,7 @@ class RootController(BaseController):
         #maps = DBSession.query(warMap).from_statement("select mapid, num from (select mapid, count(*) as num from warMap where map_kind=:kind group by mapid) as temp where num < :num ").params(kind=kind, num = mapKind[kind]).all()
         maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
         for m in maps:
-            empty = DBSession.query(EmptyCastal.gid).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
+            empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
             cities = DBSession.query(warMap.gridid).filter_by(mapid = m.mapid).order_by(warMap.gridid).all()
             if len(empty) > len(cities) or user.nobility < 3:#insert me
                 print "just insert me"
@@ -2587,8 +2587,10 @@ class RootController(BaseController):
             elif m.num < (mapKind[kind]-1):#insert 2
                 print "insert me and empty"
                 gids = []
+                levs = []
                 for e in empty:
                     gids.append(e[0])
+                    levs.append(e[1])
                 for c in cities:
                     gids.append(c[0])
                 gids.sort()
@@ -2597,7 +2599,10 @@ class RootController(BaseController):
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
                 m.num += 2
-                rand = random.randint(0, len(EmptyLev)-1)
+                if levs.count(len(EmptyLev)-1) >= 4:
+                    rand = random.randint(0, len(EmptyLev)-2)
+                else:
+                    rand = random.randint(0, len(EmptyLev)-1)
                 emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
                 DBSession.add(emptyCastal)
 
