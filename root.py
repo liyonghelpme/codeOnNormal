@@ -2545,7 +2545,8 @@ class RootController(BaseController):
         else:
             rand = random.randint(0, len(EmptyLev)-3)
         return rand   
-        
+    global EmptyMapLev
+    EmptyMapLev = 2
     global moveMap
     def moveMap(uid):
         user = checkopdata(uid)
@@ -2582,7 +2583,8 @@ class RootController(BaseController):
         for m in maps:
             empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
             cities = DBSession.query(warMap.gridid).filter_by(mapid = m.mapid).order_by(warMap.gridid).all()
-            if len(empty) > len(cities) or user.nobility < 3:#insert me
+
+            if len(empty) > len(cities) or user.nobility < EmptyMapLev:#insert me
                 print "just insert me"
                 gids = []
                 for e in empty:
@@ -2611,7 +2613,7 @@ class RootController(BaseController):
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
                 m.num += 2
-                if user.nobility >= 3:
+                if user.nobility >= EmptyMapLev:
                     rand = randEmptyLev(levs)
                     emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
                     DBSession.add(emptyCastal)
@@ -2626,7 +2628,7 @@ class RootController(BaseController):
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
         myMap.map_kind += 1
-        if user.nobility >= 3:
+        if user.nobility >= EmptyMapLev:
             rand = random.randint(0, len(EmptyLev)-1)
             emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
             DBSession.add(emptyCastal)
@@ -3353,9 +3355,9 @@ class RootController(BaseController):
         if empty.uid != uid:
             return dict(id=0, status = 0, reason='not your empty')
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
-        proTime = (curTime - empty.lastTime)*1.0/3600
+        proTime = (curTime - empty.lastTime)/3600
         #not over limitation 10000
-        if proTime >= 1.0:
+        if proTime >= 1:
             coinGen = int(min(proTime * EmptyLev[empty.attribute][6], 10000)) 
             foodGen = int(min(proTime * EmptyLev[empty.attribute][7], 10000))
             woodGen = int(min(proTime * EmptyLev[empty.attribute][8], 100))
@@ -3364,7 +3366,7 @@ class RootController(BaseController):
             user.food += foodGen
             user.wood += woodGen
             user.stone += stoneGen
-            empty.lastTime = curTime
+            empty.lastTime += 3600*proTime
             return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = curTime)
         return dict(id=0, status = 0, reason='protime< 3600')
         
@@ -4168,7 +4170,7 @@ class RootController(BaseController):
         user = checkopdata(uid)
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         emptySet = DBSession.query(Battle).filter("finish = 0 and (left_time+timeneed) < :curTime and enemy_id < 0").params(curTime=curTime).order_by(Battle.left_time+Battle.timeneed).all()
-        print "emptyBattle", emptySet
+        #print "emptyBattle", emptySet
         for b in emptySet:
             b.finish = 1
             emptyLost(b)
