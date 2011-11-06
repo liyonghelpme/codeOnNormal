@@ -3942,7 +3942,7 @@ class RootController(BaseController):
             emptyInfo = mapEmptyInfo1(uid, warmap.mapid)
         except:
             print 'get emptyinfo fail'
-        return dict(empty=emptyInfo, nobility=nob,emptyResult = emptyBattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
+        return dict(empty=emptyInfo, nobility=nob,emptyResult = emptybattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
     def callost(myFull, eneFull, myPure, enePure, type):
     	lost = [0, 0]
     	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
