@@ -2536,10 +2536,23 @@ class RootController(BaseController):
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
             ]
+    global randEmptyLev
+    def randEmptyLev(levs):
+        if levs.count(len(EmptyLev)-1) < 4:
+            rand = random.randint(0, len(EmptyLev)-1)
+        elif lev.count(len(EmptyLev)-2) < 4:
+            rand = random.randint(0, len(EmptyLev)-2)
+        else
+            rand = random.randint(0, len(EmptyLev)-3)
+        return rand   
+        
     global moveMap
     def moveMap(uid):
         user = checkopdata(uid)
+       
         myMap = DBSession.query(warMap).filter_by(userid = uid).one()
+        nummap = DBSession.query(Map).filter_by(mapid=myMap.mapid).one()
+        nummap.num -= 1
         #remove all empty
         empty = DBSession.query(EmptyCastal).filter_by(uid = uid).all()
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -2557,15 +2570,17 @@ class RootController(BaseController):
             user.stone += stoneGen
             user.infantrypower += e.inf
             user.cavalrypower += e.cav
+            e.inf = EmptyLev[e.attribute][0]
+            e.cav = EmptyLev[e.attribute][1]
         print "find New map"
         #fetch a new map and nearby empty
         kind = user.nobility + 1
         #maps = DBSession.query(warMap).from_statement("select mapid, num from (select mapid, count(*) as num from warMap where map_kind=:kind group by mapid) as temp where num < :num ").params(kind=kind, num = mapKind[kind]).all()
         maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
         for m in maps:
-            empty = DBSession.query(EmptyCastal.gid).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
+            empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
             cities = DBSession.query(warMap.gridid).filter_by(mapid = m.mapid).order_by(warMap.gridid).all()
-            if len(empty) > len(cities):#insert me
+            if len(empty) > len(cities) or user.nobility < 3:#insert me
                 print "just insert me"
                 gids = []
                 for e in empty:
@@ -2582,8 +2597,10 @@ class RootController(BaseController):
             elif m.num < (mapKind[kind]-1):#insert 2
                 print "insert me and empty"
                 gids = []
+                levs = []
                 for e in empty:
                     gids.append(e[0])
+                    levs.append(e[1])
                 for c in cities:
                     gids.append(c[0])
                 gids.sort()
@@ -2592,10 +2609,10 @@ class RootController(BaseController):
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
                 m.num += 2
-                rand = random.randint(0, len(EmptyLev)-1)
-                emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
-                DBSession.add(emptyCastal)
-
+                if user.nobility >= 3:
+                    rand = randEmptyLev(levs)
+                    emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
+                    DBSession.add(emptyCastal)
                 return [myGid[0], m.mapid]
         print "create new map to insert me and empty"
         #alloc new Map
@@ -2604,14 +2621,13 @@ class RootController(BaseController):
         DBSession.add(newMap)
         DBSession.flush()
         print "mapid ", newMap.mapid
-        
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
         myMap.map_kind += 1
-
-        rand = random.randint(0, len(EmptyLev)-1)
-        emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
-        DBSession.add(emptyCastal)
+        if user.nobility >= 3:
+            rand = random.randint(0, len(EmptyLev)-1)
+            emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
+            DBSession.add(emptyCastal)
         return [myMap.gridid, newMap.mapid]
 
     def getCity(city_id):
