@@ -2536,6 +2536,16 @@ class RootController(BaseController):
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
                 [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
             ]
+    global randEmptyLev
+    def randEmptyLev(levs):
+        if levs.count(len(EmptyLev)-1) < 4:
+            rand = random.randint(0, len(EmptyLev)-1)
+        elif lev.count(len(EmptyLev)-2) < 4:
+            rand = random.randint(0, len(EmptyLev)-2)
+        else
+            rand = random.randint(0, len(EmptyLev)-3)
+        return rand   
+        
     global moveMap
     def moveMap(uid):
         user = checkopdata(uid)
@@ -2599,13 +2609,10 @@ class RootController(BaseController):
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
                 m.num += 2
-                if levs.count(len(EmptyLev)-1) >= 4:
-                    rand = random.randint(0, len(EmptyLev)-2)
-                else:
-                    rand = random.randint(0, len(EmptyLev)-1)
-                emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
-                DBSession.add(emptyCastal)
-
+                if user.nobility >= 3:
+                    rand = randEmptyLev(levs)
+                    emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
+                    DBSession.add(emptyCastal)
                 return [myGid[0], m.mapid]
         print "create new map to insert me and empty"
         #alloc new Map
@@ -2614,7 +2621,6 @@ class RootController(BaseController):
         DBSession.add(newMap)
         DBSession.flush()
         print "mapid ", newMap.mapid
-        
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
         myMap.map_kind += 1
