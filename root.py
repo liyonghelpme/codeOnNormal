@@ -2539,7 +2539,10 @@ class RootController(BaseController):
     global moveMap
     def moveMap(uid):
         user = checkopdata(uid)
+       
         myMap = DBSession.query(warMap).filter_by(userid = uid).one()
+        nummap = DBSession.query(Map).filter_by(mapid=myMap.mapid).one()
+        nummap.num -= 1
         #remove all empty
         empty = DBSession.query(EmptyCastal).filter_by(uid = uid).all()
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -2557,6 +2560,8 @@ class RootController(BaseController):
             user.stone += stoneGen
             user.infantrypower += e.inf
             user.cavalrypower += e.cav
+            e.inf = EmptyLev[e.attribute][0]
+            e.cav = EmptyLev[e.attribute][1]
         print "find New map"
         #fetch a new map and nearby empty
         kind = user.nobility + 1
@@ -2565,7 +2570,7 @@ class RootController(BaseController):
         for m in maps:
             empty = DBSession.query(EmptyCastal.gid).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
             cities = DBSession.query(warMap.gridid).filter_by(mapid = m.mapid).order_by(warMap.gridid).all()
-            if len(empty) > len(cities):#insert me
+            if len(empty) > len(cities) or user.nobility < 3:#insert me
                 print "just insert me"
                 gids = []
                 for e in empty:
@@ -2608,10 +2613,10 @@ class RootController(BaseController):
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
         myMap.map_kind += 1
-
-        rand = random.randint(0, len(EmptyLev)-1)
-        emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
-        DBSession.add(emptyCastal)
+        if user.nobility >= 3:
+            rand = random.randint(0, len(EmptyLev)-1)
+            emptyCastal = EmptyCastal(uid=-1, mid = newMap.mapid, gid = (rand+1)%mapKind[kind], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
+            DBSession.add(emptyCastal)
         return [myMap.gridid, newMap.mapid]
 
     def getCity(city_id):
