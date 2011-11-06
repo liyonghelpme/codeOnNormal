@@ -2529,22 +2529,27 @@ class RootController(BaseController):
         return [allNum[rand], allNum[(rand+1)%len(allNum)]]#myGid myEmpty
     global EmptyLev
     #inf cav coin food wood rock pro1/hour
-    EmptyLev = [[100, 100,   10000, 1000, 100, 100,   100, 10, 1, 1],
-                [100, 100,   20000, 2000, 200, 200,   100, 10, 1, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
-                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100],
+    EmptyLev = [[100, 100,   10000, 1000, 100, 100,   100, 10, 1, 1, 6],
+                [100, 100,   20000, 2000, 200, 200,   100, 10, 1, 100, 5],
+                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 4],
+                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 3],
+                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 2],
+                [100, 100,   100, 100, 100, 100,   100, 100, 100, 100, 1],
             ]
     global randEmptyLev
     def randEmptyLev(levs):
-        if levs.count(len(EmptyLev)-1) < 4:
-            rand = random.randint(0, len(EmptyLev)-1)
-        elif lev.count(len(EmptyLev)-2) < 4:
-            rand = random.randint(0, len(EmptyLev)-2)
-        else:
-            rand = random.randint(0, len(EmptyLev)-3)
-        return rand   
+        poslev = range(0, len(EmptyLev))
+        poslev = set(poslev)
+        allowNum = [1, 4, 8, 12, 16, 23]
+        j = 0
+        for i in allowNum:
+            length = len(EmptyLev)-1-j
+            if levs.count(length) > i:
+                poslev.remove(length)
+            j++
+        rand = random.randint(0, len(poslev)-1)
+        poslev = list(poslev)
+        return poslev[rand]
     global EmptyMapLev
     EmptyMapLev = 2
     global moveMap
@@ -3356,12 +3361,13 @@ class RootController(BaseController):
             return dict(id=0, status = 0, reason='not your empty')
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         proTime = (curTime - empty.lastTime)/3600
+        proTime = min(proTime, EmptyLev[empty.attribute][10])
         #not over limitation 10000
         if proTime >= 1:
-            coinGen = int(min(proTime * EmptyLev[empty.attribute][6], 10000)) 
-            foodGen = int(min(proTime * EmptyLev[empty.attribute][7], 10000))
-            woodGen = int(min(proTime * EmptyLev[empty.attribute][8], 100))
-            stoneGen = int(min(proTime * EmptyLev[empty.attribute][9], 100))
+            coinGen = int(proTime*EmptyLev[empty.attribute][6]) 
+            foodGen = int(proTime * EmptyLev[empty.attribute][7])
+            woodGen = int(proTime * EmptyLev[empty.attribute][8])
+            stoneGen = int(proTime * EmptyLev[empty.attribute][9])
             user.corn += coinGen
             user.food += foodGen
             user.wood += woodGen
