@@ -4444,7 +4444,7 @@ class RootController(BaseController):
                     continue
                 dtemp=[ue.otherid,x.timeneed+x.left_time,x.powerin,x.powerca,ue.user_kind,wue.gridid]
                 defencelist.append(dtemp)    
-        mapEmpBat = mapEmptyBattle(uid)
+        mapEmpBat = mapEmptyBattle1(uid)
         return dict(attacklist=attacklist,defencelist=defencelist, emptyAtt = mapEmpBat['emptyAtt'], emptyDef = mapEmpBat['emptyDef'])
     
     @expose('json')
@@ -4478,8 +4478,11 @@ class RootController(BaseController):
 
     #empty City Position
     #@expose('json')
-    global mapEmptyInfo
-    def mapEmptyInfo(uid, mid):
+    @expose('json')
+    def mapEmptyInfo(self, uid, mid):
+        return mapEmptyInfo1(uid, mid)
+    global mapEmptyInfo1
+    def mapEmptyInfo1(uid, mid):
         mid = int(mid)
         empty = DBSession.query(EmptyCastal.cid, EmptyCastal.uid, EmptyCastal.gid, EmptyCastal.inf, EmptyCastal.cav, EmptyCastal.attribute, EmptyCastal.lastTime).filter("mid = :mid ").params(mid=mid).all()
         return dict(empty = empty)
@@ -4496,8 +4499,11 @@ class RootController(BaseController):
         return dict(occData = occData)
     #fighting emptyWar
     #@expose('json')
-    global mapEmptyBattle
+    @expose('json')
     def mapEmptyBattle(uid):
+        return mapEmptyBattle1(uid)
+    global mapEmptyBattle1
+    def mapEmptyBattle1(uid):
         uid = int(uid)
         myAttack = DBSession.query(operationalData.otherid, -Battle.enemy_id, Battle.left_time+Battle.timeneed, Battle.powerin, Battle.powerca, Battle.allypower, EmptyCastal.gid).filter(operationalData.userid == Battle.uid).filter(Battle.uid==uid).filter(Battle.enemy_id < 0).filter(Battle.finish == 0).filter(Battle.enemy_id == -EmptyCastal.cid).all()
         #from_statement("select uid, enemy_id, left_time, timeneed, powerin, powerca, allypower from battle where uid=:uid and enemy_id < 0 and finish = 0").params(uid=uid).all()
@@ -4626,7 +4632,7 @@ class RootController(BaseController):
         sub=recalev(u,v)
         userprotect=checkprotect(u)
         #mapEmpty = mapEmptyBattle(userid) 
-        emptyInfo = mapEmptyInfo(userid, m.mapid)
+        emptyInfo = mapEmptyInfo1(userid, m.mapid)
         return dict(empty = emptyInfo['empty'], sub=sub,wartask=wwartask,protect=userprotect,mapid=m.mapid,newstr=newstr,infantrypower=u.infantrypower,cavalrypower=u.cavalrypower,citydefence=u.defencepower, time=t,gridid=m.gridid,monsterstr=u.monsterlist,nobility=nobility1,subno=subno,won=won,lost=lost,list=listuser)
         #except InvalidRequestError:
          #   return dict(u=u.userid,v=v.uid,map=mapgrid)
