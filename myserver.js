@@ -28,7 +28,13 @@ var server = createServer(function(req, res){
         res.simpleJSON = function(code, obj){
             var body = new Buffer(JSON.stringify(obj));
             res.writeHead(code, {"Content-Type":"application/json", "Content-Length":body.length});
-            res.end(body);
+            try{
+                res.end(body);
+            }
+            catch(err)
+            {
+                sys.puts("send error");
+            }
         };
         handler(req, res);
     }
