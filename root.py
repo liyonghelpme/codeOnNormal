@@ -4791,7 +4791,7 @@ class RootController(BaseController):
                         statues = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 600 and ground_id <= 605 and finish = 1").params(cid=warmap.city_id).all()
                         for s in statues:
                             s.producttime = t
-                            s.object_id = GOD_TIME[caetype]
+                            s.object_id = caetype
                 
                         return dict(id=1, result = "friend god bless "+ str(caetype))
                 return dict(id=0)
