@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 """Main Controller"""
 
 
@@ -182,8 +182,7 @@ class RootController(BaseController):
     CACHEOP=10
     appsecret='FA6AMZKT77L4e4bc0a6'
     SERVER_NAME = "cn.papayamobile.com"
-    
-    tasklist=[[['æ¥çå¸®å©ææ¡£','ä¸è»ä¸é®æ¯è¯å¥½ç¾å¾·ï¼ç¹å»Menué®ï¼æè®¾ç½®å¾æ ï¼æ¥çå¸®å©ææ¡£~','æ¥çå¸®å©ææ¡£ 0/1',100,5,'0,0'],['ç§æ¤ç²®é£','å°ä¸»å®¶ä¹æ²¡æä½ç²®äºï¼ä¼¤ä¸èµ·åï¼å¿«å»ç§ç¹å¥å§ï¼ï¼','å¼å¦åç° 0/1;ç§æ¤è¡èå 0/6',300,10,'1,1!0$1','2,1!0$6'],['åºéºæ¶ç¨','å±ä¹æ¯å°ä¸»å¦ï¼å¿«å»åºéºæ¶ç¨å§','æ®éé¢åæ¿æ¶ç¨ 0/250',100,5,'2,100!0$250']]]
+    tasklist = []
     @expose('json')
     def share(self,uid):
         u=checkopdata(uid)
@@ -3046,7 +3045,7 @@ class RootController(BaseController):
                 return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
                     
         except InvalidRequestError:
-            newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='æçé¢å°',food=100)
+            newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='myEmpire',food=100)
             DBSession.add(newuser)
             newuser = DBSession.query(operationalData).filter_by(otherid = oid).one()
             c1=DBSession.query('LAST_INSERT_ID()')
