@@ -135,7 +135,7 @@ class RootController(BaseController):
     
     godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400]]
     
-    statuebuilding = [[27,80000,600,20,7200],[30,-8,700,40,14400]]
+    statuebuilding = [[27,80000,600,20,7200],[30,-8,700,40,14400],[32,120000,950,80,21600],[34,-12,1200,60,28800],[37,200000,1600,120,36000],[40,-20,2500,100,43200]]
     
     decorationbuild=[[10,5,1],[20,5,1],[30,5,1],[50,5,4],[-1,50,5],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[100,6,6],[200,8,7],[-3,170,8],[400,15,9],[600,20,10],[800,25,11],[1000,30,12],[900,35,13],[1200,40,14],[2000,50,15],[-5,300,10],[1500,60,16],[1500,60,16],[1500,60,16],[1600,65,18],[1600,65,18],[1600,65,18],[1600,65,18],[-3,150,15],[-3,150,15],[-3,150,15],[-3,150,15],[1800,70,20],[1800,70,20],[1800,70,20],[2000,80,25],[2000,80,25],[2000,80,25],[-10,300,20],[5000,90,3],[-5,150,3],[-10,300,3],[2000,30,17],[2000,30,17],[-10,300,20]]
     
@@ -156,7 +156,7 @@ class RootController(BaseController):
     
     randombuilding=[[1,1],[100,1],[103,5],[106,10],[109,15],[112,20],[300,1],[303,5],[309,10],[312,15],[318,20],[321,25],[500,1],[501,1],[502,1],[503,1],[505,1],[508,5],[509,5],[510,5],[511,5],[512,5],[513,5],[514,7],[515,8],[516,9],[519,13],[520,14],[521,15],[522,16],[523,17],[525,19],[526,19],[527,19],[528,19],[529,20],[530,20],[531,20],[536,22],[537,22],[538,22],[539,23],[541,24]]
     
-    mapKind=[8,32,72,144,200,512,800]
+    mapKind=[8,32,72,128,200,512,800]
     
     woods=[[600,5,20,4320,7],[1850,15,50,21600,10],[-4,20,70,6480,7],[1000,10,40,5400,15],[2500,20,80,25200,20],[-8,50,120,9000,7]]
     
@@ -1413,8 +1413,10 @@ class RootController(BaseController):
                 return dict(foodlost=0)
             if ds.monfood==0 or ds.monfood==None:
                 ds.monfood = 1
-            elif ds.monfood == 1:
-                ds.monfood = 2
+            elif ds.monfood < 2:
+                ds.monfood += 1
+            elif ds.monfood == 2:
+                ds.monfood += 1
                 monlist = user.monsterlist
                 monlist = monlist.split(';')
                 length = len(monlist)
@@ -2346,7 +2348,7 @@ class RootController(BaseController):
                 print "no such user" 
             if u == None or uu == None:
                 return dict(id=0, reason="error no such user") 
-            return dict(loginNum = u.logincard, money = u.corn, id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=city.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
+            return dict(loginNum = u.logincard, money = u.corn, id=otherid, cardlist=cardlist,monsterdefeat=u.monsterdefeat,hid=u.hid,power=u.infantrypower+u.cavalrypower,casubno=u.subno,empirename=u.empirename,minusstr=uw.minusstate,frienduserid=u.userid,city_id=uw.city_id,visited=0,corn=85+15*(dv.visitnum),stri=readstr,friends=u.treasurebox,lev=u.lev,nobility=u.nobility,treasurenum=u.treasurenum,time=int(time.mktime(time.localtime())-time.mktime(beginTime)))
     @expose('json')
     def sell(self,user_id,city_id,grid_id):
         try:
@@ -2355,8 +2357,8 @@ class RootController(BaseController):
             
             if p.ground_id >=1000 and p.ground_id < 1100:
                 return dict(id=0, reason='dragon can not be sold')
-            if p.ground_id >= 420 and p.ground_id <= 424:
-                lev = p.ground_id - 420
+            if p.ground_id >= 420 and p.ground_id <= 429:
+                lev = (p.ground_id - 420)%5
                 i = 0
                 while i <= lev:
                     u.populationupbound -= friendGod[i][4]
@@ -2368,7 +2370,7 @@ class RootController(BaseController):
                     
                 DBSession.delete(p)
                 return dict(id=1, result="sell friendGod suc", grid=grid_id)
-            if p.ground_id >=600 and p.ground_id <= 601:
+            if p.ground_id >=600 and p.ground_id <= 605:
                 print "sell statue"+" "+str(p.ground_id)
                 index = p.ground_id - 600
                 if statuebuilding[index][1]>0:
@@ -3114,14 +3116,10 @@ class RootController(BaseController):
             except:
                 sub=-1
             
-            if ds.monfood < 2:
-                foodlost = 0
-            else:
-                foodlost = 1
             if user.newcomer<3:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)    
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)    
             if user_kind==0:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
             else:
                 return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=foodlost,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
                     
@@ -4423,6 +4421,25 @@ class RootController(BaseController):
         caeCost = [3, 15, 30]
         mark=0
         warmap = DBSession.query(warMap).filter_by(userid = uid).one()
+        if godtype == 5:
+            if caetype >= 0 and caetype < len(caeCost):
+                buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 425 and ground_id <= 429 and finish = 1").params(cid=warmap.city_id).all()
+                print "friend god or monster god help now " + str(caetype) + " "+ str(godtype)
+                if len(buildings) > 0:
+                   if u.cae >= caeCost[caetype]:
+                        u.cae -= caeCost[caetype]
+                        print inspect.stack()[0]
+
+                        b = buildings[0]
+                        b.producttime = t
+                        b.object_id = caetype
+                        statues = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 600 and ground_id <= 605 and finish = 1").params(cid=warmap.city_id).all()
+                        for s in statues:
+                            s.producttime = t
+                            s.object_id = caetype
+                
+                        return dict(id=1, result = "friend god bless "+ str(caetype))
+                return dict(id=0)
         if godtype == 4: 
             if caetype >= 0 and caetype < len(caeCost):
                 buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=warmap.city_id).all()
@@ -4528,8 +4545,8 @@ class RootController(BaseController):
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
 
-            if ground_id >= 420 and ground_id <= 424:
-                lev = ground_id - 420
+            if ground_id >= 420 and ground_id <= 429:
+                lev = (ground_id - 420)%5
                 if (p.ground_id+1) != ground_id:
                     return dict(id = 0, reason = "not friend god or lev > tar")
                 
@@ -4739,8 +4756,10 @@ class RootController(BaseController):
     
     global friendGod
     global friGodReward
+    global monGodReward
     friendGod = [[2*3600, 500, 10000, 50, 250, 0], [6*3600, 1000, 20000, 100, 250, 5], [12*3600, 2000, 50000, 170, 250, 10], [18*3600, 5000, 100000, 250, 250, 15], [24*3600, 10000, 500000, 350, 250, 30]]
     friGodReward = [5, 10, 20, 30, 50]
+    monGodReward = [[8,12,16,20,24],[30,35,40,45,50],[12,16,20,24,28],[40,45,50,55,60],[20,24,28,32,36],[60,65,70,75,80]]
     global initH
     global addHealth
     global growUp
@@ -5070,6 +5089,41 @@ class RootController(BaseController):
                 return dict(id=0, reason="active yet")
         return dict(id=0, reason = "unknown reason")
     
+    global buildGod
+    def buildGod(user, city_id, ground_id, grid_id, bid, eid):
+        curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
+        if ground_id >= bid and ground_id <= eid:
+            buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= :bid and  ground_id <= :eid").params(cid=city_id, bid=bid, eid=eid).all()
+            
+            if len(buildings) != 0:
+                return dict(id=0, reason=" god exists in city")
+            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
+            for b in buildings:
+                if b.ground_id != -1:
+                    return dict(id = 0, reason="building exist here")
+                DBSession.delete(b)
+            lev = int(ground_id)-420
+            
+            if lev == 0:
+                if user.lev < 25:
+                    return dict(id=0, reason="level < 25")
+            
+            if lev == 5:
+                if user.lev < 30:
+                    return dict(id=0, reason="level < 30")
+            lev = lev%5
+            if user.food >= friendGod[lev][1] and user.corn >= friendGod[lev][2]:
+                user.food -= friendGod[lev][1]
+                user.corn -= friendGod[lev][2]
+                user.populationupbound += friendGod[lev][4]
+                user.exp += friendGod[lev][3]
+
+                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, producttime = curTime, finish = 0)
+                DBSession.add(building)
+                return dict(id=1, result="friendgod or monster god  suc")
+            else:
+                return dict(id=0, reason="resource not enough")
+            return dict(id=0, reason="unknown")
     @expose('json')
     
     def build(self,user_id,city_id,ground_id,grid_id):
@@ -5081,34 +5135,9 @@ class RootController(BaseController):
         
         ground_id = int(ground_id)
         if ground_id >= 420 and ground_id <= 424:
-            buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and  ground_id <= 424").params(cid=city_id).all();
-            
-            if len(buildings) != 0:
-                return dict(id=0, reason="friend god exist in city")
-            buildings = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(grid_id = grid_id).all()
-            for b in buildings:
-                if b.ground_id != -1:
-                    return dict(id = 0, reason="building exist here")
-                DBSession.delete(b)
-            lev = int(ground_id)-420
-            
-            if lev == 0:
-                if user.lev < 25:
-                    return dict(id=0, reason="level < 25")
-            if user.food >= friendGod[lev][1] and user.corn >= friendGod[lev][2]:
-                user.food -= friendGod[lev][1]
-                user.corn -= friendGod[lev][2]
-                user.populationupbound += friendGod[lev][4]
-                user.exp += friendGod[lev][3]
-
-                building = businessWrite(city_id=city_id, ground_id=ground_id, grid_id=grid_id, object_id=-1, producttime = curTime, finish = 0)
-                DBSession.add(building)
-                read(city_id)
-                return dict(id=1, result="friendgod suc")
-            else:
-                return dict(id=0, reason="resource not enough")
-            return dict(id=0, reason="unknown")
-
+            return buildGod(user, city_id, ground_id, grid_id, 420, 424)
+        if ground_id >= 425 and ground_id <= 429:
+            return buildGod(user, city_id, ground_id, grid_id, 425, 429)
 
         demands = [15, 1000, 100000]
         
@@ -5143,16 +5172,14 @@ class RootController(BaseController):
                     
                     user.populationupbound += 100
 
-                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', lastFeed = 0, attack=0, trainNum = 0)
+                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', lastFeed, attack=0, trainNum = 0)
                     DBSession.add(dragon)
-                    
-                    read(city_id)
                     return dict(id=1, result = "build dragon suc")
             return dict(id = 0, reason = "dragon fail lev or food or corn need")
 
         
         
-        if ground_id >=600 and ground_id <=601:
+        if ground_id >=600 and ground_id <=605:
             print "build statue" + str(user_id)
             index = ground_id%600
             idlepop = user.population - user.labor_num
@@ -5174,7 +5201,6 @@ class RootController(BaseController):
                     user.corn -= cost
                 user.labor_num += statuebuilding[index][3]
                 user.defencepower += statuebuilding[index][2]
-                read(city_id)
                 return dict(id=1,result = "build statue suc")
             else:
                 return dict(id=0,reason = "statue lev or pop failed")
@@ -5554,6 +5580,38 @@ class RootController(BaseController):
                 return dict(id=1)
             else:
                 return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
+
+    @expose('json')
+    def getdefence(self,user_id,city_id,grid_id):
+        uid = int(user_id)
+        gid = int(grid_id)
+        cid = int(city_id)
+        defenceadd = 0
+        try:
+            statue = DBSession.query(businessWrite).filter_by(city_id=cid).filter_by(grid_id=int(grid_id)).one()
+            monstergod = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 425 and  ground_id <= 429").params(cid=cid).all();
+            user = checkopdata(uid)
+            if statue.object_id == 0:
+                hour = 1
+            elif statue.object_id == 1:
+                hour = 6
+            elif statue.object_id == 2:
+                hour = 24
+            else:
+                hour = 0
+            ground_id = statue.ground_id
+            if hour > 0 and statue.producttime > 0:
+                stype = ground_id - 600
+                godlev = (statue.ground_id - 420)%5
+                statue.object_id = -1
+                statue.producttime = 0
+                defenceadd = monGodReward[stype][godlev]*hour
+                user.defencepower += defenceadd
+                return dict(id=1,defenceadd=defenceadd,result="get defence suc")
+            else:
+                return dict(id=0,reason="object_id <= 0 or producttime <=0")
         except InvalidRequestError:
             return dict(id=0)
     @expose('json')
@@ -5957,9 +6015,9 @@ class RootController(BaseController):
            lis=getGround_id(p.ground_id)
            u=checkopdata(user_id)
            ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-           if p.ground_id >= 420 and p.ground_id <= 424:
+           if p.ground_id >= 420 and p.ground_id <= 429:
                 if p.finish == 0:
-                    lev = p.ground_id - 420
+                    lev = (p.ground_id - 420)%5
                     needTime = friendGod[lev][0]
                     if (ti-p.producttime) >= needTime:
                         p.object_id = -1
@@ -5967,14 +6025,16 @@ class RootController(BaseController):
                         p.producttime = 0
                         return dict(id=1, result = "finish suc")
                 return dict(id=0, reason="need more time or finish yet")
-           if p.ground_id >= 600 and p.ground_id <= 601:
+           if p.ground_id >= 600 and p.ground_id <= 605:
                if p.finish == 0:
                    index = p.ground_id -600
                    needTime = statuebuilding[index][4]
                    if (ti-p.producttime) >= needTime:
-                       p.finish = -1
-                       p.producttime = 0
-                       return dict(id=1,result = "finish suc")
+                        p.finish = 1
+                        print "finish statue check god"
+                        p.producttime = 0
+                        p.object_id = -1
+                        return dict(id=1,result = "finish suc")
                return dict(id=0,reason="need more time or finish yet")
 
            if p.ground_id==400 or p.ground_id==404 or p.ground_id==408 or p.ground_id==412 or p.ground_id==416:
@@ -6057,9 +6117,9 @@ class RootController(BaseController):
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
             print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
-            if p.ground_id >= 420 and p.ground_id <= 424:
+            if p.ground_id >= 420 and p.ground_id <= 429:
                 if p.finish == 0:
-                    lev = p.ground_id - 420
+                    lev = (p.ground_id - 420)%5
                     needTime = friendGod[lev][0]
                     timeLeft = needTime - t
                     cost = accCost(timeLeft)
@@ -6071,7 +6131,7 @@ class RootController(BaseController):
                         DBSession.flush()
                         return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
-            if p.ground_id >=600 and p.ground_id <=601:
+            if p.ground_id >=600 and p.ground_id <=605:
                 if p.finish == 0:
                     index = p.ground_id - 600
                     needTime = statuebuilding[index][4]
