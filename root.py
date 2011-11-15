@@ -2379,6 +2379,7 @@ class RootController(BaseController):
                 if statuebuilding[index][1]<0:
                     u.corn += statuebuilding[index][1]*(-500)
                 u.labor_num -= statuebuilding[index][3]
+                #u.defencepower -= statuebuilding[index][2]
                 DBSession.delete(p)
                 DBSession.flush()
                 print "sell suc"
@@ -5605,7 +5606,7 @@ class RootController(BaseController):
             ground_id = statue.ground_id
             if hour > 0 and statue.producttime > 0:
                 stype = ground_id - 600
-                godlev = (statue.ground_id - 420)%5
+                godlev = (monstergod[0].ground_id - 420)%5
                 statue.object_id = -1
                 statue.producttime = 0
                 defenceadd = monGodReward[stype][godlev]*hour
