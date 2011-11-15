@@ -29,6 +29,7 @@ import hashlib
 import copy
 import httplib
 import json
+import inspect
 __all__ = ['RootController']
 class RootController(BaseController):
     secc = SecureController()
