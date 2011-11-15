@@ -2379,6 +2379,7 @@ class RootController(BaseController):
                 if statuebuilding[index][1]<0:
                     u.corn += statuebuilding[index][1]*(-500)
                 u.labor_num -= statuebuilding[index][3]
+                #u.defencepower -= statuebuilding[index][2]
                 DBSession.delete(p)
                 DBSession.flush()
                 print "sell suc"
