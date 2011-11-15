@@ -241,6 +241,7 @@ class RootController(BaseController):
         else:
             msgs = DBSession.query(Message.mid, Message.uid, Message.mess, Message.time, Message.read, operationalData.otherid).filter_by(fid=uid).filter(Message.uid==operationalData.userid).order_by(desc(Message.time)).slice(start, end).all()
         for m in msgs:
+           #print str(m)
             ms = DBSession.query(Message).filter_by(mid=m[0]).one()
             ms.read = 1
         DBSession.flush()
@@ -4756,13 +4757,8 @@ class RootController(BaseController):
         buildings = DBSession.query(businessWrite.bid, businessWrite.grid_id).filter_by(city_id = cid).all()
         return dict(id=1, bids = buildings)
     @expose('json')
-    def changeStyle(self, uid, pid, style):
-        dragon = DBSession.query(Dragon).filter_by(pid=pid).one()
-        dragon.style = style
-        return dict(id=1)
-    @expose('json')
     def getPets(self, uid, cid):
-        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed, Dragon.style).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
+        dragon = DBSession.query(Dragon.pid, Dragon.bid, businessWrite.grid_id, Dragon.state, Dragon.kind, Dragon.health, Dragon.friNum, Dragon.friList, Dragon.name, Dragon.attack, Dragon.lastFeed).filter(and_(Dragon.uid == uid, businessWrite.bid==Dragon.bid)).all()#index bid
         allPets = []
         for d in dragon:
             ld = list(d)
@@ -4861,6 +4857,7 @@ class RootController(BaseController):
             dragon.state += 1
             return dict(id=1, result="new state " + str(state+2))
         return dict(id=0, reason="health not enough " + str(dragon.health))
+            
     @expose('json')
     def trainDragon(self, uid, gid, cid):
         uid = int(uid)
