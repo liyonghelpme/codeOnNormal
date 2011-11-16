@@ -5169,7 +5169,7 @@ class RootController(BaseController):
                     
                     user.populationupbound += 100
 
-                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', last = 0, trainNum = 0, attack=0)
+                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '我的宠物', kind = 0, friList= '[]', Feed = 0, trainNum = 0, attack=0)
                     DBSession.add(dragon)
                     return dict(id=1, result = "build dragon suc")
             return dict(id = 0, reason = "dragon fail lev or food or corn need")
