@@ -4034,8 +4034,8 @@ class RootController(BaseController):
             empty.inf += battle.powerin
             empty.cav += battle.powerca
             attStr = [2, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
-            result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
-            DBSession.add(result)
+            #result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
+            #DBSession.add(result)
             return
 
         attPurePow = battle.powerin + battle.powerca
@@ -4081,19 +4081,29 @@ class RootController(BaseController):
             empty.cav = returnCa
 
             curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
+            proTime = 0
             if empty.uid != -1:
-                proTime = (curTime - empty.lastTime)*1.0 / 3600
+                proTime = (curTime - empty.lastTime)/ 3600
+                proTime = min(proTime, EmptyLev[empty.attribute][10])
             empty.lastTime = curTime
-            attacker.corn += EmptyLev[empty.attribute][2]
-            attacker.food += EmptyLev[empty.attribute][3]
-            attacker.wood += EmptyLev[empty.attribute][4]
-            attacker.stone += EmptyLev[empty.attribute][5]
-            if empty.uid != -1:
-                coinGen = int(proTime * EmptyLev[empty.attribute][6]/2)
-                foodGen = int(proTime * EmptyLev[empty.attribute][7]/2)
-                woodGen = int(proTime * EmptyLev[empty.attribute][8]/2)
-                stoneGen = int(proTime * EmptyLev[empty.attribute][9]/2)
 
+            coinGen = int(proTime * EmptyLev[empty.attribute][6]/2)
+            foodGen = int(proTime * EmptyLev[empty.attribute][7]/2)
+            woodGen = int(proTime * EmptyLev[empty.attribute][8]/2)
+            stoneGen = int(proTime * EmptyLev[empty.attribute][9]/2)
+
+            if empty.uid == -1:
+                attacker.corn += EmptyLev[empty.attribute][2]
+                attacker.food += EmptyLev[empty.attribute][3]
+                attacker.wood += EmptyLev[empty.attribute][4]
+                attacker.stone += EmptyLev[empty.attribute][5]
+            else:
+                attacker.corn += coinGen
+                attacker.food += foodGen
+                attacker.wood += woodGen
+                attacker.stone += stoneGen
+
+            if empty.uid != -1:
                 defencer.infantrypower += leftIn
                 defencer.cavalrypower += leftCa
                 defencer.corn += coinGen
@@ -4103,7 +4113,10 @@ class RootController(BaseController):
                 
                 defStr = list(attStr)
                 defStr += [coinGen, foodGen, woodGen, stoneGen]
-            attStr += [EmptyLev[empty.attribute][2], EmptyLev[empty.attribute][3], EmptyLev[empty.attribute][4], EmptyLev[empty.attribute][5]]
+            if empty.uid == -1:
+                attStr += [EmptyLev[empty.attribute][2], EmptyLev[empty.attribute][3], EmptyLev[empty.attribute][4], EmptyLev[empty.attribute][5]]
+            else:
+                attStr += [coinGen, foodGen, woodGen, stoneGen]
             empty.uid = attacker.userid
         else:
             attacker.infantrypower += returnIn
