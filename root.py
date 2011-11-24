@@ -34,6 +34,7 @@ import copy
 import httplib
 import json
 import inspect
+from stchong.model import con, cursor
 __all__ = ['RootController']
 class RootController(BaseController):
     secc = SecureController()
@@ -2550,10 +2551,14 @@ class RootController(BaseController):
         
         kind = user.nobility + 1
         
-        maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
-        for m in maps:
-            empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m.mapid).order_by(EmptyCastal.gid).all()
-            cities = DBSession.query(warMap.gridid).filter_by(mapid = m.mapid).order_by(warMap.gridid).all()
+        #maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
+        mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
+        cursor.execute(mapNum)
+        mapNum = cursor.fetchall()
+        #print mapNum
+        for m in mapNum:
+            empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m[0]).order_by(EmptyCastal.gid).all()
+            cities = DBSession.query(warMap.gridid).filter_by(mapid = m[0]).order_by(warMap.gridid).all()
             if len(empty) > len(cities) or user.nobility < EmptyMapLev:
                 print "just insert me"
                 gids = []
@@ -2562,13 +2567,13 @@ class RootController(BaseController):
                 for c in cities:
                     gids.append(c[0])
                 gids.sort()
-                m.num += 1
+                #m[1] += 1
                 myGid = getGid(gids, kind)
-                myMap.mapid = m.mapid
+                myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
-                return [myGid[0], m.mapid]
-            elif m.num < (mapKind[kind]-1):
+                return [myGid[0], m[0]]
+            elif m[1] < (mapKind[kind]-1):
                 print "insert me and empty"
                 gids = []
                 levs = []
@@ -2579,16 +2584,16 @@ class RootController(BaseController):
                     gids.append(c[0])
                 gids.sort()
                 myGid = getGid(gids, kind)
-                myMap.mapid = m.mapid
+                myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
                 myMap.map_kind += 1
-                m.num += 2
+                #m[1] += 2
                 if user.nobility >= EmptyMapLev:
                     rand = randEmptyLev(levs)
-                    emptyCastal = EmptyCastal(uid=-1, mid = m.mapid, gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
+                    emptyCastal = EmptyCastal(uid=-1, mid = m[0], gid=myGid[1], attribute = rand, inf = EmptyLev[rand][0], cav = EmptyLev[rand][1])
                     DBSession.add(emptyCastal)
 
-                return [myGid[0], m.mapid]
+                return [myGid[0], m[0]]
         print "create new map to insert me and empty"
         
         rand = random.randint(0, mapKind[kind]-1)
