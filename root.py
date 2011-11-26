@@ -2552,7 +2552,10 @@ class RootController(BaseController):
         kind = user.nobility + 1
         
         #maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
-        mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
+        if kind >= 3:
+            mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
+        else:
+            mapNum = 'select mapid, num from (select mapid, num1 as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1  where map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
         cursor.execute(mapNum)
         mapNum = cursor.fetchall()
         #print mapNum
