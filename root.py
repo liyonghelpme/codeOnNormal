@@ -2553,7 +2553,10 @@ class RootController(BaseController):
         kind = user.nobility + 1
         
         #maps = DBSession.query(Map).filter_by(map_kind=kind).filter(Map.num < mapKind[kind]).all()
-        mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
+        if kind >= 3:
+            mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
+        else:
+            mapNum = 'select mapid, num from (select mapid, num1 as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1  where map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
         try:
             cursor.execute(mapNum)
         except:
@@ -2561,6 +2564,7 @@ class RootController(BaseController):
             cursor = con.cursor()
             cursor.execute(mapNum)
         mapNum = cursor.fetchall()
+
         #print mapNum
         for m in mapNum:
             empty = DBSession.query(EmptyCastal.gid, EmptyCastal.attribute).filter_by(mid = m[0]).order_by(EmptyCastal.gid).all()
@@ -3378,6 +3382,8 @@ class RootController(BaseController):
     def withdrawEmpty(self, uid, enemy_id):
         uid = int(uid)
         enemy_id = int(enemy_id)
+        if enemy_id > 0:
+             enemy_id = -enemy_id
         battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = enemy_id).filter_by(finish=0).all() 
         print "withDraw battle", battle
         if len(battle) == 0:
@@ -6100,7 +6106,7 @@ class RootController(BaseController):
                     temp_cae=temp_cae+1
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=329 and ground_id>=300").params(cid = int(city_id)).all()
+                ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=332 and ground_id>=300").params(cid = int(city_id)).all()
                 if ground==None or len(ground)==0:
                     return dict(id=0)
                 factor=1
