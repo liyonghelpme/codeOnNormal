@@ -1343,11 +1343,13 @@ class RootController(BaseController):
                 ds=DBSession.query(Datesurprise).filter_by(uid=user.userid).one()   
             except:
                 return dict(foodlost=0)
+            """
             if ds.monfood==0 or ds.monfood==None :
                 ds.monfood = 1
             elif ds.monfood < 2:
                 ds.monfood += 1
-            elif ds.monfood == 2:
+            """
+            if ds.monfood == 2:
                 ds.monfood += 1
                 monlist = user.monsterlist
                 monlist = monlist.split(';')
