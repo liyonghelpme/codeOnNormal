@@ -1358,8 +1358,9 @@ class RootController(BaseController):
                     res = monlist[0].split(',')
                     if len(res) < 2:
                         return dict(foodlost = 0)
-                foodlost = (0.03 + length*1.0/200) * user.food
-                foodlost = int(foodlost)
+                #foodlost = (0.03 + length*1.0/200) * user.food
+                #foodlost = int(foodlost)
+                foodlost = 0
                 user.food -= foodlost
                 
                 print "lostfood " + str(foodlost)
@@ -4260,7 +4261,7 @@ class RootController(BaseController):
                 i = length - 1
                 while i >= 0 and fails < 3:
                     res = defWar[i].split(',')
-                    if len(res) < 2:
+                    if len(res) < 3:
                         i -= 1
                         continue
                     if int(res[2]) == 1:
