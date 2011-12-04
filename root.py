@@ -4264,10 +4264,13 @@ class RootController(BaseController):
                     if len(res) < 3:
                         i -= 1
                         continue
-                    if int(res[2]) == 1:
-                        break
-                    if int(res[1]) == 0:
-                        fails += 1
+                    try:
+                        if int(res[2]) == 1:
+                            break
+                        if int(res[1]) == 0:
+                            fails += 1
+                    except:
+                        pass
                     i -= 1
                 if fails == 3:
                     weakMode = True
