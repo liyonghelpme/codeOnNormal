@@ -20,6 +20,7 @@ from stchong.model import Message
 from stchong.model import PetAtt
 from stchong.model import EmptyCastal
 from stchong.model import EmptyResult
+from stchong.model import Mana
 from stchong import model
 from stchong.controllers.secure import SecureController
 from datetime import datetime
@@ -2833,6 +2834,49 @@ class RootController(BaseController):
             return dict(id=0)
 
     @expose('json')
+    def addmana(self,userid):
+        userid = int(userid)
+        try:
+            m=DBSession.query(Card).filter("userid=:uid").params(uid=userid).one()
+            boundary = m.bounary
+            mana = m.mana
+            if mana < boundary:
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
+                m.mana = m.mana + 1
+                m.lasttime = t
+                return dict(id=1,mana=m.mana,boundary=boundary,result="add mana suc")
+            else:
+                return dict(id=0,reason="mana >= boundary")
+        except:
+            return dict(id=0,reason="try failed")
+
+    @expose('json')
+    def buymana(self,userid,type):#type=0(1 cae),1(2 cae),2(3 cae),3(4cae),4(13 cae)
+        userid = int(userid)
+        type = int(type)
+        bonus = [0,1,2,3,11]
+        manaadd = (type+1)*3+bonus[type]
+        try:
+            m=DBSession.query(Card).filter("userid=:uid").params(uid=userid).one()
+            boundary = m.bounary
+            mana = m.mana
+            if mana+manaadd > boundary:
+                return dict(id=0,reason="mana+manaadd > boundary")
+            else:
+                m.mana = mana+manaadd
+                return dict(id=1,manaadd=manaadd,mana=m.mana,boundary=boundary,result="buy mana suc")
+        except:
+            return dict(id=0,reason="try failed")
+    @expose('json')
+    def changebounary(self,userid):
+        userid = int(userid)
+        try:
+            m=DBSession.query(Card).filter("userid=:uid").params(uid=userid).one()
+            m.boundary = m.boundary+1
+            return dict(id=1,boundary=m.boundary)
+        except:
+            return dict(id=0,reason="try failed")
+    @expose('json')
     def changecard(self,userid,cardnum,type):
         cardtype=int(type)
         cardnum=int(cardnum)
@@ -2869,6 +2913,9 @@ class RootController(BaseController):
         md51=hashlib.md5(src).hexdigest()
         card=None
         cardlist=[]
+        mana=-1
+        boundary=-1
+        lasttime=-1
         if md51!=md5:
             return dict(md51=md51,id=md5)
         try:
@@ -2926,7 +2973,47 @@ class RootController(BaseController):
             except:
                 card=None
             
-
+            try:
+                m = DBSession.query(Mana).filter_by(userid=user.userid).one()
+                mana = m.mana
+                lasttime = m.lasttime
+                manatime = logintime - lasttime
+                manaadd = manatime/300
+                boundary = m.boundary
+                if mana+manaadd > boundary:
+                    mana = boundary
+                else:
+                    mana = mana+manaadd
+                m.lasttime = logintime
+            except:#first login after we have mana
+                boundary = 26
+                lasttime = logintime
+                clevel = [5,15,45,85,135]
+                if user.nobility > -1:
+                    boundary = boundary + user.nobility*3+user.subno
+                if card!=None:
+                    boundary = boundary + card.foodcard + card.fortunecard + card.popcard + card.warcard + friendcard
+                monsterlist = []
+                monsterlist = user.monsterdefeat.split(';')
+                for monsternum in monsterlist:
+                    if int(monsternum > clevel[4] or monsternum == clevel[4]):
+                        boundary = boundary + 5
+                    elif int(monsternum > clevel[3] or monsternum == clevel[3]):
+                        boundary = boundary + 4
+                    elif int(monsternum > clevel[2] or monsternum == clevel[2]):
+                        boundary = boundary + 3
+                    elif int(monsternum > clevel[1] or monsternum == clevel[1]):
+                        boundary = boundary + 2
+                    elif int(monsternum > clevel[0] or monsternum == clevel[0]):
+                        boundary = boundary + 1
+                    else:
+                        boundary = boundary + 0
+                nm=Mana(userid=user.userid)
+                nm.mana = boundary
+                nm.boundary = boundary
+                nm.lasttime = logintime
+                DBSession.add(nm)
+                mana = boundary
             
             ng=[]
             try:
@@ -3024,11 +3111,11 @@ class RootController(BaseController):
             elif ds.monfood == 2:
                 ds.monfood = 2
             if user.newcomer<3:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)    
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime)
             if user_kind==0:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime)
             else:
-                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum)
+                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime)
                     
         except InvalidRequestError:
             newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
@@ -3126,6 +3213,14 @@ class RootController(BaseController):
             nc=Card(uid=nuid)
             DBSession.add(nc)
             
+            nm=Mana(userid=nuid)
+            nm.boundary = 26
+            nm.mana = nm.boundary
+            nm.lasttime = logintime
+            mana = nm.mana
+            boundary = nm.boundary
+            lasttime = nm.lasttime
+            DBSession.add(nm)
 
             try:
                 nuf=DBSession.query(Papayafriend).filter_by(papayaid=papayaid).filter_by(user_kind=int(user_kind)).all()
@@ -3150,7 +3245,7 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            return dict(wonNum = 0, wonBonus = 0, ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi)
+            return dict(wonNum = 0, wonBonus = 0, ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi,mana=mana,boundary=boundary,lasttime=lasttime)
     
     global NobilityName
     NobilityName = ['三等平民','二等平民','一等平民',
