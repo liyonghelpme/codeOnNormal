@@ -2992,7 +2992,7 @@ class RootController(BaseController):
                 if user.nobility > -1:
                     boundary = boundary + user.nobility*3+user.subno
                 if card!=None:
-                    boundary = boundary + card.foodcard + card.fortunecard + card.popcard + card.warcard + friendcard
+                    boundary = boundary + card.foodcard + card.fortunecard + card.popcard + card.warcard + card.friendcard
                 monsterlist = []
                 monsterlist = user.monsterdefeat.split(';')
                 for monsternum in monsterlist:
@@ -3401,20 +3401,6 @@ class RootController(BaseController):
             tl=ub.timeneed-(t-ub.left_time)
             hour = 3600
             cost = (int(t1/hour)+1)*2
-"""
-            cae = 0
-            if tl < 0:
-               cae = 0
-            elif tl < 3 * hour:
-               cae = 2
-            elif tl < 6 * hour:
-               cae = 4
-            elif tl < 9 * hour:
-               cae = 6
-            else:
-               cae = 10
-            u=checkopdata(uid)
-"""            
 #            if u.cae-cae>=0:
             if m.mana-cost>=0:
                 m.mana = m.mana-cost
@@ -3738,22 +3724,14 @@ class RootController(BaseController):
         if type < 0 or type >= 3:
             return dict(id=0, reason = "no such protect")
         suc = False
-#        if type == 0:
-#            if u.corn >= 4999:
-            if m.mana >= 8:
-#                u.corn -= 4999
-                m.mana -= 8
-                suc = True
+        if m.mana >= 8:
+            m.mana -= 8
+            suc = True
         elif type == 1:
-#            if u.corn >= 14999:
             if m.mana >= 12:
-#                u.corn -= 14999
                 m.mana -= 12
                 suc = True
-        elif type == 2:
-#            if u.cae >= 2:
-            if m.mana >= 24
-#                u.cae -= 2
+        elif type == 2 and m.mana >= 24:
                 m.mana -= 24
                 suc = True
                 print inspect.stack()[0]
@@ -6365,21 +6343,17 @@ class RootController(BaseController):
                 return dict(id=0,resaon="do not have the zijin god!")
             
             if type==0:
-#                temp_cae = u.cae - 2
                 temp_mana = m.mana - 25
                 print inspect.stack()[0]
-
                 if temp_cae >= 0 or card.friendcard == 5:
-                if temp_mana > -1:
-                    flag = 1
-#                    if card.friendcard == 5:
-#                        temp_cae = temp_cae + 2
-                    for f in notvisited:
-                        k += 1
-                        f.visited = 1
-                    cornadd = (100 + bonus)*friend_num
-                else:
-                    return dict(id=0, reason="cae or card invalid")
+                    if temp_mana > -1:
+                        flag = 1
+                        for f in notvisited:
+                            k += 1
+                            f.visited = 1
+                        cornadd = (100 + bonus)*friend_num
+                    else:
+                        return dict(id=0, reason="cae or card invalid")
             else:
 #                temp_cae = u.cae - 10
                 temp_mana = m.mana - 50
