@@ -3008,10 +3008,7 @@ class RootController(BaseController):
                         boundary = boundary + 1
                     else:
                         boundary = boundary + 0
-                nm=Mana(userid=user.userid)
-                nm.mana = boundary
-                nm.boundary = boundary
-                nm.lasttime = logintime
+                nm=Mana(userid=user.userid,mana=boundary,boundary=boundary,lasttime=logintime)
                 DBSession.add(nm)
                 mana = boundary
             
@@ -3213,14 +3210,11 @@ class RootController(BaseController):
             nc=Card(uid=nuid)
             DBSession.add(nc)
             
-            nm=Mana(userid=nuid)
-            nm.boundary = 26
-            nm.mana = nm.boundary
-            nm.lasttime = logintime
+            nm=Mana(userid=nuid,mana=26,boundary=26,lasttime=logintime)
+            DBSession.add(nm)
             mana = nm.mana
             boundary = nm.boundary
             lasttime = nm.lasttime
-            DBSession.add(nm)
 
             try:
                 nuf=DBSession.query(Papayafriend).filter_by(papayaid=papayaid).filter_by(user_kind=int(user_kind)).all()
@@ -3403,8 +3397,11 @@ class RootController(BaseController):
         try:
             
             ub=DBSession.query(Battle).filter("uid=:uid and enemy_id=:ene and finish = 0").params(uid=uid, ene=enemy_id).one()
+            m = DBSession.query(Mana).filter_by(userid=uid).one()
             tl=ub.timeneed-(t-ub.left_time)
             hour = 3600
+            cost = (int(t1/hour)+1)*2
+"""
             cae = 0
             if tl < 0:
                cae = 0
@@ -3417,15 +3414,19 @@ class RootController(BaseController):
             else:
                cae = 10
             u=checkopdata(uid)
-            
-            if u.cae-cae>=0:
-                u.cae=u.cae-cae  
+"""            
+#            if u.cae-cae>=0:
+            if m.mana-cost>=0:
+                m.mana = m.mana-cost
+#                u.cae=u.cae-cae
                 ub.timeneed=0
                 print inspect.stack()[0]
-                print "speed cae " + str(cae) + 'time ' + str(tl)
-                return dict(id=1, caesars = cae)
+#                print "speed cae " + str(cae) + 'time ' + str(tl)
+                print "speed mana " + str(cost) + 'time ' + str(tl)
+                return dict(id=1, manaCost=cost)
+#                return dict(id=1, caesars = cae
             else:
-                return dict(id=0, reason='cae')
+                return dict(id=0, reason='mana')
         except:
             return dict(id=0, reason='no bat')
     @expose('json')
@@ -3728,6 +3729,7 @@ class RootController(BaseController):
     @expose('json')
     def addprotect(self,uid,type):
         u=checkopdata(uid)
+        m=DBSession.query(Mana).filter_by(userid=int(uid)).one()
         type=int(type)
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
         price = [4999, 14999, 2]
@@ -3736,17 +3738,23 @@ class RootController(BaseController):
         if type < 0 or type >= 3:
             return dict(id=0, reason = "no such protect")
         suc = False
-        if type == 0:
-            if u.corn >= 4999:
-                u.corn -= 4999
+#        if type == 0:
+#            if u.corn >= 4999:
+            if m.mana >= 8:
+#                u.corn -= 4999
+                m.mana -= 8
                 suc = True
         elif type == 1:
-            if u.corn >= 14999:
-                u.corn -= 14999
+#            if u.corn >= 14999:
+            if m.mana >= 12:
+#                u.corn -= 14999
+                m.mana -= 12
                 suc = True
         elif type == 2:
-            if u.cae >= 2:
-                u.cae -= 2
+#            if u.cae >= 2:
+            if m.mana >= 24
+#                u.cae -= 2
+                m.mana -= 24
                 suc = True
                 print inspect.stack()[0]
 
@@ -4807,10 +4815,13 @@ class RootController(BaseController):
     def godbless(self,uid,godtype,caetype):
         uid=int(uid)
         u=checkopdata(uid)
+        m = DBSession.query(Mana).filter_by(userid=int(uid)).one()
         t=int(time.mktime(time.localtime())-time.mktime(beginTime))
         godtype=int(godtype)
         caetype=int(caetype)
         caeCost = [3, 15, 30]
+        manaCost1 = [5,25,50]
+        manaCost2 = [4,20,40]
         mark=0
         warmap = DBSession.query(warMap).filter_by(userid = uid).one()
         if godtype == 5:
@@ -4818,8 +4829,10 @@ class RootController(BaseController):
                 buildings = DBSession.query(businessWrite).filter("businessWrite.city_id=:cid and ground_id >= 425 and ground_id <= 429 and finish = 1").params(cid=warmap.city_id).all()
                 print "friend god or monster god help now " + str(caetype) + " "+ str(godtype)
                 if len(buildings) > 0:
-                   if u.cae >= caeCost[caetype]:
-                        u.cae -= caeCost[caetype]
+#                   if u.cae >= caeCost[caetype]:
+                   if m.mana >= manaCost1[caetype]:
+#                        u.cae -= caeCost[caetype]
+                        m.mana -=manaCost2[caetype]
                         print inspect.stack()[0]
 
                         b = buildings[0]
@@ -4830,7 +4843,7 @@ class RootController(BaseController):
                             s.producttime = t
                             s.object_id = caetype
                 
-                        return dict(id=1, result = "friend god bless "+ str(caetype))
+                        return dict(id=1, result = "friend god bless "+ str(caetype),manaCost=manaCost2[caetype])
                 return dict(id=0)
         if godtype == 4: 
             if caetype >= 0 and caetype < len(caeCost):
@@ -4839,18 +4852,43 @@ class RootController(BaseController):
                 print "friend god help now " + str(caetype)
                 
                 if len(buildings) > 0:
-                   if u.cae >= caeCost[caetype]:
-                        u.cae -= caeCost[caetype]
+#                   if u.cae >= caeCost[caetype]:
+                   if m.mana >= manaCost2[caetype]:
+#                        u.cae -= caeCost[caetype]
+                        m.mana -=manaCost2[caetype]
                         print inspect.stack()[0]
 
                         b = buildings[0]
                         b.producttime = t
                         b.object_id = caetype
                         print "friend god bless suc"
-                        return dict(id=1, result = "friend god bless "+ str(caetype))
+                        return dict(id=1, result = "friend god bless "+ str(caetype),manaCost=manaCost2[caetype])
             return dict(id=0, reason="cae not enough or no god") 
 
         print inspect.stack()[0]
+
+        if godtype == 3:#war_god
+            if m.mana >= manaCost1[caetype]:
+                m.mana -= manaCost1[caetype]
+                u.war_god=caetype+1
+                u.wargodtime=t
+            else:
+                return dict(id=0,reason="mana not enough")
+        else:#other gods
+            if m.mana >= manaCost2[caetype]:
+                m.mana -= manaCost2[caetype]
+                if godtype == 0:
+                    u.food_god=caetype+1
+                    u.foodgodtime=t
+                elif godtype == 1:
+                    u.person_god=caetype+1
+                    u.popgodtime=t
+                else:
+                    u.wealth_god=caetype+1
+                    u.wealthgodtime=t
+            else:
+                return dict(id=0,reason="mana not enough")
+        """
         if caetype==0:
             if u.cae-3>=0:
                 u.cae=u.cae-3
@@ -4911,7 +4949,7 @@ class RootController(BaseController):
                 return dict(id=1)
             else:
                 return dict(id=0)
-                             
+        """                  
                  
 
     @expose('json')
@@ -6044,10 +6082,14 @@ class RootController(BaseController):
         try:
             u=checkopdata(user_id)
             card = DBSession.query(Card).filter_by(uid=user_id).one()
-            temp_cae = u.cae-1
-            if temp_cae>=0 or card.foodcard==5:
-                if card.foodcard==5:
-                    temp_cae=temp_cae+1
+            m = DBSession.query(Mana).filter_by(uid=user_id).one()
+            temp_mana = m.mana
+            temp_ce = u.cae
+#            temp_cae = u.cae-1
+#            if temp_cae>=0 or card.foodcard==5:
+            if temp_mana > -1:
+#                if card.foodcard==5:
+#                    temp_cae=temp_cae+1
                 price=Plant_Price[int(object_id)][0]
                 print inspect.stack()[0], object_id
 
@@ -6070,8 +6112,10 @@ class RootController(BaseController):
                         else:
                             temp_cae = temp_cae+price
                             u.cae = temp_cae
+                            m.mana = temp_mana
                             return dict(id=1,plant=plant_list)
                     u.cae = temp_cae
+                    m.mana = temp_mana
                     return dict(id=1,plant=plant_list)
                 else:
                     temp_corn = u.corn
@@ -6087,9 +6131,11 @@ class RootController(BaseController):
                         else:
                             u.corn=temp_corn
                             u.cae=temp_cae
+                            m.mana = temp_mana
                             return dict(id=1,plant=plant_list)
                     u.corn=temp_corn
                     u.cae=temp_cae
+                    m.mana = temp_mana
                     return dict(id=1,plant=plant_list)
             else:
                 return dict(id=0)
@@ -6102,13 +6148,16 @@ class RootController(BaseController):
         flag=0
         try:
             u=checkopdata(user_id)
+            m = DBSession.query(Mana).filter_by(uid=user_id).one()
             card = DBSession.query(Card).filter_by(uid=user_id).one()
-            temp_cae = u.cae-1
+            temp_mana = m.mana -5
+#            temp_cae = u.cae-1
             print inspect.stack()[0]
 
-            if temp_cae>=0 or card.foodcard==5:
-                if card.foodcard==5:
-                    temp_cae=temp_cae+1
+#            if temp_cae>=0 or card.foodcard==5:
+#                if card.foodcard==5:
+#                    temp_cae=temp_cae+1
+            if temp_mana > -1:
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=4 and ground_id>=1 and object_id>=0").params(cid = int(city_id)).all()
@@ -6179,9 +6228,10 @@ class RootController(BaseController):
                 u.exp=u.exp+expadd
                 u.food=u.food+foodadd
                 if flag==1:
-                    u.cae = temp_cae
+                    m.mana = temp_mana
+#                    u.cae = temp_cae
                 read(city_id)
-                replacecache(u.userid,u)
+#                replacecache(u.userid,u)
                 return dict(id=1,expadd=expadd,foodadd=foodadd)
             else:
                 return dict(id=0)
@@ -6193,14 +6243,18 @@ class RootController(BaseController):
         cornadd=0
         flag=0
         try:
-            u=checkopdata(user_id)
+#            u=checkopdata(user_id)
+            m = DBSession.query(Mana).filter_by(userid=user_id).one()
+            mana = int(m.mana)
             card = DBSession.query(Card).filter_by(uid=user_id).one()
-            temp_cae = u.cae-1
+            temp_mana = mana-5
+#            temp_cae = u.cae-1
             print inspect.stack()[0]
 
-            if temp_cae>=0 or card.fortunecard==5:
-                if card.fortunecard==5:
-                    temp_cae=temp_cae+1
+#            if temp_cae>=0 or card.fortunecard==5:
+            if temp_mana > -1:
+#                if card.fortuinecard==5:
+#                    temp_cae=temp_cae+1
                 map=DBSession.query(warMap).filter_by(city_id=int(city_id)).one()
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 ground=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter("city_id=:cid and producttime>0 and finish = 1 and ground_id <=332 and ground_id>=300").params(cid = int(city_id)).all()
@@ -6261,9 +6315,10 @@ class RootController(BaseController):
                 u.exp=u.exp+expadd
                 u.corn = u.corn + cornadd
                 if flag==1:
-                    u.cae = temp_cae
+#                    u.cae = temp_cae
+                    m.mana = temp_mana
                 read(city_id)
-                replacecache(u.userid,u)
+#                replacecache(u.userid,u)
                 if flag==1:
                     return dict(id=1,expadd=expadd,cornadd=cornadd)
                 else:
@@ -6282,12 +6337,14 @@ class RootController(BaseController):
         cornadd = 0
         flag = 0
         bonus = 0
+        temp_mana = 0
         k = 0
         try:
             notvisited = DBSession.query(Papayafriend).filter_by(uid=uid).filter_by(visited=0).filter("lev > 0").all()
             if notvisited == None or len(notvisited)==0:
                 return dict(id=0, reason="do not have not visited friend")
             card = DBSession.query(Card).filter_by(uid=uid).one()
+            m = DBSession.query(Mana).filter_by(uid=uid).one()
             notvisited_num = len(notvisited)
             t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             mycity = DBSession.query(warMap).filter_by(userid = uid).one()
@@ -6308,13 +6365,15 @@ class RootController(BaseController):
                 return dict(id=0,resaon="do not have the zijin god!")
             
             if type==0:
-                temp_cae = u.cae - 2
+#                temp_cae = u.cae - 2
+                temp_mana = m.mana - 25
                 print inspect.stack()[0]
 
                 if temp_cae >= 0 or card.friendcard == 5:
+                if temp_mana > -1:
                     flag = 1
-                    if card.friendcard == 5:
-                        temp_cae = temp_cae + 2
+#                    if card.friendcard == 5:
+#                        temp_cae = temp_cae + 2
                     for f in notvisited:
                         k += 1
                         f.visited = 1
@@ -6322,11 +6381,15 @@ class RootController(BaseController):
                 else:
                     return dict(id=0, reason="cae or card invalid")
             else:
-                temp_cae = u.cae - 10
+#                temp_cae = u.cae - 10
+                temp_mana = m.mana - 50
                 print inspect.stack()[0]
 
-                if temp_cae >=0:
+#                if temp_cae >=0 or card.friendcard == 5:
+                if temp_mana > -1:
                     flag = 1
+#                    if card.friendcard == 5:
+#                        temp_cae = temp_cae + 10
                     for f in notvisited: 
                         cornadd += 100 + bonus + 5*k
                         k += 1
@@ -6334,7 +6397,8 @@ class RootController(BaseController):
                     cornadd = (100+bonus)*friend_num + 5*(friend_num+1)*friend_num/2
             if flag == 1:
                 u.corn = u.corn + cornadd
-                u.cae = temp_cae
+                m.mana = temp_mana
+#                u.cae = temp_cae
                 read(mycity.city_id)
                 return dict(id=1,cornadd=cornadd,getfriendnum=k)
             else:
@@ -6442,12 +6506,22 @@ class RootController(BaseController):
                 caesars = 5
         print "acc time " + str(timeLeft) + ' ' + str(caesars)
         return caesars   
+    def accMana(timeLeft):
+        manas = 0
+        hour = 3600
+        mana_per_hour = 1
+        if timeLeft < 0:
+            manas = 0
+        else:
+            manas = (int(timeLeft/hour)+1)*mana_per_hour
+        return manas
     @expose('json')
     def speedup(self,user_id,city_id,grid_id):
         try:
             caesars=1
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
             u=checkopdata(user_id)
+            m=DBSession.query(Mana).filter_by(userid=int(user_id)).one()
             ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
             t=ti-p.producttime
             print "speed up " + str(user_id) + ' ' + str(city_id) + ' ' +str(grid_id) + ' ' + str(p.ground_id)
@@ -6456,32 +6530,40 @@ class RootController(BaseController):
                     lev = (p.ground_id - 420)%5
                     needTime = friendGod[lev][0]
                     timeLeft = needTime - t
-                    cost = accCost(timeLeft)
-                    if u.cae >= cost:
-                        u.cae -= cost
+#                    cost = accCost(timeLeft)
+                    cost = accMana(timeLeft)
+#                    if u.cae >= cost:
+                    if m.mana >= cost:
+                        m.mana = m.mana - cost
+#                        u.cae -= cost
                         print inspect.stack()[0]
 
                         p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
                         DBSession.flush()
-                        return dict(id=1, result = "firendgod finish suc", caeCost = cost)
+                        return dict(id=1, result = "firendgod finish suc",manaCost = cost)
+#                        return dict(id=1, result = "firendgod finish suc", caeCost = cost)
                 return dict(id=0, reason="friend god no work speed or finish yet")
             if p.ground_id >=600 and p.ground_id <=605:
                 if p.finish == 0:
                     index = p.ground_id - 600
                     needTime = statuebuilding[index][4]
                     timeLeft = needTime - t
-                    cost = accCost(timeLeft)
-                    if u.cae >= cost:
-                        u.cae -= cost
+#                    cost = accCost(timeLeft)
+                    cost = accMana(timeLeft)
+#                    if u.cae >= cost:
+                    if m.mana >= cost:
+#                        u.cae -= cost
+                        m.mana = m.mana-cost
                         print inspect.stack()[0]
 
                         p.object_id = -1
                         p.finish = 1
                         p.producttime = 0
                         DBSession.flush()
-                        return dict(id=1,result = "statue speedup suc",caeCost = cost)
+                        return dict(id=1,result = "statue speedup suc",manaCost = cost)
+#                        return dict(id=1,result = "statue speedup suc",caeCost = cost)
                     return dict(id=0,reason="cae failed")
                 return dict(id=0, reason="statue no work speed or finish yet")
             if p.ground_id==0:
@@ -6500,61 +6582,79 @@ class RootController(BaseController):
                         timeLeft=woods[p.object_id][3]-t
                     else:
                         timeLeft=stones[p.object_id][3]-t
-                    caesars = accCost(timeLeft)
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    caesars = accCost(timeLeft)
+                    cost = accMana(timeLeft)
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost >= 0:
+                        m.mana = m.mana-cost
+#                        u.cae=u.cae-caesars
                         print inspect.stack()[0]
 
                         p.producttime=1
-                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
+                        return dict(id=1,manaCost=cost,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
+#                        return dict(id=1,caesars=caesars,t=Plant_Price[p.object_id][3],t1=t, result = "farm speed har")
                     else:
                         return dict(id=0, reason = "farm cae not enu")
             elif p.ground_id>=100 and p.ground_id<=199:
                 if p.finish==0:
                     timeLeft= housebuild[p.ground_id-100][5]-t
-                    caesars = accCost(timeLeft)
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    caesars = accCost(timeLeft)
+                    cost = accMana(timeLeft)
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost>=0:
+                        m.mana = m.mana-cost
+#                        u.cae=u.cae-caesars
                         print inspect.stack()[0]
 
                         p.producttime=0
                         p.finish=1
-                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
+                        return dict(id=1,manaCost=cost,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
+#                        return dict(id=1,ca=caesars,cae=u.cae,h=housebuild[p.ground_id-100][5], result = "house fin")
                     else:
                         return dict(id=0, reason = "house fin cae not eno")
                 else:
                     timeLeft = houses[p.ground_id-100][3]-t
-                    caesars = accCost(timeLeft)
+#                    caesars = accCost(timeLeft)
+                    cost = accMana(timeLeft)
                     
                     if p.producttime == 0 or p.producttime == 1:
                         return dict(id = 0, reason='house not working', pro = p.producttime)
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost>=0:
+                        m.mana = m.mana-cost
+#                        u.cae=u.cae-caesars
                         print inspect.stack()[0]
 
                         p.producttime=1
-                        return dict(id=1,caesars=caesars, result = "house pop")
+                        return dict(id=1,manaCost=cost, result = "house pop")
+#                        return dict(id=1,caesars=caesars, result = "house pop")
                     else:
                         return dict(id=0, reason="house cae not")
             elif p.ground_id>=200 and p.ground_id<=299:
                 if p.finish==0:
                     timeLeft = milbuild[p.ground_id-200][6]-t
-                    caesars = accCost(timeLeft)
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    caesars = accCost(timeLeft)
+                    cost = accMana(timeLeft)
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost>=0:
+                        m.mana = m.mana-cost
+#                        u.cae=u.cae-caesars
                         print inspect.stack()[0]
 
                         p.producttime=0
                         p.finish=1
-                        return dict(id=1, result = "finish militry")
+                        return dict(id=1, result = "finish militry",manaCost=cost)
                     else:
                         return dict(id=0, reason = "mil cae not en")
                 else:
                     if p.object_id>=0:
                         timeLeft = soldie[p.object_id][4]-t
-                        caesars = accCost(timeLeft)
-                        if u.cae-caesars>=0:
-                            u.cae=u.cae-caesars
+                        cost = accMana(timeLeft)
+#                        caesars = accCost(timeLeft)
+#                        if u.cae-caesars>=0:
+                        if m.mana-cost>=0:
+                            m.mana = m.mana-cost
+#                            u.cae=u.cae-caesars
                             print inspect.stack()[0]
 
                             p.producttime=1
@@ -6566,9 +6666,12 @@ class RootController(BaseController):
             elif p.ground_id>=300 and p.ground_id<=399:
                 if p.finish==0:
                     timeLeft = businessbuild[p.ground_id-300][6]-t
-                    caesars = accCost(timeLeft)
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    caesars = accCost(timeLeft)
+                    cost =  accMana(timeLeft)
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost>=0:
+                        m.mana = m.mana - cost
+#                        u.cae=u.cae-caesars
                         print inspect.stack()[0]
 
                         p.producttime=ti
@@ -6578,20 +6681,26 @@ class RootController(BaseController):
                         return dict(id=0, reason = "busines not fin")
                 else:
                     timeLeft = production[p.ground_id-300][3]-t
-                    caesars = accCost(timeLeft)
+#                    caesars = accCost(timeLeft)
+                    cost =  accMana(timeLeft)
                     if p.producttime == 1:
                         return dict(id = 0, reason = "busi speedup yet")
-                    if u.cae-caesars>=0:
-                        u.cae=u.cae-caesars
+#                    if u.cae-caesars>=0:
+                    if m.mana-cost>=0:
+                        m.mana = m.mana - cost
+#                        u.cae=u.cae-caesars
                         p.producttime=1
                         return dict(id = 1, result = "busi tax")
                     else:
                         return dict(id=0, reason = "busi cae not")     
             elif p.ground_id>=400 and p.ground_id<499:
                 timeLeft = godbuild[p.ground_id-400][5]-t
-                caesars = accCost(timeLeft)
-                if p.finish==0 and u.cae-caesars>0:
-                    u.cae=u.cae-caesars
+#                caesars = accCost(timeLeft)
+                cost =  accMana(timeLeft)
+#                if p.finish==0 and u.cae-caesars>0:
+                if p.finish==0 and m.mana-cost>=0:
+                    m.mana = m.mana - cost
+#                    u.cae=u.cae-caesars
                     print inspect.stack()[0]
 
                     p.producttime=0
