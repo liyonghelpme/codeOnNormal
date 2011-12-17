@@ -2591,7 +2591,7 @@ class RootController(BaseController):
                 myGid = getGid(gids, kind)
                 myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
-                myMap.map_kind += 1
+                myMap.map_kind = kind
                 return [myGid[0], m[0]]
             elif m[1] < (mapKind[kind]-1):
                 print "insert me and empty"
@@ -2606,7 +2606,7 @@ class RootController(BaseController):
                 myGid = getGid(gids, kind)
                 myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
-                myMap.map_kind += 1
+                myMap.map_kind = kind
                 #m[1] += 2
                 if user.nobility >= EmptyMapLev:
                     rand = randEmptyLev(levs)
@@ -2624,7 +2624,7 @@ class RootController(BaseController):
         
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
-        myMap.map_kind += 1
+        myMap.map_kind = kind
 
         if user.nobility >= EmptyMapLev:
             rand = random.randint(0, len(EmptyLev)-1)
@@ -2849,8 +2849,13 @@ class RootController(BaseController):
             mana = m.mana
             if mana < boundary:
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                m.mana = m.mana + 1
-                m.lasttime = t
+                if t < m.lasttime:
+                    m.lasttime = t
+                    addmana = 0
+                else:
+                    addmana = (t-m.lasttime)/300
+                m.mana = m.mana + addmana
+                m.lasttime = m.lasttime + addmana*300
                 return dict(id=1,mana=m.mana,boundary=boundary,result="add mana suc")
             else:
                 return dict(id=0,reason="mana >= boundary")
