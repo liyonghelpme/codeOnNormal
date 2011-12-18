@@ -2847,8 +2847,8 @@ class RootController(BaseController):
             m=DBSession.query(Mana).filter("userid=:uid").params(uid=userid).one()
             boundary = m.boundary
             mana = m.mana
+            t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             if mana < boundary:
-                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 if t < m.lasttime:
                     m.lasttime = t
                     addmana = 0
@@ -2858,6 +2858,7 @@ class RootController(BaseController):
                 m.lasttime = m.lasttime + addmana*300
                 return dict(id=1,mana=m.mana,boundary=boundary,result="add mana suc")
             else:
+                m.lasttime = t
                 return dict(id=0,reason="mana >= boundary")
         except:
             return dict(id=0,reason="try failed")
