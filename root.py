@@ -2847,8 +2847,8 @@ class RootController(BaseController):
             m=DBSession.query(Mana).filter("userid=:uid").params(uid=userid).one()
             boundary = m.boundary
             mana = m.mana
-            t=int(time.mktime(time.localtime())-time.mktime(beginTime))
             if mana < boundary:
+                t=int(time.mktime(time.localtime())-time.mktime(beginTime))
                 if t < m.lasttime:
                     m.lasttime = t
                     addmana = 0
@@ -2858,7 +2858,6 @@ class RootController(BaseController):
                 m.lasttime = m.lasttime + addmana*300
                 return dict(id=1,mana=m.mana,boundary=boundary,result="add mana suc")
             else:
-                m.lasttime = t
                 return dict(id=0,reason="mana >= boundary")
         except:
             return dict(id=0,reason="try failed")
@@ -5228,7 +5227,7 @@ class RootController(BaseController):
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
     global needHealth 
-    needHealth = [51, 201, 9999, 99999, 999999]
+    needHealth = [51, 201, 846, 99999, 999999]
     @expose('json')
     def getUp(self, uid, pid):
         uid = int(uid)
