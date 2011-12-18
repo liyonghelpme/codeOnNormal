@@ -3032,7 +3032,7 @@ class RootController(BaseController):
                 monsterlist = []
                 monsterlist = user.monsterdefeat.split(';')
                 for monsternum in monsterlist:
-                    if int(monsternum > clevel[4] or monsternum == clevel[4]):
+                    if int(monsternum) > clevel[4] or int(monsternum) == clevel[4]:
                         boundary = boundary + 2
 #                    elif int(monsternum > clevel[3] or monsternum == clevel[3]):
 #                        boundary = boundary + 4
