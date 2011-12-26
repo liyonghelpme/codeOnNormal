@@ -2221,9 +2221,9 @@ class RootController(BaseController):
             print "error visit " + str(uu.userid) + ' ' + str(otherid)
             if visit!=None:
                 visit.visited=1
-            uu.corn=uu.corn+bonus
-            dv.visitnum=dv.visitnum+1
-            uu.visitnum=dv.visitnum+1
+            #uu.corn=uu.corn+bonus
+            #dv.visitnum=dv.visitnum+1
+            #uu.visitnum=dv.visitnum
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
                 cardlist.append(ca.logincard)
@@ -3460,9 +3460,10 @@ class RootController(BaseController):
             return dict(id=0, status = 0, reason='not your empty')
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         proTime = (curTime - empty.lastTime)/3600
-        proTime = min(proTime, EmptyLev[empty.attribute][10])
         
         if proTime >= 1:
+            oldTime = proTime
+            proTime = min(proTime, EmptyLev[empty.attribute][10])
             coinGen = int(proTime*EmptyLev[empty.attribute][6]) 
             foodGen = int(proTime * EmptyLev[empty.attribute][7])
             woodGen = int(proTime * EmptyLev[empty.attribute][8])
@@ -3471,7 +3472,7 @@ class RootController(BaseController):
             user.food += foodGen
             user.wood += woodGen
             user.stone += stoneGen
-            empty.lastTime += 3600*proTime
+            empty.lastTime += 3600*oldTime
             return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = empty.lastTime)
         return dict(id=0, status = 0, reason='protime< 3600', coinGen=0, foodGen=0, woodGen=0, stoneGen=0, lastTime = empty.lastTime)
         
@@ -5227,7 +5228,7 @@ class RootController(BaseController):
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
     global needHealth 
-    needHealth = [51, 201, 846, 99999, 999999]
+    needHealth = [51, 201, 831, 99999, 999999]
     @expose('json')
     def getUp(self, uid, pid):
         uid = int(uid)
