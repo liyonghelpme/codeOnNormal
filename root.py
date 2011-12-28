@@ -4316,7 +4316,7 @@ class RootController(BaseController):
             try:
                 emptyLost(b)
                 b.finish = 1
-             except:
+            except:
                 print "handle battle fail"
         emptyres = DBSession.query(EmptyResult).filter_by(uid=uid).all()
         res = []
