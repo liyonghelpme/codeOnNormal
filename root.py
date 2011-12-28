@@ -4314,7 +4314,7 @@ class RootController(BaseController):
         for b in emptySet:
             #b.finish = 1
             try:
-            	emptyLost(b)
+                emptyLost(b)
                 b.finish = 1
              except:
                 print "handle battle fail"
