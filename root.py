@@ -4180,6 +4180,7 @@ class RootController(BaseController):
             attStr = [2, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
             #result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
             #DBSession.add(result)
+            DBSession.flush()
             return
 
         attPurePow = battle.powerin + battle.powerca
@@ -4311,8 +4312,12 @@ class RootController(BaseController):
         emptySet = DBSession.query(Battle).filter("finish = 0 and (left_time+timeneed) < :curTime and enemy_id < 0").params(curTime=curTime).order_by(Battle.left_time+Battle.timeneed).all()
         
         for b in emptySet:
-            b.finish = 1
-            emptyLost(b)
+            #b.finish = 1
+            try:
+            	emptyLost(b)
+                b.finish = 1
+             except:
+                print "handle battle fail"
         emptyres = DBSession.query(EmptyResult).filter_by(uid=uid).all()
         res = []
         data = []
