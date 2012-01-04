@@ -2570,7 +2570,7 @@ class RootController(BaseController):
         try:
             cursor.execute(mapNum)
         except:
-            con = MySQLdb.connect(host='localhost', passwd='2e4n5k2w2x', user='root', db='stcHong')
+            con = MySQLdb.connect(host='localhost', passwd='badperson3', user='root', db='stcHong')
             cursor = con.cursor()
             cursor.execute(mapNum)
         mapNum = cursor.fetchall()
@@ -2849,8 +2849,13 @@ class RootController(BaseController):
             mana = m.mana
             if mana < boundary:
                 t=int(time.mktime(time.localtime())-time.mktime(beginTime))
-                m.mana = m.mana + 1
-                m.lasttime = t
+                if t < m.lasttime:
+                    m.lasttime = t
+                    addmana = 0
+                else:
+                    addmana = (t-m.lasttime)/300
+                m.mana = m.mana + addmana
+                m.lasttime = m.lasttime + addmana*300
                 return dict(id=1,mana=m.mana,boundary=boundary,result="add mana suc")
             else:
                 return dict(id=0,reason="mana >= boundary")
@@ -3271,6 +3276,60 @@ class RootController(BaseController):
                 print "failed!"
             return dict(wonNum = 0, wonBonus = 0, ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi,mana=mana,boundary=boundary,lasttime=lasttime)
     
+    @expose('json')
+    def upgradecastle(self, userid, lev, type):
+        #try:
+        userid = int(userid)
+        u=checkopdata(userid)
+        lev = int(lev)
+        type = int(type)
+        if u.lev < 20:
+            return dict(id=0, reason="lev < 20")
+        print "upgrade Castal", userid, lev, type
+        num_a = 0
+        num_b = 0
+        num_c = 0
+        i = 0
+        specialgoods = u.specialgoods.split(';')
+        num_a = int(specialgoods[0].split(',')[1])
+        num_b = int(specialgoods[1].split(',')[1])
+        num_c = int(specialgoods[2].split(',')[1])
+        m = DBSession.query(Mana).filter_by(userid=userid).one()
+        if lev == 1:
+            if type == 1:#by money
+                if num_a >= 30 and num_b >= 30 and num_c >= 30 and u.corn >= 100000 and u.food >= 1000 and (u.population-u.labor_num) >= 100:
+                    num_a -= 30
+                    num_b -= 30
+                    num_c -= 30
+                    u.corn -= 100000
+                    u.food -= 1000
+                    u.labor_num += 100
+                    city = DBSession.query(warMap).filter_by(userid=userid).one()
+                    city_id = city.city_id
+                    castle = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=0).one()
+                    castle.object_id += 1
+                    newspecialgoods = 'a,'+str(num_a)+';'+'b,'+str(num_b)+';'+'c,'+str(num_c)+';'+specialgoods[3]+';'+specialgoods[4]+';'+specialgoods[5]+';'+specialgoods[6]+';'+specialgoods[7]
+                    u.specialgoods = newspecialgoods
+                    u.populationupbound += 100
+                    m.boundary += 5
+
+                    return dict(id=1, result="the castle is lev 2")
+                else:
+                    return dict(id=0, reason="good not enough")
+            else:
+                if u.cae >= 100:
+                    u.cae -= 100
+                    city = DBSession.query(warMap).filter_by(userid=userid).one()
+                    city_id = city.city_id
+                    castle = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=0).one()
+                    castle.object_id += 1
+                    u.populationupbound += 100
+                    m.boundary += 5
+                    return dict(id=1, result="the castle is lev 2")
+        else:
+            return dict(id=0, reason="do not have the level")
+        #except:
+        #    return dict(id=0,reason="try failed!")
     global NobilityName
     NobilityName = ['三等平民','二等平民','一等平民',
                 '三等子爵','二等子爵','一等子爵', 
@@ -5221,7 +5280,7 @@ class RootController(BaseController):
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
     global needHealth 
-    needHealth = [51, 201, 9999, 99999, 999999]
+    needHealth = [51, 201, 846, 99999, 999999]
     @expose('json')
     def getUp(self, uid, pid):
         uid = int(uid)
