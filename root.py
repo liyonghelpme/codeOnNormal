@@ -6945,7 +6945,7 @@ class RootController(BaseController):
                return dict(id=0)
         except InvalidRequestError:
             return dict(id=0)
-     @expose('json')
+    @expose('json')
     def producecatapult(self,user_id,city_id,grid_id,cata_id,type):
         try:
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
@@ -7013,14 +7013,12 @@ class RootController(BaseController):
             u = checkopdata(user_id)
             ti = int(time.mktime(time.localtime())-time.mktime(beginTime))
             cataid = int(p.object_id)
-            if p.producttime == 1 or ti-p.producttime>=catapult[cataid][3]:
-                if ti-p.producttime >= 3600*3:
-                    return dict(id=1,result="time has bigger than 3 days")
-                else:
-                    u.catapult += catapult[cataid][5]
+            if ti-p.producttime >= 3600*3 and p.producttime != 1:
+                return dict(id=1,result="time has bigger than 3 days")
+            if p.producttime == 1 or ti-p.producttime<=catapult[cataid][3]:
+                u.catapult += catapult[cataid][5]
                 p.producttime = 0
                 p.object_id=-1
-                read(city_id)
                 return dict(id=1,result="add power suc")
             else:
                 return dict(id=0,reason="time not enough")
