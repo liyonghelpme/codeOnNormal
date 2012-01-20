@@ -3552,7 +3552,8 @@ class RootController(BaseController):
             empty = DBSession.query(EmptyCastal).filter_by(cid=-enemy_id).one()
         except:
             return dict(id=0, status=1, reason='no this emptyC')
-        if user.infantrypower >= infantry and user.cavalrypower >= cavalry:
+
+        if user.infantrypower >= infantry and user.cavalrypower >= cavalry and user.catapult >= catapult:
             user.infantrypower -= infantry
             user.cavalrypower -= cavalry
             user.catapult -= catapult
@@ -3617,6 +3618,8 @@ class RootController(BaseController):
             return dict(id=0, status=0, endtime = endt)
 
         timeNow = int(time.mktime(time.localtime()) - time.mktime(beginTime))
+        if u.infantrypower < infantry or u.cavalrypower < cavalrypower or u.catapult < catapult:
+            return dict(id=0, status = 5, reason="soldier not enough")
         try:
             ub=DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).one()
             if ub.finish == 0:
