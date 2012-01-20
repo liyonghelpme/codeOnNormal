@@ -9,12 +9,12 @@ from tgext.admin.tgadminconfig import TGAdminConfig
 from tgext.admin.controller import AdminController
 from repoze.what import predicates
 from sqlalchemy import sql
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exceptions import InvalidRequestError
+from sqlalchemy.exceptions import IntegrityError
 from sqlalchemy.sql import or_, and_, desc, select
 from sqlalchemy import func
 from stchong.lib.base import BaseController
-from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank, passwd
+from stchong.model import mc,DBSession,wartaskbonus, taskbonus,metadata,operationalData,businessWrite,businessRead,warMap,Map,visitFriend,Ally,Victories,Gift,Occupation,Battle,News,Friend,Datesurprise,Datevisit,FriendRequest,Card,Caebuy,Papayafriend,Rank
 from stchong.model import Dragon
 from stchong.model import Message
 from stchong.model import PetAtt
@@ -47,6 +47,7 @@ class RootController(BaseController):
     global beginTime
     global houses
     global soldie
+    global catapult
     global soldiernum
     global production
     global read
@@ -130,10 +131,10 @@ class RootController(BaseController):
     
     resourcebuild=[[1000,0,80,0,5,0],[-10,0,0,0,15,10],[-15,0,0,0,40,20],[-20,0,0,0,70,30],[10000,600,120,0,20,10],[28500,1000,250,0,30,18]]
     
-    milbuild=[[4000,130,100,0,0,5,3600,None,1],[9000,0,20,200,5,10,11520,'a,3',1],[20000,0,50,-200,10,20,22680,'b,3;c,4',1],[12000,320,130,0,0,15,7200,None,5],[25000,0,20,500,7,20,14760,'b,3',5],[50000,0,50,-500,15,35,28440,'c,3;d,4',5],[6000,150,90,0,0,7,10800,None,5],[12000,0,20,300,3,15,21600,'c,3',5],[25000,0,50,-300,7,30,32400,'d,3;e,4',5], [20000, 400, 200, 0, 0, 20, 18000, None, 25], [45000, 0, 50, 400, 20, 50, 27000, 'a,8;b,8', 25], [100000, 0, 50, -400, 40, 100, 3600, 0, 'c,15;g,15', 25]]
+    milbuild=[[4000,130,100,0,0,5,3600,None,1],[9000,0,20,200,5,10,11520,'a,3',1],[20000,0,50,-200,10,20,22680,'b,3;c,4',1],[12000,320,130,0,0,15,7200,None,5],[25000,0,20,500,7,20,14760,'b,3',5],[50000,0,50,-500,15,35,28440,'c,3;d,4',5],[6000,150,90,0,0,7,10800,None,5],[12000,0,20,300,3,15,21600,'c,3',5],[25000,0,50,-300,7,30,32400,'d,3;e,4',5],[20000,400,200,0,0,20,18000,None,25],[45000,0,50,400,20,50,27000,'a,8;b,8',25],[100000,0,50,-400,40,100,36000,'c,15;g,15',25]]
     businessbuild=[[300,20,20,0,0,3,600,None,1],[500,30,5,0,1,7,1800,'a,1',1],[1100,0,10,70,2,11,3600,'a,2;b,3',1],[1200,45,40,0,0,5,3600,None,4],[1800,50,10,100,3,9,10740,'b,2;c,2',4],[3000,70,15,-100,4,14,15120,'c,2;d,3',4],[-5,0,0,0,0,15,5400,None,6],[5000,0,0,120,6,20,14400,'b,2;c,2',6],[7000,0,0,-120,7,25,23400,'c,2;d,3',6],[2000,80,50,0,0,7,19800,None,8],[3300,0,15,150,5,9,35270,'d,2;e,2',8],[4500,0,20,-150,6,11,46800,'e,2;f,3',8],[5000,100,70,0,0,9,8280,None,15],[7000,0,20,170,7,11,22320,'f,2;g,2',15],[13500,0,25,-170,8,13,28800,'g,2;h,3',15],[-8,0,0,0,0,25,20520,None,14],[9000,130,0,200,10,30,25200,'d,2;e,2',14],[11000,0,0,-200,11,35,33120,'e,2;f,3',14],[7200,130,90,0,0,20,21600,None,21],[11000,0,25,210,9,33,28800,'h,2;i,2',21],[19900,0,30,-210,10,45,36720,'i,2;j,3',21],[8000,170,110,0,0,29,30600,None,29],[13000,0,30,230,10,45,34200,'j,2;k,2',29],[21000,0,35,-230,11,61,46800,'k,2;l,3',29],[-11,0,0,0,0,35,25200,None,24],[13000,0,0,250,12,45,30240,'h,2;i,2',24],[17000,0,0,-250,13,60,39600,'i,2;j,3',24],[10000,1000,55,0,0,8,16200,None,7],[20000,0,18,300,7,15,28800,'a,5;i,4',7],[50000,0,27,-300,10,25,41400,'c,5;d,6',7],[10000,210,100,0,0,35,10*3600,None,35],[17000,280,30,280,10,47,11.5*3600,'d,4;h,6',35],[27000,-300,40,-300,11,56,13.5*3600,'g,5;a,10',35]]
     
-    godbuild=[[10000,500,0,50,100,7200],[10000,500,0,50,100,7200],[10000,500,0,50,100,7200],[10000,500,0,50,100,7200],[20000,1000,5,100,150,21600],[20000,1000,5,100,150,21600],[20000,1000,5,100,150,21600],[20000,1000,5,100,150,21600],[50000,2000,10,170,200,43200],[50000,2000,10,170,200,43200],[50000,2000,10,170,200,43200],[50000,2000,10,170,200,43200],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[500000,10000,30,350,300,86400],[500000,10000,30,350,300,86400],[500000,10000,30,350,300,86400],[500000,10000,30,350,300,86400]]
+    godbuild=[[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[10000,500,0,50,250,7200],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[20000,1000,5,100,250,21600],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[50000,2000,10,170,250,43200],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[100000,5000,15,250,250,64800],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400],[500000,10000,30,350,250,86400]]
     
     statuebuilding = [[27,80000,600,20,7200],[30,-8,700,40,14400],[32,120000,950,80,21600],[34,-12,1200,60,28800],[37,200000,1600,120,36000],[40,-20,2500,100,43200]]
     
@@ -145,8 +146,10 @@ class RootController(BaseController):
     houses=[[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[10,20,1,1800,1],[15,30,2,1800,1],[20,40,5,1800,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[32,64,3,7560,1],[43,86,7,7560,1],[55,110,11,7560,1],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[70,140,7,18720,2],[83,174,14,18720,2],[100,200,21,18720,2],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[50,90,6,12600,2],[62,116,10,12600,3],[75,142,17,12600,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[95,190,12,29880,3],[115,230,24,29800,3],[135,270,36,29800,3],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[100,150,15,14400,4],[150,225,25,14400,4],[200,300,35,14400,4],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0],[110,170,17,21600,0],[165,245,26,21600,0],[230,339,39,21600,0]]
     
     soldie=[[750,90,30,3,7200],[2400,270,90,3,21600],[4800,540,180,3,43200],[1600,180,30,3,7200],[5000,540,90,3,21600],[10000,1080,180,3,43200],[2400,270,30,3,7200],[7500,810,90,3,21600],[15000,1620,180,3,43200],[2000,150,15,6,7200],[6300,450,45,6,21600],[12600,900,90,6,43200],[2600,300,15,6,7200],[7900,900,45,6,21600],[15800,1800,90,6,43200],[3300,450,15,6,7200],[10000,1350,45,6,21600],[20000,2700,90,6,43200],[150,10,2,9,7200],[500,30,6,9,21600],[1000,60,12,9,43200],[310,20,2,9,7200],[990,60,6,9,21600],[1980,120,12,9,43200],[480,30,2,9,7200],[1500,90,6,9,21600],[3000,180,12,9,43200]]
-    global catapult
-    catapult = [[10000, 500, 0, 7200, 'a,5;b,5', 400, 20], [50000, 0, 500, 21600, 'a,8;c,8', 1000, 50], [100000, 0, 1000, 43200, 'g,12;i,12', 2000, 100]]
+
+    #corn,wood, stones,time,specialgoods,power,cae
+    catapult=[[10000,500,0,7200,'a,5;b,5',400,20],[50000,0,500,21600,'a,8;c,8',1000,50],[100000,0,1000,43200,'g,12;i,12',2000,100]]
+   
     soldiernum=[5,8,13,9,15,21,16,25,34,10,15,20,30,40,50,60,75,90,3,6,9,5,8,13,9,15,21]
     
     production=[[100,1,1,600],[300,2,1,600],[500,5,1,600],[600,3,1,5400],[900,5,1,5400],[1200,9,1,5400],[800,5,2,1800],[1400,9,2,1800],[2100,15,2,1800],[1200,5,1,10440],[1800,9,1,10440],[2600,17,1,10440],[2300,12,2,21600],[3200,20,2,21600],[4500,29,2,21600],[2500,18,3,7200],[4400,28,3,7200],[6800,40,3,7200],[1400,10,2,11160],[2100,19,2,11160],[3100,30,2,11160],[3500,23,3,30600],[6500,34,3,30600],[8000,45,3,30600],[7500,30,12,26200],[13000,50,12,26200],[17500,70,12,26200],[1800,4,0,16200],[2600,8,0,16200],[4400,12,0,16200],[4000,28,35,6.5*3600],[6200,40,35,6.5*3600],[8100,52,35,6.5*3600]]
@@ -876,8 +879,31 @@ class RootController(BaseController):
             return u
         except:
             return None       
+    def checkopdata2(uid):
+        ul=mc.get(str(uid))
+        
+        
+        
+        
+        
+        
+        
+        if ul==None:
+            u=DBSession.query(operationalData).filter_by(userid=int(uid)).one()
+            uli=[u,0]
+            mc.add(str(uid),uli)
+            return uli[0]
+        ul[1]=ul[1]+1
+        mc.replace(str(uid),ul)
+        return ul[0]
     def replacecache(uid,u):
         return 1
+        
+        
+        
+        
+        
+        
         
         
     def deleteopdata(uid):
@@ -2152,10 +2178,10 @@ class RootController(BaseController):
                 cardlist=[]
             if visit.visited==0:
                 print "not visited yet"
-                if dv.visitnum > 49:
-                    bonus = 20 + 5*49
+                if dv.visitnum > 99:
+                    bonus = 100 + 5*99
                 else:
-                    bonus=20+5*(dv.visitnum)
+                    bonus=100+5*(dv.visitnum)
                 print "bonus " + str(bonus)
                 mycity = DBSession.query(warMap).filter_by(userid = userid).one()
                 buildings = DBSession.query(businessWrite).filter("city_id=:cid and ground_id >= 420 and ground_id <= 424 and finish = 1").params(cid=mycity.city_id).all() 
@@ -2199,9 +2225,9 @@ class RootController(BaseController):
             print "error visit " + str(uu.userid) + ' ' + str(otherid)
             if visit!=None:
                 visit.visited=1
-            #uu.corn=uu.corn+bonus
-            #dv.visitnum=dv.visitnum+1
-            #uu.visitnum=dv.visitnum
+            uu.corn=uu.corn+bonus
+            dv.visitnum=dv.visitnum+1
+            uu.visitnum=dv.visitnum+1
             try:
                 ca=DBSession.query(Card).filter_by(uid=u.userid).one()
                 cardlist.append(ca.logincard)
@@ -2544,11 +2570,11 @@ class RootController(BaseController):
         if kind >= 3:
             mapNum = 'select mid, num from (select mid, (num1+num2) as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1, (select mid, count(*) as num2 from emptyCastal group by mid) as temp2 where mapid = mid and map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
         else:
-            mapNum = 'select mapid, num from (select mapid, map_kind, count(*) as num from warMap group by map_kind) as temp where map_kind = '+str(kind)+ ' and  num < ' + str(mapKind[kind])
+            mapNum = 'select mapid, num from (select mapid, num1 as num from (select mapid, map_kind, count(*) as num1 from warMap group by mapid) as temp1  where map_kind = '+str(kind)+') as temp where num < ' + str(mapKind[kind])
         try:
             cursor.execute(mapNum)
         except:
-            con = MySQLdb.connect(host='localhost', passwd=passwd, user='root', db='stcHong')
+            con = MySQLdb.connect(host='localhost', passwd='badperson3', user='root', db='stcHong')
             cursor = con.cursor()
             cursor.execute(mapNum)
         mapNum = cursor.fetchall()
@@ -2569,7 +2595,7 @@ class RootController(BaseController):
                 myGid = getGid(gids, kind)
                 myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
-                myMap.map_kind = kind
+                myMap.map_kind += 1
                 return [myGid[0], m[0]]
             elif m[1] < (mapKind[kind]-1):
                 print "insert me and empty"
@@ -2584,7 +2610,7 @@ class RootController(BaseController):
                 myGid = getGid(gids, kind)
                 myMap.mapid = m[0]
                 myMap.gridid = myGid[0]
-                myMap.map_kind = kind
+                myMap.map_kind += 1
                 #m[1] += 2
                 if user.nobility >= EmptyMapLev:
                     rand = randEmptyLev(levs)
@@ -2602,7 +2628,7 @@ class RootController(BaseController):
         
         myMap.mapid = newMap.mapid
         myMap.gridid = rand
-        myMap.map_kind = kind
+        myMap.map_kind += 1
 
         if user.nobility >= EmptyMapLev:
             rand = random.randint(0, len(EmptyLev)-1)
@@ -2863,6 +2889,9 @@ class RootController(BaseController):
             temp_cae = temp_cae - cae_need
             u.cae = temp_cae
             m.mana = m.mana + addmana
+            manalog = open("/data/logs/buymana.log","a")
+            manalog.write("Userid:"+str(userid)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+".\n")
+            manalog.close()
             return dict(id=1,addmana=addmana,caeCost=cae_need,boundary=boundary,result="buy mana suc 1")
         except:
             return dict(id=0,reason="try failed")
@@ -2983,8 +3012,7 @@ class RootController(BaseController):
                     mana = boundary
                 else:
                     mana = mana+manaadd
-                m.lasttime = m.lasttime + manaadd * 300
-                lasttime = m.lasttime
+                m.lasttime = logintime
                 m.mana = mana
             except:#first login after we have mana
                 boundary = 26
@@ -3010,7 +3038,7 @@ class RootController(BaseController):
                 monsterlist = []
                 monsterlist = user.monsterdefeat.split(';')
                 for monsternum in monsterlist:
-                    if int(monsternum) > clevel[4] or int(monsternum) == clevel[4]:
+                    if int(monsternum > clevel[4] or monsternum == clevel[4]):
                         boundary = boundary + 2
 #                    elif int(monsternum > clevel[3] or monsternum == clevel[3]):
 #                        boundary = boundary + 4
@@ -3122,14 +3150,14 @@ class RootController(BaseController):
             elif ds.monfood == 2:
                 ds.monfood = 2
             if user.newcomer<3:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime, catapultnum=user.catapult)
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,newstate=user.newcomer,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime,catapultnum=user.catapult)
             if user_kind==0:
-                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime, catapultnum=user.catapult)
+                return dict(loginNum = user.logincard, wonNum=wonNum, wonBonus = wonBonus, sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime,catapultnum=user.catapult)
             else:
-                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime, catapultnum = user.catapult)
+                return dict(loginNum = user.logincard, wonNum = wonNum, wonBonus = wonBonus,sub=sub,wartaskstring=user.wartaskstring,wartask=wartask,ppyname=user.papayaname,cardlist=cardlist,monsterdefeat=user.monsterdefeat,monsterid=user.monster,hid=user.hid,foodlost=ds.monfood-1,monsterstr=user.monsterlist,task=task,monstertime=user.monstertime,headid=user.hid,citydefence=user.defencepower,wargod=user.war_god,wargodtime=wargodtime,populationgod=user.person_god,populationgodtime=popgodtime,foodgod=user.food_god,foodgodtime=foodgodtime,wealthgod=user.wealth_god,wealthgodtime=wealthgodtime,scout1_num=user.scout1_num,scout2_num=user.scout2_num,scout3_num=user.scout3_num,nobility=user.nobility,subno=user.subno,invitestring=user.invitestring,tasklist=tasklist,taskstring=user.taskstring,infantrypower=user.infantrypower,cavalrypower=user.cavalrypower,castlelev=user.castlelev,empirename=user.empirename,lev=user.lev,labor_num=user.labor_num,allyupbound=user.allyupbound,minusstr=minusstr,giftnum=giftstr,bonus=bonus,allylis=lisa,id=user.userid,stri=stt,food=user.food,wood=user.wood,stone=user.stone,specialgoods=user.specialgoods,population=user.population,popupbound=user.populationupbound,time=logintime,exp=user.exp,corn=user.corn,cae=user.cae,map_id=s.mapid,city_id=s.city_id,landkind=user.landkind,treasurebox=user.treasurebox,treasurenum=user.treasurenum,mana=mana,boundary=boundary,lasttime=lasttime,catapultnum=user.catapult)
                     
         except InvalidRequestError:
-            newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='My Territory',food=100)
+            newuser=operationalData(labor_num=280,population=380,exp=0,corn=1000,cae=1,nobility=-1,infantry1_num=30,cavalry1_num=0,scout1_num=0,person_god=0,wealth_god=0,food_god=0,war_god=0,user_kind=user_kind,otherid=oid,lev=1,empirename='我的领地',food=100)
             DBSession.add(newuser)
             newuser = DBSession.query(operationalData).filter_by(otherid = oid).one()
             c1=DBSession.query('LAST_INSERT_ID()')
@@ -3253,8 +3281,8 @@ class RootController(BaseController):
                 print "succeeded!"
             else:
                 print "failed!"
-            return dict(wonNum = 0, wonBonus = 0, ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi,mana=mana,boundary=boundary,lasttime=lasttime)
-   
+            return dict(wonNum = 0, wonBonus = 0, ppyname=nu.papayaname,infantrypower=nu.infantrypower,cavalrypower=nu.cavalrypower,castlelev=nu.castlelev,newstate=0,popupbound=nu.populationupbound,wood=nu.wood,stone=nu.stone,specialgoods=nu.specialgoods,time=nu.logintime,labor_num=280,nobility=0,population=380,food=100,corn=1000,cae=nu.cae,exp=0,stri=inistr,id=c1[0],city_id=cid.city_id,mapid=mi,gridid=gi,mana=mana,boundary=boundary,lasttime=lasttime,catapultnum=user.catapult)
+    
     @expose('json')
     def upgradecastle(self, userid, lev, type):
         #try:
@@ -3287,7 +3315,7 @@ class RootController(BaseController):
                     city_id = city.city_id
                     castle = DBSession.query(businessWrite).filter_by(city_id=city_id).filter_by(ground_id=0).one()
                     castle.object_id += 1
-                    newspecialgoods = 'a,'+str(num_a)+';'+'b,'+str(num_b)+';'+'c,'+str(num_c)+';'+specialgoods[3]+';'+specialgoods[4]+';'+specialgoods[5]+';'+specialgoods[6]+';'+specialgoods[7]+';'+specialgoods[8]+';'+specialgoods[9]+';'+specialgoods[10]+';'+specialgoods[11]
+                    newspecialgoods = 'a,'+str(num_a)+';'+'b,'+str(num_b)+';'+'c,'+str(num_c)+';'+specialgoods[3]+';'+specialgoods[4]+';'+specialgoods[5]+';'+specialgoods[6]+';'+specialgoods[7]
                     u.specialgoods = newspecialgoods
                     u.populationupbound += 100
                     m.boundary += 5
@@ -3306,9 +3334,17 @@ class RootController(BaseController):
                     m.boundary += 5
                     return dict(id=1, result="the castle is lev 2")
         else:
-            return dict(id=0, reason="do not have the level") 
+            return dict(id=0, reason="do not have the level")
+        #except:
+        #    return dict(id=0,reason="try failed!")
     global NobilityName
-    NobilityName =  ["3-class civilians","2-class civilians","1-class civilians","3-class baron","2-class baron","1-class baron","3-class viscount","2-class viscount","1-class viscount","3-class earl","2-class class earl","1-class earl","3-class marquis","2-class marquis","1-class marquis","3-class duke","2-class duke","1-class duke","Emperor"]
+    NobilityName = ['三等平民','二等平民','一等平民',
+                '三等子爵','二等子爵','一等子爵', 
+                '三等伯爵', '二等伯爵','一等伯爵',
+                '三等侯爵', '二等侯爵', '一等侯爵', 
+                '三等公爵', '二等公爵', '一等公爵', 
+                '三等伯爵', '二等伯爵', '一等伯爵', 
+                '帝王']
     global Domain
     Domain = 'http://uhz000738.chinaw3.com:8003/'
     @expose('json')
@@ -3344,7 +3380,6 @@ class RootController(BaseController):
                 attacker = checkopdata(b.uid)
                 attacker.infantrypower += b.powerin
                 attacker.cavalrypower += b.powerca
-                attacker.catapult += b.catapult
             allBattle = DBSession.query(Battle).filter(Battle.finish!=0).filter("uid=:uid0 or enemy_id=:uid1").params(uid0=int(userid), uid1=int(userid)).all();
             for b in allBattle:
                 if b.finish != 0:
@@ -3352,7 +3387,7 @@ class RootController(BaseController):
             
             myMap = DBSession.query(warMap).filter_by(userid = u.userid).one()
             try:
-                req = Domain + 'send?uid=0&name=system��&cid='+str(myMap.mapid)+'&text=<'+u.empirename+'upgrade to '+NobilityName[(u.nobility+1)]+'away'
+                req = Domain + 'send?uid=0&name=系统&cid='+str(myMap.mapid)+'&text=<'+u.empirename+'>升级到 '+NobilityName[(u.nobility+1)]+'away'
                 urllib.urlopen(req)
             except:
                 print 'send sysmsg fail'
@@ -3485,10 +3520,9 @@ class RootController(BaseController):
             return dict(id=0, status = 0, reason='not your empty')
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         proTime = (curTime - empty.lastTime)/3600
+        proTime = min(proTime, EmptyLev[empty.attribute][10])
         
         if proTime >= 1:
-            oldTime = proTime
-            proTime = min(proTime, EmptyLev[empty.attribute][10])
             coinGen = int(proTime*EmptyLev[empty.attribute][6]) 
             foodGen = int(proTime * EmptyLev[empty.attribute][7])
             woodGen = int(proTime * EmptyLev[empty.attribute][8])
@@ -3497,7 +3531,7 @@ class RootController(BaseController):
             user.food += foodGen
             user.wood += woodGen
             user.stone += stoneGen
-            empty.lastTime += 3600*oldTime
+            empty.lastTime += 3600*proTime
             return dict(id=1, coinGen = coinGen, foodGen = foodGen, woodGen = woodGen, stoneGen = stoneGen, lastTime = empty.lastTime)
         return dict(id=0, status = 0, reason='protime< 3600', coinGen=0, foodGen=0, woodGen=0, stoneGen=0, lastTime = empty.lastTime)
         
@@ -3538,12 +3572,10 @@ class RootController(BaseController):
         battle.finish = 4
         user.infantrypower += battle.powerin
         user.cavalrypower += battle.powerca
-        user.catapult += battle.catapult
         return dict(id = 1, inf=user.infantrypower, cav=user.cavalrypower)
     
     global attackEmpty
     def attackEmpty(uid, enemy_id, timeneed, infantry, cavalry, catapult):
-        
         battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id=enemy_id).filter_by(finish = 0).all()
         if len(battle) > 0:
             return dict(id=0, status = 0, reason='attacking')
@@ -3561,7 +3593,7 @@ class RootController(BaseController):
             battle = DBSession.query(Battle).filter_by(uid=uid).filter_by(enemy_id = enemy_id).filter(Battle.finish != 0).all()
             allypower=allyhelp(uid,0,infantry+cavalry)
             if len(battle) == 0:
-                nb = Battle(uid=uid, enemy_id=enemy_id, left_time = timeNow, timeneed=timeneed,  powerin = infantry, powerca = cavalry, power = infantry+cavalry, allypower = allypower, catapult = catapult)
+                nb = Battle(uid=uid, enemy_id=enemy_id, left_time = timeNow, timeneed=timeneed,  powerin = infantry, powerca = cavalry, power = infantry+cavalry+catapult, allypower = allypower, catapult = catapult)
                 DBSession.add(nb)
             else:
                 nb = battle[0]
@@ -3571,7 +3603,7 @@ class RootController(BaseController):
                 nb.finish = 0
                 nb.powerin = infantry
                 nb.powerca = cavalry
-                nb.power = infantry + cavalry+catapult
+                nb.power = infantry + cavalry + catapult
                 nb.allypower = allypower
                 nb.catapult = catapult
             DBSession.flush()
@@ -3583,7 +3615,7 @@ class RootController(BaseController):
 
     
     @expose('json')
-    def attack(self,uid,enemy_id,timeneed,infantry,cavalry,catapult):
+    def attack(self,uid,enemy_id,timeneed, infantry, cavalry, catapult):
         uid=int(uid)
         enemy_id=int(enemy_id)
         timeneed=int(timeneed)
@@ -3622,8 +3654,8 @@ class RootController(BaseController):
             if ub.finish == 0:
                 return dict(id = 0, status = 1)
 
-            u.infantrypower -= infantry
-            u.cavalrypower -= cavalry  
+            u.infantrypower=u.infantrypower-infantry
+            u.cavalrypower=u.cavalrypower-cavalry  
             u.catapult -= catapult
             ub.timeneed=timeneed
             ub.finish=0
@@ -3639,11 +3671,11 @@ class RootController(BaseController):
         except InvalidRequestError:
             print 'attack ' + str(uid) + ' ' + str(enemy_id) + ' timeneed ' + str(timeneed)
             u = checkopdata(uid)
-            u.infantrypower -= infantry
-            u.cavalrypower -= cavalry   
+            u.infantrypower=u.infantrypower-infantry
+            u.cavalrypower=u.cavalrypower-cavalry   
             u.catapult -= catapult
             allypower=allyhelp(uid,0,infantry+cavalry)    
-            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=timeNow,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry+catapult,allypower=allypower, catapult=catapult)
+            nb=Battle(uid=uid,enemy_id=enemy_id,left_time=timeNow,timeneed=timeneed,powerin=infantry,powerca=cavalry,power=infantry+cavalry+catapult, catapult=catapult, allypower=allypower)
             DBSession.add(nb)
             rep = 0
         u.signtime = 0
@@ -3662,7 +3694,6 @@ class RootController(BaseController):
         uid = int(uid)
         empty = DBSession.query(EmptyCastal.cid, EmptyCastal.mid, EmptyCastal.gid, EmptyCastal.inf, EmptyCastal.cav, EmptyCastal.lastTime).filter_by(uid=uid).all()
         return dict(id=1, empties = empty)
-
     @expose('json')
     def detectEmpty(self, uid, cid, t):
         user = checkopdata(uid)
@@ -4203,7 +4234,6 @@ class RootController(BaseController):
             empty = DBSession.query(EmptyCastal).filter_by(cid=-battle.enemy_id).one()
         except:
             return
-        print empty.attribute
         attacker = checkopdata(battle.uid)
         defencer = checkopdata(empty.uid)
         attStr = []
@@ -4211,11 +4241,10 @@ class RootController(BaseController):
         if empty.uid == attacker.userid:
             empty.inf += battle.powerin
             empty.cav += battle.powerca
-            attacker.catapult += battle.catapult
+            attacker.catapult += battle.catapult#return catapult
             attStr = [2, battle.uid, -battle.enemy_id, battle.powerin, battle.powerca]
             #result = EmptyResult(uid=battle.uid, data=json.dumps(attStr))
             #DBSession.add(result)
-            DBSession.flush()
             return
 
         attPurePow = battle.powerin + battle.powerca + battle.catapult
@@ -4223,8 +4252,8 @@ class RootController(BaseController):
         attGod = calGod(attacker.userid, attPurePow)
         attFullPow += attGod
         attFullPow += battle.allypower
+
         defPurePow = empty.inf + empty.cav
-        
         defGod = 0
         defAlly = 0
         if defencer != None:
@@ -4245,36 +4274,25 @@ class RootController(BaseController):
         leftCa = empty.cav + min(leftIn, 0)
         leftIn = max(leftIn, 0)
         leftCa = max(leftCa, 0)
-        attStr += [0]#att
-        defStr += [1]#def
-        defStr += [attacker.otherid]
-        if defencer != None:
-            attStr += [defencer.otherid]
-        else:
-            attStr += ["0"]#no owner
-        #enemy's  otherid
         if attFullPow > defFullPow:
             attStr.append(1)
-            defStr.append(0)
         else:
             attStr.append(0)
-            defStr.append(1)
-        #defence defpower
-        attStr += [lost[0], attFullPow, defFullPow, attPurePow, defPurePow]
+        attStr += [attacker.otherid]
+        attStr += [battle.powerin, battle.powerca, battle.allypower, attGod, returnIn, returnCa, attacker.empirename, attacker.nobility*3+attacker.subno,  empty.inf, empty.cav, defAlly, defGod, leftIn, leftCa]
         if defencer != None:
-            attStr += [defencer.otherid, defencer.empirename, defencer.nobility*3+defencer.subno]
+            attStr += [defencer.otherid, defencer.empirename, empty.attribute, empty.gid]
         else:
-            attStr += ["0", "", -1]
-        attStr += [attGod, defGod, empty.inf, empty.cav, empty.attribute, empty.gid, battle.catapult]
-        #defence defpower
-        defStr += [lost[1], attFullPow, defFullPow, attPurePow, defPurePow, attacker.otherid, attacker.empirename, attacker.nobility*3+attacker.subno, attGod, defGod, empty.inf, empty.cav, empty.attribute, empty.gid, battle.catapult]
+            attStr += ["0", "", empty.attribute, empty.gid]
+        attStr += [battle.catapult]
         
         if attFullPow > defFullPow:
 
             print "attack return In " + str(returnIn) + " returnca " + str(returnCa), "catapult", battle.catapult
             empty.inf = returnIn
             empty.cav = returnCa
-            attacker.catapult += returnCatapult
+            attacker.catapult += returnCatapult#catapult return all
+            #Todo
 
             curTime=int(time.mktime(time.localtime())-time.mktime(beginTime))
             proTime = 0
@@ -4306,10 +4324,9 @@ class RootController(BaseController):
                 defencer.food += foodGen
                 defencer.wood += woodGen
                 defencer.stone += stoneGen
+                
+                defStr = list(attStr)
                 defStr += [coinGen, foodGen, woodGen, stoneGen]
-            else:
-                defStr += [0, 0, 0, 0]
-
             if empty.uid == -1:
                 attStr += [EmptyLev[empty.attribute][2], EmptyLev[empty.attribute][3], EmptyLev[empty.attribute][4], EmptyLev[empty.attribute][5]]
             else:
@@ -4318,11 +4335,10 @@ class RootController(BaseController):
         else:
             attacker.infantrypower += returnIn
             attacker.cavalrypower += returnCa
-            attacker.catapult += returnCatapult
             empty.inf = leftIn
             empty.cav = leftCa
             attStr += [0, 0, 0, 0]
-            defStr += [0, 0, 0, 0]
+            defStr = attStr
         
         print "attStr", attStr
         print "defStr", defStr
@@ -4332,8 +4348,6 @@ class RootController(BaseController):
         if defencer != None:
             result = EmptyResult(uid=defencer.userid, data=json.dumps(defStr))
             DBSession.add(result)
-        print attStr
-        print defStr
     @expose('json')
     def removeEmptyResult(self, uid, warList):
         uid = int(uid)
@@ -4354,29 +4368,21 @@ class RootController(BaseController):
             data.insert(0, e.eid)
             res.append(data)
             DBSession.delete(e)
-        userEmpty += res
-        while len(userEmpty) >= 6:
-            userEmpty.pop(0)
-        user.emptyResult = json.dumps(userEmpty)
+        user.emptyResult = json.dumps(userEmpty+res)
         return dict(id=1)
+    
      
      
     global emptyBattle
     def emptyBattle(uid):
         uid = int(uid)
         user = checkopdata(uid)
-        print "emptyBattle", uid
         curTime = int(time.mktime(time.localtime())-time.mktime(beginTime))
         emptySet = DBSession.query(Battle).filter("finish = 0 and (left_time+timeneed) < :curTime and enemy_id < 0").params(curTime=curTime).order_by(Battle.left_time+Battle.timeneed).all()
         
         for b in emptySet:
-            #b.finish = 1
-            print b
-            #try:
-            emptyLost(b)
             b.finish = 1
-            #except:
-            #    print "handle battle fail"
+            emptyLost(b)
         emptyres = DBSession.query(EmptyResult).filter_by(uid=uid).all()
         res = []
         data = []
@@ -4385,6 +4391,15 @@ class RootController(BaseController):
             data.insert(0, e.eid)
             res.append(data)
             
+        """
+        try:
+            userEmpty = json.loads(user.emptyResult)
+        except:
+            userEmpty = []
+    
+        if res != []:
+            user.emptyResult = json.dumps(userEmpty+res)
+        """
         return dict(result = res)#only when user delete emptyBattle will it work
     def warresult2(uid):
         uid = int(uid)
@@ -4395,8 +4410,7 @@ class RootController(BaseController):
         battleset = DBSession.query(Battle).filter_by(finish = 0).filter(Battle.timeneed+Battle.left_time<t).filter(or_(Battle.uid==uid, Battle.enemy_id==uid)).filter(Battle.enemy_id >= 0).order_by(Battle.left_time).all()
         print "fetch battle result of " + str(uid)
         
-        attRes = []
-        defRes = []
+        
         for b in battleset:
             print 'battle attacker ' + str(b.uid) + ' def ' + str(b.enemy_id) + ' finish ' + str(b.finish)
             if b.finish != 0:
@@ -4405,10 +4419,8 @@ class RootController(BaseController):
             defence = checkopdata(b.enemy_id)
             if attack == None or defence == None:
                 continue
-            #battle uid enemyid attack defence
-            attRes += [0, b.enemy_id]#attack
-            defRes += [1, b.uid]#defence
-
+            attStr = str(b.enemy_id)+',1'
+            defStr = str(b.uid)+',0'
             attPurePow = b.power
             attFullPow = attPurePow 
             attGod = calGod(attack.userid, attPurePow)
@@ -4426,8 +4438,35 @@ class RootController(BaseController):
             
             lost = callost(attFullPow, defFullPow, attPurePow, defPurePow+defence.defencepower, 1)
             print "att Lost " + str(lost[0]) + " def lost " + str(lost[1])
-            #stop weak mode 
-            #print "def lost " + str(lost[1])
+            
+            weakMode = False
+            if attFullPow > defFullPow:
+                defWar = defence.battleresult + ';' + defence.nbattleresult
+                defWar = defWar.split(';')
+                length = len(defWar)
+                
+                fails = 0
+                i = length - 1
+                while i >= 0 and fails < 3:
+                    res = defWar[i].split(',')
+                    if len(res) < 3:
+                        i -= 1
+                        continue
+                    try:
+                        if int(res[2]) == 1:
+                            break
+                        if int(res[1]) == 0:
+                            fails += 1
+                    except:
+                        pass
+                    i -= 1
+                if fails == 3:
+                    weakMode = True
+            
+            if weakMode:
+                print "weak mode"
+                lost[1] = (defPurePow+defence.defencepower) * 5 /100
+            print "def lost " + str(lost[1])
             
             returnIn = b.powerin - lost[0]
             returnCa = b.powerca + min(returnIn, 0)
@@ -4438,12 +4477,11 @@ class RootController(BaseController):
             attLostIn = b.powerin - returnIn
             attLostCa = b.powerca - returnCa
             attLostCatapult = b.catapult - returnCatapult
-            print "attack return In " + str(returnIn) + " returnca " + str(returnCa), "catapult", returnCatapult
-
+            print "attack return In " + str(returnIn) + " returnca " + str(returnCa), "return catapult", returnCatapult
             attack.infantrypower += returnIn
             attack.cavalrypower += returnCa
             attack.catapult += returnCatapult
-            
+
             leftIn = defence.infantrypower - lost[1]
             leftCa = defence.cavalrypower + min(leftIn, 0)
             leftCatapult = defence.catapult + min(leftCa, 0)
@@ -4456,12 +4494,11 @@ class RootController(BaseController):
             defLostCa = defence.cavalrypower - leftCa
             defLostCatapult = defence.catapult - leftCatapult
             defLostDef = defence.defencepower - leftDef
-            print "defence left inf cav def " + str(leftIn) + ' ' + str(leftCa) +' ' + str(leftDef), "catapult", leftCatapult
+            print "defence left inf cav def " + str(leftIn) + ' ' + str(leftCa) +' ' + str(leftDef), "catapult", str(leftCatapult)
             defence.infantrypower = leftIn
             defence.cavalrypower = leftCa
             defence.catapult = leftCatapult
             defence.defencepower = leftDef
-
 
             attReward = ""
             defReward = ""
@@ -4470,8 +4507,8 @@ class RootController(BaseController):
             defVict = DBSession.query(Victories).filter_by(uid=defence.userid).one()
             if attFullPow > defFullPow:
                 print "attack win"
-                attRes += [1]
-                defRes += [0]
+                attStr += ',1,'
+                defStr += ',0,'
                 
                 attVict.won += 1
                 attVict.woninmap += 1
@@ -4497,8 +4534,9 @@ class RootController(BaseController):
                 defReward = getresource(lost[1], defence, 3)
             else: 
                 print "attack fail"
-                attRes += [0]
-                defRes += [1]
+                attStr += ',0,'
+                defStr += ',1,'
+
                 
                 attVict.lost += 1
                 attVict.lostinmap += 1
@@ -4507,53 +4545,37 @@ class RootController(BaseController):
 
                 attReward = getresource(lost[0], attack, 1)
                 defReward = getresource(lost[1], defence, 2)
+            #2
+            attStr += str(lost[0])+','+str(attFullPow)+','+str(defFullPow)+','+attReward + ',' + defence.otherid+','+str(returnIn)+','+str(returnCa)+','+defence.empirename+','+str(defence.nobility*3+defence.subno)+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+str(attGod)+','+str(defGod)+','+str(defence.defencepower)+','+str(b.catapult)+','+str(defence.catapult)+','+str(returnCatapult)
+            defStr += str(lost[1])+','+str(defFullPow)+','+str(attFullPow)+','+defReward+','+attack.otherid+','+str(defence.infantrypower)+','+str(defence.cavalrypower)+','+attack.empirename+','+str(attack.nobility*3+attack.subno)+','+str(attack.infantrypower)+','+str(attack.cavalrypower)+','+str(defGod)+','+str(attGod)+','+str(defence.defencepower)+','+str(b.catapult)+','+str(defence.catapult)+','+str(leftCatapult)
 
-            attRes += [lost[0], attFullPow, defFullPow, attPurePow, defPurePow, attReward, defence.otherid, defence.empirename, defence.nobility*3+defence.subno, attGod, defGod, b.catapult, defence.catapult]
-            defRes += [lost[1], attFullPow, defFullPow, attPurePow, defPurePow, defReward, attack.otherid, attack.empirename, attack.nobility*3+attack.subno, attGod, defGod, b.catapult, defence.catapult]
+            if attack.nbattleresult == '' or attack.nbattleresult == None:
+                attack.nbattleresult = attStr
+            else:
+                attack.nbattleresult = attack.nbattleresult + ';' + attStr
+            if defence.nbattleresult == '' or defence.nbattleresult == None:
+                defence.nbattleresult = defStr
+            else:
+                defence.nbattleresult = defence.nbattleresult + ';' + defStr
 
-            #[[], [], [], [], ]
-            res = []
-            try:
-                res = json.loads(attack.nbattleresult)
-            except:
-                pass
-            res.append(attRes)
-            if len(res) >= 5:
-                res.pop(0)
-            attack.nbattleresult = json.dumps(res)
-            res = []
-            try:
-                res = json.loads(defence.nbattleresult)
-            except:
-                pass
-            res.append(defRes)
-            if len(res) >= 5:
-                res.pop(0)
-            defence.nbattleresult = json.dumps(res)
-            print attRes
-            print defRes
             if attFullPow > defFullPow:
             	b.finish = 1
             else:
                 b.finish = 2
         
         user = checkopdata(uid)
-        res = []
-        try:
-            res = json.loads(user.nbattleresult)
-        except:
-            pass
+        if user.nbattleresult == '' or user.nbattleresult == None:
+            return ''
+        #unreaded battle result return
+        temp = user.nbattleresult
         DBSession.flush()
-        return res
+        
+        return temp    
     @expose('json')
     def removeRead(self, uid, warList):
         user = checkopdata(uid)
-        battle = []
-        try:
-            battle = json.loads(user.nbattleresult)
-        except:
-            battle = []
-        #battle = battle.split(';')
+        battle = user.nbattleresult
+        battle = battle.split(';')
         rems = json.loads(warList)
         rems = set(rems)
         left = []
@@ -4566,18 +4588,28 @@ class RootController(BaseController):
             else:
                 readed.append(b)
             i += 1
+        readStr = ''
+        i = 0
+        for b in readed:
+            if i == 0:
+                readStr += b
+            else:
+                readStr += ';'+b
+            i += 1
+        if user.battleresult == '' or user.battleresult == None:
+            user.battleresult = readStr
+        else:
+            user.battleresult += ';'+readStr
 
-        res = []
-        try:
-            res = json.loads(user.battleresult)
-        except:
-            pass
-        res += readed
-        while len(res) >= 8:
-            res.pop(0)
-        user.battleresult = json.dumps(res)
-        #user.nbattleresult = nbat
-        user.nbattleresult = json.dumps(left)
+        nbat = ''
+        i = 0
+        for b in left:
+            if i == 0:
+                nbat += b
+            else:
+                nbat += ';'+b
+            i += 1
+        user.nbattleresult = nbat
         return dict(id=1, left = len(left))
     global NobUpBase
     NobUpBase = [1, 6, 14, 19, 27, 85]
@@ -4666,11 +4698,6 @@ class RootController(BaseController):
         for x in o2:
             xx=DBSession.query(operationalData.otherid,operationalData.empirename).filter_by(userid=x.masterid).one()
             a2.append([xx.otherid,xx.empirename,0,0,x.time])        
-        res = []
-        try:
-            res = json.loads(u.battleresult)
-        except:
-            pass
         return dict(wonlist=a1,lostlist=a2,warrecord=u.battleresult,won=uv.won,dewon=uv.dewon,defence=uv.dewon+uv.delost,attack=uv.won+uv.lost,woninmap=uv.woninmap,lostinmap=uv.lostinmap,dewoninmap=uv.dewoninmap,delostinmap=uv.delostinmap)                                                        
     global calProtect
     def calProtect(kind, time):
@@ -5277,7 +5304,7 @@ class RootController(BaseController):
                         return dict(id=1, result="change by cae")
         return dict(id=0, reason="resource not enough, not egg, kind not right")
     global needHealth 
-    needHealth = [51, 201, 831, 99999, 999999]
+    needHealth = [51, 201, 846, 99999, 999999]
     @expose('json')
     def getUp(self, uid, pid):
         uid = int(uid)
@@ -5405,7 +5432,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = 0
-                        dragon.name = 'My Pet'
+                        dragon.name = '�ҵĳ���'
                         return dict(id=1, result = "buy suc corn")
                     return dict(id=0, reason="need corn")
                 else:
@@ -5416,7 +5443,7 @@ class RootController(BaseController):
                         dragon.state = 2
                         dragon.health = 9
                         dragon.attack = 0
-                        dragon.name = 'My Pet'
+                        dragon.name = '�ҵĳ���'
                         return dict(id=1, result = "buy suc cae")
                     return dict(id=0, reason="need cae")
             return dict(id=0, reason="kind out of range")
@@ -5581,6 +5608,9 @@ class RootController(BaseController):
                     building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
                     DBSession.add(building)
                     DBSession.flush()
+                    buybuildinglog = open("/data/logs/buybuilding.log","a")
+                    buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy decorationbuild_"+str(ground_id)+".\n")
+                    buybuildinglog.close()
                     return dict(id=1,result="build decoration suc")
                 else:
                     try:
@@ -5590,6 +5620,9 @@ class RootController(BaseController):
                         building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
                         DBSession.add(building)
                         DBSession.flush()
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy decorationbuild_"+str(ground_id)+".\n")
+                        buybuildinglog.close()
                         return dict(id=1,result="build decoration suc")
                     except:
                         return dict(id = 0, reason="can not find mana")
@@ -5629,7 +5662,7 @@ class RootController(BaseController):
                     
                     user.populationupbound += 100
 
-                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = 'My Pet', kind = 0, friList= '[]', lastFeed = 0, trainNum = 0, attack=0)
+                    dragon = Dragon(uid = user_id, bid = building.bid, friNum = 0, state=0,  health = 0, name = '�ҵĳ���', kind = 0, friList= '[]', lastFeed = 0, trainNum = 0, attack=0)
                     DBSession.add(dragon)
                     return dict(id=1, result = "build dragon suc")
             return dict(id = 0, reason = "dragon fail lev or food or corn need")
@@ -5654,6 +5687,9 @@ class RootController(BaseController):
                 DBSession.add(statue)
                 if statuebuilding[index][1]<0:
                     user.cae -= cost
+                    buybuildinglog = open("/data/logs/buybuilding.log","a")
+                    buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy statuebuilding__"+str(ground_id)+".\n")
+                    buybuildinglog.close()
                 else:
                     user.corn -= cost
                 user.labor_num += statuebuilding[index][3]
@@ -5798,6 +5834,9 @@ class RootController(BaseController):
                     if u.cae+price<u.cae:
                         u.cae=u.cae+price
                         print inspect.stack()[0]
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy otherbuilding_"+str(ground_id)+".\n")
+                        buybuildinglog.close()
                     u.food=u.food-pricefood
                     u.labor_num=u.labor_num+pop
                     u.wood=u.wood-wood
@@ -5958,6 +5997,9 @@ class RootController(BaseController):
                 if u.cae+price>=0 and u.food-pricefood>=0 and u.labor_num+pop<=u.population and u.wood-wood>=0 and u.stone-stone>=0 and specialgoods(int(ground_id),u.specialgoods,u)==True:
                     if u.cae+price<u.cae:
                         u.cae=u.cae+price
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy otherbuilding__"+str(ground_id)+".\n")
+                        buybuildinglog.close()
                         print inspect.stack()[0]
                     u.wood=u.wood-wood
                     u.stone=u.stone-stone
@@ -6001,6 +6043,9 @@ class RootController(BaseController):
                     if u.cae>sub:
                         u.cae=sub
                         print inspect.stack()[0]
+                        buyplantlog = open("/data/logs/buyplant.log","a")
+                        buyplantlog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy type_"+str(type)+" object_id_"+str(object_id)+" price:"+str(0-price)+".\n")
+                        buyplantlog.close()
                     ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
                     p.object_id=int(object_id)
                     p.producttime=ti
@@ -6442,7 +6487,7 @@ class RootController(BaseController):
                     for f in notvisited:
                         k += 1
                         f.visited = 1
-                    cornadd = (20 + bonus)*friend_num
+                    cornadd = (100 + bonus)*friend_num
                 else:
                     return dict(id=0, reason="mana or card invalid")
             else:
@@ -6458,10 +6503,10 @@ class RootController(BaseController):
                     for f in notvisited:
                         k += 1
                         f.visited = 1
-                    if friend_num <= 50:
-                        cornadd = (20+bonus)*friend_num + 5*(friend_num+1)*friend_num/2
+                    if friend_num <= 100:
+                        cornadd = (100+bonus)*friend_num + 5*(friend_num+1)*friend_num/2
                     else:
-                        cornadd = (20+bonus)*50 + 5*(50+1)*50/2 + (20+49*5)*(friend_num-50)
+                        cornadd = (100+bonus)*100 + 5*(100+1)*100/2 + (100+99*5)*(friend_num-100)
             if flag == 1:
                 u.corn = u.corn + cornadd
                 m.mana = temp_mana
@@ -6914,35 +6959,6 @@ class RootController(BaseController):
         except InvalidRequestError:
             return dict(id=0)
     @expose('json')
-    def training(self,user_id,city_id,grid_id,sid):
-        try:
-           p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
-           i=int(sid)
-           
-           corn=soldie[i][0]
-           foo=soldie[i][1]
-           pop=soldie[i][2]
-           
-           u=checkopdata(user_id)
-           ptime=p.producttime
-           if ptime>0:
-               return dict(id=1)
-           if u.corn-corn>=0 and u.food-foo>=0 and u.population-pop>=u.labor_num and p.producttime==0 and p.finish==1:
-               u.corn=u.corn-corn
-               u.food=u.food-foo
-               u.population=u.population-pop
-               
-               p.object_id=sid
-               ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
-               p.producttime=ti
-               read(city_id)
-               replacecache(u.userid,u)
-               return dict(id=1)
-           else:
-               return dict(id=0)
-        except InvalidRequestError:
-            return dict(id=0)
-    @expose('json')
     def producecatapult(self,user_id,city_id,grid_id,cata_id,type):
         try:
             p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
@@ -7010,10 +7026,11 @@ class RootController(BaseController):
             u = checkopdata(user_id)
             ti = int(time.mktime(time.localtime())-time.mktime(beginTime))
             cataid = int(p.object_id)
-            if ti-p.producttime >= 3600*3 and p.producttime != 1:
-                return dict(id=1,result="time has bigger than 3 days")
-            if p.producttime == 1 or ti-p.producttime<=catapult[cataid][3]:
-                u.catapult += catapult[cataid][5]
+            if p.producttime == 1 or ti-p.producttime>=catapult[cataid][3]:
+                if ti-p.producttime >= 3600*3:
+                    return dict(id=1,result="time has bigger than 3 days")
+                else:
+                    u.catapult += catapult[cataid][5]
                 p.producttime = 0
                 p.object_id=-1
                 read(city_id)
@@ -7022,6 +7039,35 @@ class RootController(BaseController):
                 return dict(id=0,reason="time not enough")
         except:
             return dict(id=0,reason="try failed")
+    @expose('json')
+    def training(self,user_id,city_id,grid_id,sid):
+        try:
+           p=DBSession.query(businessWrite).filter_by(city_id=int(city_id)).filter_by(grid_id=int(grid_id)).one()
+           i=int(sid)
+           
+           corn=soldie[i][0]
+           foo=soldie[i][1]
+           pop=soldie[i][2]
+           
+           u=checkopdata(user_id)
+           ptime=p.producttime
+           if ptime>0:
+               return dict(id=1)
+           if u.corn-corn>=0 and u.food-foo>=0 and u.population-pop>=u.labor_num and p.producttime==0 and p.finish==1:
+               u.corn=u.corn-corn
+               u.food=u.food-foo
+               u.population=u.population-pop
+               
+               p.object_id=sid
+               ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
+               p.producttime=ti
+               read(city_id)
+               replacecache(u.userid,u)
+               return dict(id=1)
+           else:
+               return dict(id=0)
+        except InvalidRequestError:
+            return dict(id=0)
     @expose('json')
     def soldier(self,user_id,city_id,grid_id):
         try:

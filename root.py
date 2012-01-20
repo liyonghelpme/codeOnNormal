@@ -2863,6 +2863,9 @@ class RootController(BaseController):
             temp_cae = temp_cae - cae_need
             u.cae = temp_cae
             m.mana = m.mana + addmana
+            manalog = open("/data/logs/buymana.log","a")
+            manalog.write("Userid:"+str(userid)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+".\n")
+            manalog.close()
             return dict(id=1,addmana=addmana,caeCost=cae_need,boundary=boundary,result="buy mana suc 1")
         except:
             return dict(id=0,reason="try failed")
@@ -4674,7 +4677,7 @@ class RootController(BaseController):
             res = json.loads(u.battleresult)
         except:
             pass
-        return dict(wonlist=a1,lostlist=a2,warrecord=u.battleresult,won=uv.won,dewon=uv.dewon,defence=uv.dewon+uv.delost,attack=uv.won+uv.lost,woninmap=uv.woninmap,lostinmap=uv.lostinmap,dewoninmap=uv.dewoninmap,delostinmap=uv.delostinmap)                                                        
+        return dict(wonlist=a1,lostlist=a2,warrecord=res,won=uv.won,dewon=uv.dewon,defence=uv.dewon+uv.delost,attack=uv.won+uv.lost,woninmap=uv.woninmap,lostinmap=uv.lostinmap,dewoninmap=uv.dewoninmap,delostinmap=uv.delostinmap)                                                        
     global calProtect
     def calProtect(kind, time):
         ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
@@ -5584,6 +5587,9 @@ class RootController(BaseController):
                     building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
                     DBSession.add(building)
                     DBSession.flush()
+                    buybuildinglog = open("/data/logs/buybuilding.log","a")
+                    buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy decorationbuild_"+str(ground_id)+".\n")
+                    buybuildinglog.close()
                     return dict(id=1,result="build decoration suc")
                 else:
                     try:
@@ -5593,6 +5599,9 @@ class RootController(BaseController):
                         building = businessWrite(city_id = city_id, ground_id=ground_id, grid_id=grid_id, object_id = -1, producttime = 0, finish = 1)
                         DBSession.add(building)
                         DBSession.flush()
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy decorationbuild_"+str(ground_id)+".\n")
+                        buybuildinglog.close()
                         return dict(id=1,result="build decoration suc")
                     except:
                         return dict(id = 0, reason="can not find mana")
@@ -5657,6 +5666,9 @@ class RootController(BaseController):
                 DBSession.add(statue)
                 if statuebuilding[index][1]<0:
                     user.cae -= cost
+                    buybuildinglog = open("/data/logs/buybuilding.log","a")
+                    buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy statuebuilding__"+str(ground_id)+".\n")
+                    buybuildinglog.close()
                 else:
                     user.corn -= cost
                 user.labor_num += statuebuilding[index][3]
@@ -5801,6 +5813,10 @@ class RootController(BaseController):
                     if u.cae+price<u.cae:
                         u.cae=u.cae+price
                         print inspect.stack()[0]
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy otherbuilding_"+str(ground_id)+".\n")
+                        buybuildinglog.close()
+
                     u.food=u.food-pricefood
                     u.labor_num=u.labor_num+pop
                     u.wood=u.wood-wood
@@ -5962,6 +5978,9 @@ class RootController(BaseController):
                     if u.cae+price<u.cae:
                         u.cae=u.cae+price
                         print inspect.stack()[0]
+                        buybuildinglog = open("/data/logs/buybuilding.log","a")
+                        buybuildinglog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy otherbuilding__"+str(ground_id)+".\n")
+                        buybuildinglog.close()
                     u.wood=u.wood-wood
                     u.stone=u.stone-stone
                     u.food=u.food-pricefood
@@ -6004,6 +6023,9 @@ class RootController(BaseController):
                     if u.cae>sub:
                         u.cae=sub
                         print inspect.stack()[0]
+                        buyplantlog = open("/data/logs/buyplant.log","a")
+                        buyplantlog.write("Userid:"+str(user_id)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+" buy type_"+str(type)+" object_id_"+str(object_id)+" price:"+str(0-price)+".\n")
+                        buyplantlog.close()
                     ti=int(time.mktime(time.localtime())-time.mktime(beginTime))
                     p.object_id=int(object_id)
                     p.producttime=ti
