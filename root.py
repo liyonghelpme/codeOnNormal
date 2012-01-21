@@ -2864,7 +2864,7 @@ class RootController(BaseController):
             u.cae = temp_cae
             m.mana = m.mana + addmana
             manalog = open("/data/logs/buymana.log","a")
-            manalog.write("Userid:"+str(userid)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+"."), "caeNeed", cae_need
+            manalog.write("Userid:"+str(userid)+" Time:"+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+"("+str(time.mktime(time.localtime())-time.mktime(beginTime))+")"+"caeNeed"+"("+str(cae_need)+")"+"\n")
             manalog.close()
             return dict(id=1,addmana=addmana,caeCost=cae_need,boundary=boundary,result="buy mana suc 1")
         except:
@@ -4118,7 +4118,7 @@ class RootController(BaseController):
             emptyInfo = mapEmptyInfo1(uid, warmap.mapid)
         except:
             print 'get emptyinfo fail'
-        return dict(empty=emptyInfo, nobility=nob,emptyResult = emptybattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower) 
+        return dict(empty=emptyInfo, nobility=nob,emptyResult = emptybattle['result'], battleresult=battleresult,subno=u.subno, defence=u.defencepower, minus=min[1], corn=u.corn, cae = u.cae, inf = u.infantrypower, cav = u.cavalrypower, catapult = u.catapult) 
     def callost(myFull, eneFull, myPure, enePure, type):
     	lost = [0, 0]
     	attackLost = [[40, 50, 70, 90], [15, 20, 20, 20] ]
@@ -4310,7 +4310,7 @@ class RootController(BaseController):
                 attacker.wood += woodGen
                 attacker.stone += stoneGen
 
-            if empty.uid != -1:
+            if empty.uid != -1 and defencer != None:
                 defencer.infantrypower += leftIn
                 defencer.cavalrypower += leftCa
                 defencer.corn += coinGen

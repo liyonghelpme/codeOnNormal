@@ -12,7 +12,9 @@ import json
 import MySQLdb
 # Global session manager: DBSession() returns the Thread-local
 # session object appropriate for the current web request.
-con = MySQLdb.connect(host='localhost', passwd='2e4n5k2w2x', user='root', db='stcHong')
+passwd = 'badperson3'
+user = 'root'
+con = MySQLdb.connect(host='localhost', passwd=passwd, user=user, db='stcHong')
 cursor = con.cursor()
 maker = sessionmaker(autoflush=True, autocommit=False,
                      extension=ZopeTransactionExtension())
@@ -22,10 +24,10 @@ beginTime=(2011,1,1,0,0,0,0,0,0)
 timestr=str(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
 taskbonus=[]
 wartaskbonus=[]
-f = file('/root/tg2env/taskbonus.json')
+f = file('taskbonus.json')
 source = f.read()
 target = json.JSONDecoder().decode(source)
-f2=file('/root/tg2env/wartask.json')
+f2=file('wartask.json')
 source2=f2.read()
 logfile = file("log.txt", "w")
 if source2!=None:
@@ -108,6 +110,7 @@ def init_model(engine):
     caebuy_table=Table("caebuy",metadata,autoload=True,autoload_with=engine)
     ppyfriend_table=Table("papayafriend",metadata,autoload=True,autoload_with=engine)
     rank_table=Table("rank",metadata,autoload=True,autoload_with=engine)
+    mana_table = Table("mana", metadata, autoload=True, autoload_with=engine)
    # useraccount_table=Table("userAccount",metadata,autoload=True,autoload_with=engine)
     mapper(warMap,warmap_table)
     mapper(operationalData,operationaldata_table)
@@ -130,6 +133,7 @@ def init_model(engine):
     mapper(Caebuy,caebuy_table)
     mapper(Papayafriend,ppyfriend_table)
     mapper(Rank,rank_table)
+    mapper(Mana,mana_table)
 # Import your model modules here.
 from stchong.model.auth import User, Group, Permission
 from stchong.model.operationaldata import operationalData
@@ -157,4 +161,5 @@ from stchong.model.petAtt import PetAtt
 from stchong.model.message import Message
 from stchong.model.emptyCastal import EmptyCastal
 from stchong.model.emptyResult import EmptyResult
+from stchong.model.mana import Mana
 #from stchong.model.useraccount import userAccount
