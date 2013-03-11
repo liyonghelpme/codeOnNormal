@@ -1,0 +1,7 @@
+myserver.js
+node.js chat server
+
+send uid name cid text 
+recv uid cid since
+
+since = curTime/1000 - beginTime
